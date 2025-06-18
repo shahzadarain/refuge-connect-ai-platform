@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, LogOut, User } from 'lucide-react';
@@ -45,9 +44,17 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     setIsLoading(true);
     try {
       const data = await fetchCompanies();
-      setCompanies(data);
+      console.log('Loaded companies:', data);
+      // Ensure we have an array
+      if (Array.isArray(data)) {
+        setCompanies(data);
+      } else {
+        console.error('Companies data is not an array:', data);
+        setCompanies([]);
+      }
     } catch (error) {
       console.error('Error fetching companies:', error);
+      setCompanies([]); // Set to empty array on error
       toast({
         title: "Error",
         description: "Failed to fetch companies data",
@@ -75,10 +82,29 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     try {
       console.log('Starting company approval process...');
       
-      // Step 1: Get company details for the email
+      // Step 1: Get company details from current state
+      console.log('Current companies array:', companies);
+      
+      // Ensure companies is an array before using find
+      if (!Array.isArray(companies)) {
+        console.error('Companies is not an array:', companies);
+        toast({
+          title: "Error",
+          description: "Invalid companies data. Please refresh the page.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const company = companies.find(c => c.id === companyId);
       if (!company) {
-        throw new Error('Company not found');
+        console.error('Company not found in current list:', companyId);
+        toast({
+          title: "Error", 
+          description: "Company not found. Please refresh the page.",
+          variant: "destructive",
+        });
+        return;
       }
 
       // Step 2: Approve company via backend API
@@ -124,7 +150,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
         });
       }
       
-      loadCompanies();
+      // Step 4: Reload companies to get the updated state
+      await loadCompanies();
     } catch (error) {
       console.error('Error approving company:', error);
       toast({
@@ -151,7 +178,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
         title: "Success",
         description: "Company rejected successfully",
       });
-      loadCompanies();
+      // Reload companies to get the updated state
+      await loadCompanies();
     } catch (error) {
       console.error('Error rejecting company:', error);
       toast({
