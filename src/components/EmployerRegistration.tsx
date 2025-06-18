@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ProgressIndicator from './ProgressIndicator';
@@ -121,6 +120,10 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
     setIsSubmitting(true);
     
     try {
+      console.log('Starting registration request...');
+      console.log('Company data:', companyData);
+      console.log('Admin data:', { ...adminData, password: '[HIDDEN]', confirm_password: '[HIDDEN]' });
+
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/employer/register', {
         method: 'POST',
         headers: {
@@ -132,15 +135,47 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
         })
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Registration failed');
+        let errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
+        
+        try {
+          const errorData = await response.json();
+          console.log('Error response data:', errorData);
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
 
+      const result = await response.json();
+      console.log('Registration successful:', result);
       setCurrentStep(3); // Success step
     } catch (error) {
-      console.error('Registration error:', error);
-      setErrors({ submit: error.message });
+      console.error('Registration error details:', error);
+      
+      let errorMessage = 'Registration failed';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+        } else if (error.message.includes('CORS')) {
+          errorMessage = 'Server configuration error: Cross-origin request blocked. Please contact support.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
     }
@@ -277,7 +312,16 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
 
       {errors.submit && (
         <div className="bg-error-red/10 border border-error-red rounded-md p-4 mb-4">
-          <p className="text-error-red text-body-mobile">{errors.submit}</p>
+          <p className="text-error-red text-body-mobile font-medium mb-2">Registration Error:</p>
+          <p className="text-error-red text-small-mobile">{errors.submit}</p>
+          <details className="mt-2">
+            <summary className="text-error-red text-small-mobile cursor-pointer">Show technical details</summary>
+            <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-600 font-mono overflow-auto">
+              <p>Timestamp: {new Date().toISOString()}</p>
+              <p>Endpoint: POST https://ab93e9536acd.ngrok.app/api/employer/register</p>
+              <p>Check browser console for more details</p>
+            </div>
+          </details>
         </div>
       )}
     </div>
