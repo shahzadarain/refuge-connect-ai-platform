@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSession } from '@/hooks/useSession';
 import Header from '@/components/Header';
 import RoleCard from '@/components/RoleCard';
 import EmployerRegistration from '@/components/EmployerRegistration';
@@ -12,8 +13,21 @@ type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 
 
 const Index = () => {
   const { t } = useLanguage();
+  const { currentUser, isLoggedIn } = useSession();
   const [currentView, setCurrentView] = useState<ViewState>('landing');
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    console.log('Index component checking session:', { isLoggedIn, currentUser });
+    if (isLoggedIn && currentUser) {
+      if (currentUser.user_type === 'super_admin') {
+        console.log('Found super admin session, navigating to dashboard');
+        setCurrentView('super-admin-dashboard');
+      }
+      // Add other user types here if needed in the future
+    }
+  }, [isLoggedIn, currentUser]);
 
   const handleRoleSelect = (role: string) => {
     setSelectedRole(role);
