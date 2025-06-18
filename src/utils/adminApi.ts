@@ -1,3 +1,4 @@
+
 export interface Company {
   id: string;
   legal_name: string;
@@ -27,6 +28,15 @@ const API_BASE_URL = 'https://ab93e9536acd.ngrok.app/api';
 const API_HEADERS = {
   'Accept': 'application/json',
   'ngrok-skip-browser-warning': 'true'
+};
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('access_token');
+  return {
+    ...API_HEADERS,
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  };
 };
 
 export const fetchCompanies = async (): Promise<Company[]> => {
@@ -66,17 +76,14 @@ export const approveCompany = async (companyId: string, adminId: string): Promis
   console.log('Approving company:', companyId, 'by admin:', adminId);
   
   const requestBody = {
-    approved_by: adminId
+    is_approved: true
   };
   
   console.log('Request body being sent:', requestBody);
   
   const response = await fetch(`${API_BASE_URL}/companies/${companyId}/approve`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...API_HEADERS
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(requestBody)
   });
 
@@ -97,17 +104,14 @@ export const rejectCompany = async (companyId: string, adminId: string): Promise
   console.log('Rejecting company:', companyId, 'by admin:', adminId);
   
   const requestBody = {
-    rejected_by: adminId
+    is_approved: false
   };
   
   console.log('Request body being sent:', requestBody);
   
-  const response = await fetch(`${API_BASE_URL}/companies/${companyId}/reject`, {
+  const response = await fetch(`${API_BASE_URL}/companies/${companyId}/approve`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...API_HEADERS
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(requestBody)
   });
 
@@ -127,10 +131,7 @@ export const activateUser = async (userId: string): Promise<void> => {
   console.log('Activating user:', userId);
   const response = await fetch(`${API_BASE_URL}/users/${userId}/activate`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...API_HEADERS
-    }
+    headers: getAuthHeaders()
   });
 
   if (!response.ok) {
