@@ -1,3 +1,4 @@
+
 export interface Company {
   id: string;
   legal_name: string;
@@ -22,6 +23,18 @@ export interface User {
   is_verified: boolean;
   created_at: string;
   last_login?: string;
+}
+
+// Add interface for approval response
+export interface ApprovalResponse {
+  success: boolean;
+  message: string;
+  verification_details?: {
+    email: string;
+    company_name: string;
+    verification_code: string;
+    expires_in_days: number;
+  };
 }
 
 const API_BASE_URL = 'https://ab93e9536acd.ngrok.app/api';
@@ -72,7 +85,7 @@ export const fetchUsers = async (): Promise<User[]> => {
   return data;
 };
 
-export const approveCompany = async (companyId: string, adminId: string, adminComment?: string): Promise<void> => {
+export const approveCompany = async (companyId: string, adminId: string, adminComment?: string): Promise<ApprovalResponse> => {
   console.log('Approving company:', companyId, 'by admin:', adminId, 'with comment:', adminComment);
   
   const requestBody = {
@@ -99,6 +112,7 @@ export const approveCompany = async (companyId: string, adminId: string, adminCo
 
   const responseData = await response.json();
   console.log('Approval response data:', responseData);
+  return responseData;
 };
 
 export const rejectCompany = async (companyId: string, adminId: string, adminComment?: string): Promise<void> => {

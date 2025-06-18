@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, LogOut, User } from 'lucide-react';
@@ -11,6 +10,7 @@ import {
   approveCompany,
   rejectCompany
 } from '@/utils/adminApi';
+import { sendCompanyApprovalEmail } from '@/utils/emailApi';
 
 interface SuperAdminDashboardProps {
   onBack?: () => void;
@@ -71,11 +71,36 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     }
 
     try {
-      await approveCompany(companyId, currentUser.id, comment);
-      toast({
-        title: "Success",
-        description: "Company approved successfully",
-      });
+      console.log('Starting company approval process...');
+      
+      // Step 1: Approve company via backend API
+      const approvalResponse = await approveCompany(companyId, currentUser.id, comment);
+      console.log('Backend approval response:', approvalResponse);
+      
+      // Step 2: Send approval email if verification details are provided
+      if (approvalResponse.verification_details) {
+        console.log('Sending approval email...');
+        try {
+          await sendCompanyApprovalEmail(approvalResponse.verification_details);
+          toast({
+            title: "Success",
+            description: "Company approved successfully and verification email sent!",
+          });
+        } catch (emailError) {
+          console.error('Email sending failed:', emailError);
+          toast({
+            title: "Partial Success",
+            description: "Company approved but email could not be sent. Please contact the company manually.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Success",
+          description: "Company approved successfully",
+        });
+      }
+      
       loadCompanies();
     } catch (error) {
       console.error('Error approving company:', error);
