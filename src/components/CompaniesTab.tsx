@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
-import { Building2, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Building2, CheckCircle, XCircle, Eye, History } from 'lucide-react';
 import { Company } from '@/utils/adminApi';
 import CompanyActionDialog from './CompanyActionDialog';
+import CompanyAuditLogs from './CompanyAuditLogs';
 import {
   Dialog,
   DialogContent,
@@ -259,6 +259,28 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
                       </div>
                     </div>
                   </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button className="flex items-center gap-2 px-4 py-2 border border-border text-neutral-gray rounded-md hover:bg-light-gray transition-colors">
+                    <History className="w-4 h-4" />
+                    Audit History
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-3">
+                      <History className="w-6 h-6 text-un-blue" />
+                      Audit History - {company.legal_name}
+                    </DialogTitle>
+                  </DialogHeader>
+                  
+                  <CompanyAuditLogs 
+                    companyId={company.id} 
+                    companyName={company.legal_name}
+                  />
                 </DialogContent>
               </Dialog>
             </div>

@@ -1,10 +1,9 @@
 
 export interface AuditLog {
   id: string;
-  table_name: string;
-  record_id: string;
   action: string;
   changed_by: string;
+  changed_by_email?: string;
   changed_at: string;
   old_values: Record<string, any> | null;
   new_values: Record<string, any> | null;
@@ -60,5 +59,24 @@ export const fetchAuditLogs = async (filters?: AuditLogFilters): Promise<AuditLo
 
   const data = await response.json();
   console.log('Audit logs data received:', data);
+  return data;
+};
+
+export const fetchCompanyAuditLogs = async (companyId: string): Promise<AuditLog[]> => {
+  console.log('Fetching company audit logs for:', companyId);
+  
+  const url = `${API_BASE_URL}/audit-logs/companies/${companyId}`;
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch company audit logs: ${response.status}`);
+  }
+
+  const data = await response.json();
+  console.log('Company audit logs data received:', data);
   return data;
 };
