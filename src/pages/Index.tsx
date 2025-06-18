@@ -32,7 +32,7 @@ const Index = () => {
     }
   }, [isLoggedIn, currentUser]);
 
-  // Check for email verification link on mount
+  // Check for email verification or company setup links on mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const currentPath = window.location.pathname;
@@ -42,29 +42,29 @@ const Index = () => {
     console.log('Current path:', currentPath);
     console.log('URL params - email:', email, 'action:', action);
     
-    // Handle /company-setup route
-    if (currentPath === '/company-setup') {
-      console.log('Company setup route detected, email from params:', email);
+    // Handle company setup via URL path or query parameter
+    if (currentPath.includes('company-setup') || action === 'setup') {
+      console.log('Company setup detected, email from params:', email);
       if (email) {
         setVerificationEmail(email);
+        setCurrentView('company-admin-setup');
+      } else {
+        // If no email in URL, try to get from localStorage or redirect to landing
+        console.log('No email found for company setup, redirecting to landing');
+        setCurrentView('landing');
       }
-      setCurrentView('company-admin-setup');
+      // Clean up URL
+      window.history.replaceState({}, document.title, '/');
       return;
     }
     
-    // Handle verification and setup actions via query parameters
+    // Handle email verification
     if (email && action === 'verify') {
       console.log('Email verification link detected for:', email);
       setVerificationEmail(email);
       setCurrentView('email-verification');
       // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (email && action === 'setup') {
-      console.log('Company admin setup link detected for:', email);
-      setVerificationEmail(email);
-      setCurrentView('company-admin-setup');
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
+      window.history.replaceState({}, document.title, '/');
     }
   }, []);
 
