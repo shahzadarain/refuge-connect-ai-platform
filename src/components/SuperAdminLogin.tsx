@@ -50,18 +50,21 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
       const result = await response.json();
       console.log('Super admin login response:', result);
 
-      if (response.ok && result.user) {
-        // Store user session
+      if (response.ok && result.access_token) {
+        // Store user session based on actual API response structure
         login({
-          id: result.user.id,
-          email: result.user.email,
-          user_type: result.user.user_type,
-          phone: result.user.phone,
-          is_active: result.user.is_active,
-          is_verified: result.user.is_verified,
-          created_at: result.user.created_at,
+          id: result.user_id,
+          email: formData.email, // Use email from form since API doesn't return it
+          user_type: result.user_type,
+          phone: formData.phone, // Use phone from form since API doesn't return it
+          is_active: true, // Assume active if login successful
+          is_verified: true, // Assume verified if login successful
+          created_at: new Date().toISOString(),
           last_login: new Date().toISOString()
         });
+
+        // Store access token for future API calls
+        localStorage.setItem('access_token', result.access_token);
 
         toast({
           title: "Login Successful",
