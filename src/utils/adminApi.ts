@@ -1,4 +1,3 @@
-
 export interface Company {
   id: string;
   legal_name: string;
@@ -10,6 +9,7 @@ export interface Company {
   is_approved: boolean;
   approved_by?: string;
   approved_at?: string;
+  admin_comment?: string;
   created_at: string;
 }
 
@@ -72,11 +72,12 @@ export const fetchUsers = async (): Promise<User[]> => {
   return data;
 };
 
-export const approveCompany = async (companyId: string, adminId: string): Promise<void> => {
-  console.log('Approving company:', companyId, 'by admin:', adminId);
+export const approveCompany = async (companyId: string, adminId: string, adminComment?: string): Promise<void> => {
+  console.log('Approving company:', companyId, 'by admin:', adminId, 'with comment:', adminComment);
   
   const requestBody = {
-    is_approved: true
+    is_approved: true,
+    admin_comment: adminComment
   };
   
   console.log('Request body being sent:', requestBody);
@@ -100,11 +101,12 @@ export const approveCompany = async (companyId: string, adminId: string): Promis
   console.log('Approval response data:', responseData);
 };
 
-export const rejectCompany = async (companyId: string, adminId: string): Promise<void> => {
-  console.log('Rejecting company:', companyId, 'by admin:', adminId);
+export const rejectCompany = async (companyId: string, adminId: string, adminComment?: string): Promise<void> => {
+  console.log('Rejecting company:', companyId, 'by admin:', adminId, 'with comment:', adminComment);
   
   const requestBody = {
-    is_approved: false
+    is_approved: false,
+    admin_comment: adminComment
   };
   
   console.log('Request body being sent:', requestBody);

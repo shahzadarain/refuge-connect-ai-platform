@@ -75,7 +75,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     loadUsers();
   }, []);
 
-  const handleApproveCompany = async (companyId: string) => {
+  const handleApproveCompany = async (companyId: string, comment: string) => {
     if (!currentUser) {
       toast({
         title: "Error",
@@ -86,7 +86,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     }
 
     try {
-      await approveCompany(companyId, currentUser.id);
+      await approveCompany(companyId, currentUser.id, comment);
       toast({
         title: "Success",
         description: "Company approved successfully",
@@ -102,7 +102,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     }
   };
 
-  const handleRejectCompany = async (companyId: string) => {
+  const handleRejectCompany = async (companyId: string, comment: string) => {
     if (!currentUser) {
       toast({
         title: "Error",
@@ -113,7 +113,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     }
 
     try {
-      await rejectCompany(companyId, currentUser.id);
+      await rejectCompany(companyId, currentUser.id, comment);
       toast({
         title: "Success",
         description: "Company rejected successfully",

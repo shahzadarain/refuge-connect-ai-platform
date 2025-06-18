@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Building2, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { Company } from '@/utils/adminApi';
+import CompanyActionDialog from './CompanyActionDialog';
 import {
   Dialog,
   DialogContent,
@@ -13,8 +14,8 @@ import {
 interface CompaniesTabProps {
   companies: Company[];
   isLoading: boolean;
-  onApprove: (companyId: string) => void;
-  onReject: (companyId: string) => void;
+  onApprove: (companyId: string, comment: string) => void;
+  onReject: (companyId: string, comment: string) => void;
 }
 
 const CompaniesTab: React.FC<CompaniesTabProps> = ({
@@ -33,6 +34,14 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleApprove = (companyId: string, comment: string) => {
+    onApprove(companyId, comment);
+  };
+
+  const handleReject = (companyId: string, comment: string) => {
+    onReject(companyId, comment);
   };
 
   return (
@@ -101,22 +110,39 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
               </div>
             )}
 
+            {company.admin_comment && (
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                <p className="text-small-mobile text-neutral-gray/70 mb-1">Admin Comment</p>
+                <p className="text-body-mobile">{company.admin_comment}</p>
+              </div>
+            )}
+
             <div className="flex gap-3">
-              <button
-                onClick={() => onApprove(company.id)}
-                className="flex items-center gap-2 px-4 py-2 bg-success-green text-white rounded-md hover:bg-success-green/90 transition-colors"
+              <CompanyActionDialog
+                action="approve"
+                companyName={company.legal_name}
+                onConfirm={(comment) => handleApprove(company.id, comment)}
                 disabled={company.is_approved}
               >
-                <CheckCircle className="w-4 h-4" />
-                Approve
-              </button>
-              <button
-                onClick={() => onReject(company.id)}
-                className="flex items-center gap-2 px-4 py-2 bg-error-red text-white rounded-md hover:bg-error-red/90 transition-colors"
+                <button
+                  className="flex items-center gap-2 px-4 py-2 bg-success-green text-white rounded-md hover:bg-success-green/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={company.is_approved}
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Approve
+                </button>
+              </CompanyActionDialog>
+
+              <CompanyActionDialog
+                action="reject"
+                companyName={company.legal_name}
+                onConfirm={(comment) => handleReject(company.id, comment)}
               >
-                <XCircle className="w-4 h-4" />
-                Reject
-              </button>
+                <button className="flex items-center gap-2 px-4 py-2 bg-error-red text-white rounded-md hover:bg-error-red/90 transition-colors">
+                  <XCircle className="w-4 h-4" />
+                  Reject
+                </button>
+              </CompanyActionDialog>
               
               <Dialog>
                 <DialogTrigger asChild>
@@ -187,6 +213,16 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
                       <div>
                         <h3 className="font-semibold text-neutral-gray mb-3">About Company</h3>
                         <p className="text-body-mobile leading-relaxed">{company.about_company}</p>
+                      </div>
+                    )}
+
+                    {/* Admin Comment */}
+                    {company.admin_comment && (
+                      <div>
+                        <h3 className="font-semibold text-neutral-gray mb-3">Admin Comment</h3>
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <p className="text-body-mobile leading-relaxed">{company.admin_comment}</p>
+                        </div>
                       </div>
                     )}
 
