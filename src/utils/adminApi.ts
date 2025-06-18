@@ -66,7 +66,7 @@ export const fetchCompanies = async (): Promise<Company[]> => {
 
   const data = await response.json();
   console.log('Companies data received:', data);
-  return data;
+  return Array.isArray(data) ? data : [];
 };
 
 export const fetchUsers = async (): Promise<User[]> => {
@@ -83,26 +83,44 @@ export const fetchUsers = async (): Promise<User[]> => {
 
   const data = await response.json();
   console.log('Users data received:', data);
-  return data;
+  return Array.isArray(data) ? data : [];
 };
 
 export const fetchCompanyAdmin = async (companyId: string): Promise<User | null> => {
   console.log('Fetching company admin for company:', companyId);
-  const response = await fetch(`${API_BASE_URL}/users?user_type=employer_admin&company_id=${companyId}`, {
-    method: 'GET',
-    headers: API_HEADERS
-  });
+  
+  try {
+    // First try to get all users and filter
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: 'GET',
+      headers: API_HEADERS
+    });
 
-  if (!response.ok) {
-    console.log('Failed to fetch company admin:', response.status);
+    if (!response.ok) {
+      console.log('Failed to fetch users:', response.status);
+      return null;
+    }
+
+    const users = await response.json();
+    console.log('All users received:', users);
+    
+    if (!Array.isArray(users)) {
+      console.log('Users response is not an array:', users);
+      return null;
+    }
+    
+    // Find the employer_admin user for this company
+    const companyAdmin = users.find((user: User) => 
+      user.user_type === 'employer_admin' && 
+      user.company_id === companyId
+    );
+    
+    console.log('Found company admin:', companyAdmin);
+    return companyAdmin || null;
+  } catch (error) {
+    console.error('Error fetching company admin:', error);
     return null;
   }
-
-  const users = await response.json();
-  console.log('Company admin data received:', users);
-  
-  // Return the first employer_admin user found for this company
-  return users.find((user: User) => user.user_type === 'employer_admin' && user.company_id === companyId) || null;
 };
 
 export const approveCompany = async (companyId: string, adminId: string, adminComment?: string): Promise<ApprovalResponse> => {
@@ -122,7 +140,6 @@ export const approveCompany = async (companyId: string, adminId: string, adminCo
   });
 
   console.log('Response status:', response.status);
-  console.log('Response headers:', response.headers);
 
   if (!response.ok) {
     const errorText = await response.text();
