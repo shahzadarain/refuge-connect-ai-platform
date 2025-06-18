@@ -1,6 +1,8 @@
 
 export interface AuditLog {
   id: string;
+  table_name: string;
+  record_id: string;
   action: string;
   changed_by: string;
   changed_by_email?: string;
