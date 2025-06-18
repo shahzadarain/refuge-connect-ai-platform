@@ -47,7 +47,7 @@ const Index = () => {
   }
 
   if (currentView === 'refugee-registration') {
-    return <RefugeeRegistration onBack={handleBackToLanding} onNavigateToJobBoard={handleNavigateToJobBoard} />;
+    return <RefugeeRegistration onBack={handleBackToLanding} />;
   }
 
   if (currentView === 'super-admin-login') {
