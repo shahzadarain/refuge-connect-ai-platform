@@ -65,12 +65,21 @@ export const fetchUsers = async (): Promise<User[]> => {
 
 export const approveCompany = async (companyId: string): Promise<void> => {
   console.log('Approving company:', companyId);
+  
+  // Get current user from localStorage
+  const currentUserStr = localStorage.getItem('current_log_user');
+  const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+  
   const response = await fetch(`${API_BASE_URL}/companies/${companyId}/approve`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       ...API_HEADERS
-    }
+    },
+    body: JSON.stringify({
+      approved_by: currentUser?.id || null,
+      approved_at: new Date().toISOString()
+    })
   });
 
   if (!response.ok) {
@@ -80,12 +89,21 @@ export const approveCompany = async (companyId: string): Promise<void> => {
 
 export const rejectCompany = async (companyId: string): Promise<void> => {
   console.log('Rejecting company:', companyId);
+  
+  // Get current user from localStorage
+  const currentUserStr = localStorage.getItem('current_log_user');
+  const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+  
   const response = await fetch(`${API_BASE_URL}/companies/${companyId}/reject`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       ...API_HEADERS
-    }
+    },
+    body: JSON.stringify({
+      rejected_by: currentUser?.id || null,
+      rejected_at: new Date().toISOString()
+    })
   });
 
   if (!response.ok) {
