@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
 import CompaniesTab from './CompaniesTab';
 import UsersTab from './UsersTab';
+import AuditLogsTab from './AuditLogsTab';
 import {
   Company,
   User as UserType,
@@ -14,6 +15,11 @@ import {
   rejectCompany,
   activateUser
 } from '@/utils/adminApi';
+import {
+  AuditLog,
+  AuditLogFilters,
+  fetchAuditLogs
+} from '@/utils/auditApi';
 
 interface SuperAdminDashboardProps {
   onBack?: () => void;
@@ -23,10 +29,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
   const { t } = useLanguage();
   const { toast } = useToast();
   const { currentUser, logout, isLoggedIn } = useSession();
-  const [activeTab, setActiveTab] = useState<'companies' | 'users'>('companies');
+  const [activeTab, setActiveTab] = useState<'companies' | 'users' | 'audit-logs'>('companies');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [auditLogsLoading, setAuditLogsLoading] = useState(false);
 
   // Check if user is still logged in on component mount
   useEffect(() => {
@@ -70,9 +78,27 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     }
   };
 
+  const loadAuditLogs = async (filters?: AuditLogFilters) => {
+    setAuditLogsLoading(true);
+    try {
+      const data = await fetchAuditLogs(filters);
+      setAuditLogs(data);
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch audit logs",
+        variant: "destructive",
+      });
+    } finally {
+      setAuditLogsLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadCompanies();
     loadUsers();
+    loadAuditLogs();
   }, []);
 
   const handleApproveCompany = async (companyId: string, comment: string) => {
@@ -182,7 +208,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
                 Super Admin Dashboard
               </h1>
               <p className="text-body-mobile text-neutral-gray/80">
-                Manage company applications and user accounts
+                Manage company applications, user accounts, and view audit logs
               </p>
             </div>
             
@@ -233,6 +259,16 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
             >
               Users
             </button>
+            <button
+              onClick={() => setActiveTab('audit-logs')}
+              className={`px-6 py-3 font-medium transition-colors ${
+                activeTab === 'audit-logs'
+                  ? 'text-un-blue border-b-2 border-un-blue'
+                  : 'text-neutral-gray/70 hover:text-neutral-gray'
+              }`}
+            >
+              Audit Logs
+            </button>
           </div>
         </div>
 
@@ -248,6 +284,13 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
           <UsersTab
             users={users}
             onActivate={handleActivateUser}
+          />
+        )}
+        {activeTab === 'audit-logs' && (
+          <AuditLogsTab
+            auditLogs={auditLogs}
+            isLoading={auditLogsLoading}
+            onFiltersChange={loadAuditLogs}
           />
         )}
       </div>
