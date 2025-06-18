@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, Building, User, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Building, User, CheckCircle, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const CompanyActivation = () => {
@@ -12,7 +11,7 @@ const CompanyActivation = () => {
   const navigate = useNavigate();
   
   const [email, setEmail] = useState<string>('');
-  const [step, setStep] = useState<'verification' | 'setup'>('verification');
+  const [step, setStep] = useState<'email-input' | 'verification' | 'setup'>('email-input');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -35,12 +34,25 @@ const CompanyActivation = () => {
       // If action is setup, skip verification and go directly to setup
       if (actionParam === 'setup') {
         setStep('setup');
+      } else {
+        setStep('verification');
       }
     } else {
-      // No email provided, redirect to home
-      navigate('/');
+      // No email provided, show email input form
+      setStep('email-input');
     }
-  }, [searchParams, navigate]);
+  }, [searchParams]);
+
+  const handleEmailSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const emailInput = formData.get('email') as string;
+    
+    if (emailInput) {
+      setEmail(emailInput);
+      setStep('verification');
+    }
+  };
 
   const handleEmailVerification = async () => {
     if (!email) return;
@@ -235,7 +247,58 @@ const CompanyActivation = () => {
           </button>
 
           <div className="form-card">
-            {step === 'verification' ? (
+            {step === 'email-input' ? (
+              <>
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-un-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Mail className="w-8 h-8 text-un-blue" />
+                  </div>
+                  <h1 className="text-h2-mobile font-bold text-neutral-gray mb-2">
+                    Company Setup
+                  </h1>
+                  <p className="text-body-mobile text-neutral-gray/70">
+                    Enter your company email address to begin the setup process
+                  </p>
+                </div>
+
+                <form onSubmit={handleEmailSubmit} className="space-y-4">
+                  <div>
+                    <label htmlFor="email" className="block text-small-mobile font-medium text-neutral-gray mb-2">
+                      Company Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      required
+                      className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-un-blue/20 focus:border-un-blue"
+                      placeholder="Enter your company email"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn-primary w-full"
+                  >
+                    Continue
+                  </button>
+                </form>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                  <div className="flex items-start gap-3">
+                    <Building className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-small-mobile font-medium text-blue-800 mb-1">
+                        Company Registration
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        Use your official company email address to set up your organization's admin account.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : step === 'verification' ? (
               <>
                 <div className="text-center mb-6">
                   <div className="w-16 h-16 bg-un-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
