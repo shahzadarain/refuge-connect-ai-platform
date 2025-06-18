@@ -35,9 +35,24 @@ const Index = () => {
   // Check for email verification link on mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+    const currentPath = window.location.pathname;
     const email = urlParams.get('email');
     const action = urlParams.get('action');
     
+    console.log('Current path:', currentPath);
+    console.log('URL params - email:', email, 'action:', action);
+    
+    // Handle /company-setup route
+    if (currentPath === '/company-setup') {
+      console.log('Company setup route detected, email from params:', email);
+      if (email) {
+        setVerificationEmail(email);
+      }
+      setCurrentView('company-admin-setup');
+      return;
+    }
+    
+    // Handle verification and setup actions via query parameters
     if (email && action === 'verify') {
       console.log('Email verification link detected for:', email);
       setVerificationEmail(email);
