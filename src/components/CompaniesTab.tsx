@@ -1,7 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Building2, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { Company } from '@/utils/adminApi';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface CompaniesTabProps {
   companies: Company[];
@@ -16,6 +23,18 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
   onApprove,
   onReject
 }) => {
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
@@ -98,10 +117,114 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
                 <XCircle className="w-4 h-4" />
                 Reject
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 border border-border text-neutral-gray rounded-md hover:bg-light-gray transition-colors">
-                <Eye className="w-4 h-4" />
-                View Details
-              </button>
+              
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button 
+                    className="flex items-center gap-2 px-4 py-2 border border-border text-neutral-gray rounded-md hover:bg-light-gray transition-colors"
+                    onClick={() => setSelectedCompany(company)}
+                  >
+                    <Eye className="w-4 h-4" />
+                    View Details
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-3">
+                      <Building2 className="w-6 h-6 text-un-blue" />
+                      {company.legal_name}
+                    </DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-6">
+                    {/* Basic Information */}
+                    <div>
+                      <h3 className="font-semibold text-neutral-gray mb-3">Basic Information</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-small-mobile text-neutral-gray/70">Legal Name</p>
+                          <p className="text-body-mobile font-medium">{company.legal_name}</p>
+                        </div>
+                        <div>
+                          <p className="text-small-mobile text-neutral-gray/70">Registration Number</p>
+                          <p className="text-body-mobile">{company.registration_number}</p>
+                        </div>
+                        <div>
+                          <p className="text-small-mobile text-neutral-gray/70">Country of Registration</p>
+                          <p className="text-body-mobile">{company.country_of_registration}</p>
+                        </div>
+                        <div>
+                          <p className="text-small-mobile text-neutral-gray/70">Number of Employees</p>
+                          <p className="text-body-mobile">{company.number_of_employees || 'Not specified'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contact Information */}
+                    <div>
+                      <h3 className="font-semibold text-neutral-gray mb-3">Contact Information</h3>
+                      <div>
+                        <p className="text-small-mobile text-neutral-gray/70">Website</p>
+                        <p className="text-body-mobile">
+                          {company.website ? (
+                            <a 
+                              href={company.website} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-un-blue hover:underline"
+                            >
+                              {company.website}
+                            </a>
+                          ) : (
+                            'Not provided'
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* About Company */}
+                    {company.about_company && (
+                      <div>
+                        <h3 className="font-semibold text-neutral-gray mb-3">About Company</h3>
+                        <p className="text-body-mobile leading-relaxed">{company.about_company}</p>
+                      </div>
+                    )}
+
+                    {/* Status Information */}
+                    <div>
+                      <h3 className="font-semibold text-neutral-gray mb-3">Status Information</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-small-mobile text-neutral-gray/70">Approval Status</p>
+                          <div className={`inline-flex px-3 py-1 rounded-full text-small-mobile ${
+                            company.is_approved 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {company.is_approved ? 'Approved' : 'Pending'}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-small-mobile text-neutral-gray/70">Registration Date</p>
+                          <p className="text-body-mobile">{formatDate(company.created_at)}</p>
+                        </div>
+                        {company.approved_by && (
+                          <div>
+                            <p className="text-small-mobile text-neutral-gray/70">Approved By</p>
+                            <p className="text-body-mobile">{company.approved_by}</p>
+                          </div>
+                        )}
+                        {company.approved_at && (
+                          <div>
+                            <p className="text-small-mobile text-neutral-gray/70">Approved At</p>
+                            <p className="text-body-mobile">{formatDate(company.approved_at)}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         ))
