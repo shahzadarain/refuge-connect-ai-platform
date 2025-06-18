@@ -42,14 +42,29 @@ const Index = () => {
     console.log('Current path:', currentPath);
     console.log('URL params - email:', email, 'action:', action);
     
-    // Handle company setup via URL path or query parameter
-    if (currentPath.includes('company-setup') || action === 'setup') {
-      console.log('Company setup detected, email from params:', email);
+    // Handle /company-setup route
+    if (currentPath === '/company-setup') {
+      console.log('Company setup route detected, email from params:', email);
       if (email) {
         setVerificationEmail(email);
         setCurrentView('company-admin-setup');
       } else {
-        // If no email in URL, try to get from localStorage or redirect to landing
+        // If no email in URL, redirect to landing
+        console.log('No email found for company setup, redirecting to landing');
+        setCurrentView('landing');
+      }
+      // Clean up URL
+      window.history.replaceState({}, document.title, '/');
+      return;
+    }
+    
+    // Handle company setup via query parameter
+    if (action === 'setup') {
+      console.log('Company setup detected via action param, email from params:', email);
+      if (email) {
+        setVerificationEmail(email);
+        setCurrentView('company-admin-setup');
+      } else {
         console.log('No email found for company setup, redirecting to landing');
         setCurrentView('landing');
       }
