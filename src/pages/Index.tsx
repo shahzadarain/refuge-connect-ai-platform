@@ -8,14 +8,16 @@ import RefugeeRegistration from '@/components/RefugeeRegistration';
 import SuperAdminDashboard from '@/components/SuperAdminDashboard';
 import JobBoard from '@/components/JobBoard';
 import SuperAdminLogin from '@/components/SuperAdminLogin';
+import EmailVerification from '@/components/EmailVerification';
 
-type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'job-board' | 'super-admin-login';
+type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'job-board' | 'super-admin-login' | 'email-verification';
 
 const Index = () => {
   const { t } = useLanguage();
   const { currentUser, isLoggedIn } = useSession();
   const [currentView, setCurrentView] = useState<ViewState>('landing');
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [verificationEmail, setVerificationEmail] = useState<string>('');
 
   // Check for existing session on mount
   useEffect(() => {
@@ -28,6 +30,21 @@ const Index = () => {
       // Add other user types here if needed in the future
     }
   }, [isLoggedIn, currentUser]);
+
+  // Check for email verification link on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get('email');
+    const action = urlParams.get('action');
+    
+    if (email && action === 'verify') {
+      console.log('Email verification link detected for:', email);
+      setVerificationEmail(email);
+      setCurrentView('email-verification');
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const handleRoleSelect = (role: string) => {
     setSelectedRole(role);
@@ -46,6 +63,7 @@ const Index = () => {
   const handleBackToLanding = () => {
     setCurrentView('landing');
     setSelectedRole(null);
+    setVerificationEmail('');
   };
 
   const handleNavigateToJobBoard = () => {
@@ -54,6 +72,11 @@ const Index = () => {
 
   const handleSuperAdminLoginSuccess = () => {
     setCurrentView('super-admin-dashboard');
+  };
+
+  const handleVerificationSuccess = () => {
+    setCurrentView('super-admin-login');
+    setVerificationEmail('');
   };
 
   if (currentView === 'employer-registration') {
@@ -74,6 +97,16 @@ const Index = () => {
 
   if (currentView === 'job-board') {
     return <JobBoard />;
+  }
+
+  if (currentView === 'email-verification') {
+    return (
+      <EmailVerification 
+        onBack={handleBackToLanding} 
+        onVerificationSuccess={handleVerificationSuccess}
+        email={verificationEmail}
+      />
+    );
   }
 
   return (
