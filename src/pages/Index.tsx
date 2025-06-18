@@ -9,8 +9,9 @@ import SuperAdminDashboard from '@/components/SuperAdminDashboard';
 import JobBoard from '@/components/JobBoard';
 import SuperAdminLogin from '@/components/SuperAdminLogin';
 import EmailVerification from '@/components/EmailVerification';
+import CompanyAdminSetup from '@/components/CompanyAdminSetup';
 
-type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'job-board' | 'super-admin-login' | 'email-verification';
+type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'job-board' | 'super-admin-login' | 'email-verification' | 'company-admin-setup';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -41,6 +42,12 @@ const Index = () => {
       console.log('Email verification link detected for:', email);
       setVerificationEmail(email);
       setCurrentView('email-verification');
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (email && action === 'setup') {
+      console.log('Company admin setup link detected for:', email);
+      setVerificationEmail(email);
+      setCurrentView('company-admin-setup');
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -75,6 +82,11 @@ const Index = () => {
   };
 
   const handleVerificationSuccess = () => {
+    setCurrentView('company-admin-setup');
+    // Don't clear verification email as we need it for setup
+  };
+
+  const handleCompanySetupSuccess = () => {
     setCurrentView('super-admin-login');
     setVerificationEmail('');
   };
@@ -104,6 +116,16 @@ const Index = () => {
       <EmailVerification 
         onBack={handleBackToLanding} 
         onVerificationSuccess={handleVerificationSuccess}
+        email={verificationEmail}
+      />
+    );
+  }
+
+  if (currentView === 'company-admin-setup') {
+    return (
+      <CompanyAdminSetup 
+        onBack={handleBackToLanding} 
+        onSetupSuccess={handleCompanySetupSuccess}
         email={verificationEmail}
       />
     );
