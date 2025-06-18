@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { History, ChevronDown, ChevronRight, CheckCircle, XCircle, Edit } from 'lucide-react';
 import { AuditLog, fetchCompanyAuditLogs } from '@/utils/auditApi';
@@ -86,6 +85,65 @@ const CompanyAuditLogs: React.FC<CompanyAuditLogsProps> = ({ companyId, companyN
     return 'text-un-blue';
   };
 
+  const formatStateValues = (values: Record<string, any> | null, log: AuditLog) => {
+    if (!values) return 'No data';
+
+    const formatted = { ...values };
+    
+    // Replace approved_by ID with email if available
+    if (formatted.approved_by && log.changed_by_email) {
+      formatted.approved_by = `${log.changed_by_email} (${formatted.approved_by.substring(0, 8)}...)`;
+    }
+
+    // Format boolean values
+    if (typeof formatted.is_approved === 'boolean') {
+      formatted.is_approved = formatted.is_approved ? 'Yes' : 'No';
+    } else if (formatted.is_approved === 1) {
+      formatted.is_approved = 'Yes';
+    } else if (formatted.is_approved === 0) {
+      formatted.is_approved = 'No';
+    }
+
+    // Format status to be more readable
+    if (formatted.status) {
+      formatted.status = formatted.status.charAt(0).toUpperCase() + formatted.status.slice(1);
+    }
+
+    // Format dates
+    if (formatted.approved_at && formatted.approved_at !== 'CURRENT_TIMESTAMP') {
+      try {
+        formatted.approved_at = new Date(formatted.approved_at).toLocaleString();
+      } catch (e) {
+        // Keep original if parsing fails
+      }
+    }
+
+    return formatted;
+  };
+
+  const renderFormattedJson = (values: Record<string, any> | null, log: AuditLog, title: string) => {
+    const formatted = formatStateValues(values, log);
+    
+    if (typeof formatted === 'string') {
+      return <p className="text-neutral-gray/70">{formatted}</p>;
+    }
+
+    return (
+      <div className="space-y-2">
+        {Object.entries(formatted).map(([key, value]) => (
+          <div key={key} className="flex justify-between items-start">
+            <span className="font-medium text-neutral-gray/70 capitalize">
+              {key.replace(/_/g, ' ')}:
+            </span>
+            <span className="text-right max-w-xs break-words">
+              {value === null || value === undefined ? 'N/A' : String(value)}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -154,18 +212,18 @@ const CompanyAuditLogs: React.FC<CompanyAuditLogsProps> = ({ companyId, companyN
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {log.old_values && (
                     <div>
-                      <p className="text-small-mobile font-medium text-neutral-gray mb-2">Previous State:</p>
-                      <pre className="text-xs bg-red-50 p-3 rounded border overflow-x-auto">
-                        {JSON.stringify(log.old_values, null, 2)}
-                      </pre>
+                      <p className="text-small-mobile font-medium text-neutral-gray mb-3">Previous State:</p>
+                      <div className="bg-red-50 p-3 rounded border">
+                        {renderFormattedJson(log.old_values, log, 'Previous')}
+                      </div>
                     </div>
                   )}
                   {log.new_values && (
                     <div>
-                      <p className="text-small-mobile font-medium text-neutral-gray mb-2">New State:</p>
-                      <pre className="text-xs bg-green-50 p-3 rounded border overflow-x-auto">
-                        {JSON.stringify(log.new_values, null, 2)}
-                      </pre>
+                      <p className="text-small-mobile font-medium text-neutral-gray mb-3">New State:</p>
+                      <div className="bg-green-50 p-3 rounded border">
+                        {renderFormattedJson(log.new_values, log, 'New')}
+                      </div>
                     </div>
                   )}
                 </div>
