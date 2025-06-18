@@ -6,8 +6,9 @@ import EmployerRegistration from '@/components/EmployerRegistration';
 import RefugeeRegistration from '@/components/RefugeeRegistration';
 import SuperAdminDashboard from '@/components/SuperAdminDashboard';
 import JobBoard from '@/components/JobBoard';
+import SuperAdminLogin from '@/components/SuperAdminLogin';
 
-type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'job-board';
+type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'job-board' | 'super-admin-login';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -24,7 +25,7 @@ const Index = () => {
     } else if (selectedRole === 'refugee') {
       setCurrentView('refugee-registration');
     } else if (selectedRole === 'admin') {
-      setCurrentView('super-admin-dashboard');
+      setCurrentView('super-admin-login');
     }
   };
 
@@ -37,6 +38,10 @@ const Index = () => {
     setCurrentView('job-board');
   };
 
+  const handleSuperAdminLoginSuccess = () => {
+    setCurrentView('super-admin-dashboard');
+  };
+
   if (currentView === 'employer-registration') {
     return <EmployerRegistration onBack={handleBackToLanding} />;
   }
@@ -45,8 +50,12 @@ const Index = () => {
     return <RefugeeRegistration onBack={handleBackToLanding} onNavigateToJobBoard={handleNavigateToJobBoard} />;
   }
 
+  if (currentView === 'super-admin-login') {
+    return <SuperAdminLogin onBack={handleBackToLanding} onLoginSuccess={handleSuperAdminLoginSuccess} />;
+  }
+
   if (currentView === 'super-admin-dashboard') {
-    return <SuperAdminDashboard />;
+    return <SuperAdminDashboard onBack={handleBackToLanding} />;
   }
 
   if (currentView === 'job-board') {
