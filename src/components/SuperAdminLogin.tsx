@@ -71,7 +71,7 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
       } else {
         toast({
           title: "Login Failed",
-          description: result.message || "Invalid credentials",
+          description: result.message || result.detail || "Invalid credentials",
           variant: "destructive",
         });
       }
