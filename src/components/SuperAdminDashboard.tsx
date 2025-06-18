@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Building2, Users, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Building2, Users, CheckCircle, XCircle, Eye, ArrowLeft } from 'lucide-react';
 
 interface Company {
   id: string;
@@ -26,7 +25,11 @@ interface User {
   last_login?: string;
 }
 
-const SuperAdminDashboard: React.FC = () => {
+interface SuperAdminDashboardProps {
+  onBack?: () => void;
+}
+
+const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'companies' | 'users'>('companies');
   const [companies] = useState<Company[]>([
@@ -230,6 +233,15 @@ const SuperAdminDashboard: React.FC = () => {
     <div className="min-h-screen bg-light-gray">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="flex items-center gap-2 text-neutral-gray hover:text-un-blue transition-colors mb-4"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Home
+            </button>
+          )}
           <h1 className="text-h1-mobile font-bold text-neutral-gray mb-2">
             Super Admin Dashboard
           </h1>

@@ -1,12 +1,13 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import RoleCard from '@/components/RoleCard';
 import EmployerRegistration from '@/components/EmployerRegistration';
 import RefugeeRegistration from '@/components/RefugeeRegistration';
+import SuperAdminDashboard from '@/components/SuperAdminDashboard';
+import JobBoard from '@/components/JobBoard';
 
-type ViewState = 'landing' | 'employer-registration' | 'refugee-registration';
+type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'job-board';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -22,6 +23,8 @@ const Index = () => {
       setCurrentView('employer-registration');
     } else if (selectedRole === 'refugee') {
       setCurrentView('refugee-registration');
+    } else if (selectedRole === 'admin') {
+      setCurrentView('super-admin-dashboard');
     }
   };
 
@@ -30,12 +33,24 @@ const Index = () => {
     setSelectedRole(null);
   };
 
+  const handleNavigateToJobBoard = () => {
+    setCurrentView('job-board');
+  };
+
   if (currentView === 'employer-registration') {
     return <EmployerRegistration onBack={handleBackToLanding} />;
   }
 
   if (currentView === 'refugee-registration') {
-    return <RefugeeRegistration onBack={handleBackToLanding} />;
+    return <RefugeeRegistration onBack={handleBackToLanding} onNavigateToJobBoard={handleNavigateToJobBoard} />;
+  }
+
+  if (currentView === 'super-admin-dashboard') {
+    return <SuperAdminDashboard />;
+  }
+
+  if (currentView === 'job-board') {
+    return <JobBoard />;
   }
 
   return (
