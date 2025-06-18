@@ -1,13 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LogOut, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSession } from '@/hooks/useSession';
 import CompaniesTab from './CompaniesTab';
 import UsersTab from './UsersTab';
 import {
   Company,
-  User,
+  User as UserType,
   fetchCompanies,
   fetchUsers,
   approveCompany,
@@ -22,9 +22,10 @@ interface SuperAdminDashboardProps {
 const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { currentUser, logout } = useSession();
   const [activeTab, setActiveTab] = useState<'companies' | 'users'>('companies');
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const loadCompanies = async () => {
@@ -112,25 +113,63 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out",
+    });
+    if (onBack) {
+      onBack();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-light-gray">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-neutral-gray hover:text-un-blue transition-colors mb-4"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Home
-            </button>
-          )}
-          <h1 className="text-h1-mobile font-bold text-neutral-gray mb-2">
-            Super Admin Dashboard
-          </h1>
-          <p className="text-body-mobile text-neutral-gray/80">
-            Manage company applications and user accounts
-          </p>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="flex items-center gap-2 text-neutral-gray hover:text-un-blue transition-colors mb-4"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Home
+                </button>
+              )}
+              <h1 className="text-h1-mobile font-bold text-neutral-gray mb-2">
+                Super Admin Dashboard
+              </h1>
+              <p className="text-body-mobile text-neutral-gray/80">
+                Manage company applications and user accounts
+              </p>
+            </div>
+            
+            {currentUser && (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-border">
+                  <User className="w-4 h-4 text-un-blue" />
+                  <div className="text-right">
+                    <p className="text-small-mobile font-medium text-neutral-gray">
+                      {currentUser.email}
+                    </p>
+                    <p className="text-xs text-neutral-gray/70">
+                      {currentUser.user_type.replace('_', ' ').toUpperCase()}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 text-error-red hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="mb-6">

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Shield, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSession } from '@/hooks/useSession';
 
 interface SuperAdminLoginProps {
   onBack: () => void;
@@ -12,6 +13,7 @@ interface SuperAdminLoginProps {
 const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSuccess }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { login } = useSession();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -48,7 +50,19 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
       const result = await response.json();
       console.log('Super admin login response:', result);
 
-      if (response.ok) {
+      if (response.ok && result.user) {
+        // Store user session
+        login({
+          id: result.user.id,
+          email: result.user.email,
+          user_type: result.user.user_type,
+          phone: result.user.phone,
+          is_active: result.user.is_active,
+          is_verified: result.user.is_verified,
+          created_at: result.user.created_at,
+          last_login: new Date().toISOString()
+        });
+
         toast({
           title: "Login Successful",
           description: "Welcome to Super Admin Dashboard",
