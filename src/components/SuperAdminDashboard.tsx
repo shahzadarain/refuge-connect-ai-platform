@@ -60,8 +60,17 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
   }, []);
 
   const handleApproveCompany = async (companyId: string) => {
+    if (!currentUser) {
+      toast({
+        title: "Error",
+        description: "No admin user found",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      await approveCompany(companyId);
+      await approveCompany(companyId, currentUser.id);
       toast({
         title: "Success",
         description: "Company approved successfully",
@@ -78,8 +87,17 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
   };
 
   const handleRejectCompany = async (companyId: string) => {
+    if (!currentUser) {
+      toast({
+        title: "Error",
+        description: "No admin user found",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      await rejectCompany(companyId);
+      await rejectCompany(companyId, currentUser.id);
       toast({
         title: "Success",
         description: "Company rejected successfully",

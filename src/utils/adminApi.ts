@@ -1,4 +1,3 @@
-
 export interface Company {
   id: string;
   legal_name: string;
@@ -63,14 +62,17 @@ export const fetchUsers = async (): Promise<User[]> => {
   return data;
 };
 
-export const approveCompany = async (companyId: string): Promise<void> => {
-  console.log('Approving company:', companyId);
+export const approveCompany = async (companyId: string, adminId: string): Promise<void> => {
+  console.log('Approving company:', companyId, 'by admin:', adminId);
   const response = await fetch(`${API_BASE_URL}/companies/${companyId}/approve`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       ...API_HEADERS
-    }
+    },
+    body: JSON.stringify({
+      approved_by: adminId
+    })
   });
 
   if (!response.ok) {
@@ -78,14 +80,17 @@ export const approveCompany = async (companyId: string): Promise<void> => {
   }
 };
 
-export const rejectCompany = async (companyId: string): Promise<void> => {
-  console.log('Rejecting company:', companyId);
+export const rejectCompany = async (companyId: string, adminId: string): Promise<void> => {
+  console.log('Rejecting company:', companyId, 'by admin:', adminId);
   const response = await fetch(`${API_BASE_URL}/companies/${companyId}/reject`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       ...API_HEADERS
-    }
+    },
+    body: JSON.stringify({
+      rejected_by: adminId
+    })
   });
 
   if (!response.ok) {
