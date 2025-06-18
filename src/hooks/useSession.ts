@@ -6,9 +6,15 @@ export const useSession = () => {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(
     sessionStore.getCurrentUser()
   );
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
+    sessionStore.isLoggedIn()
+  );
 
   useEffect(() => {
-    const unsubscribe = sessionStore.subscribe(setCurrentUser);
+    const unsubscribe = sessionStore.subscribe((user) => {
+      setCurrentUser(user);
+      setIsLoggedIn(sessionStore.isLoggedIn());
+    });
     return unsubscribe;
   }, []);
 
@@ -19,8 +25,6 @@ export const useSession = () => {
   const logout = () => {
     sessionStore.clearCurrentUser();
   };
-
-  const isLoggedIn = sessionStore.isLoggedIn();
 
   return {
     currentUser,
