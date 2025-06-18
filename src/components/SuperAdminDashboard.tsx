@@ -22,11 +22,27 @@ interface SuperAdminDashboardProps {
 const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { currentUser, logout } = useSession();
+  const { currentUser, logout, isLoggedIn } = useSession();
   const [activeTab, setActiveTab] = useState<'companies' | 'users'>('companies');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check if user is still logged in on component mount
+  useEffect(() => {
+    if (!isLoggedIn || !currentUser) {
+      console.log('No valid session found, redirecting to login');
+      toast({
+        title: "Session Expired",
+        description: "Please log in again",
+        variant: "destructive",
+      });
+      if (onBack) {
+        onBack();
+      }
+      return;
+    }
+  }, [isLoggedIn, currentUser, onBack, toast]);
 
   const loadCompanies = async () => {
     setIsLoading(true);
@@ -141,6 +157,11 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
       onBack();
     }
   };
+
+  // Don't render if not logged in
+  if (!isLoggedIn || !currentUser) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-light-gray">

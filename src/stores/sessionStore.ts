@@ -22,20 +22,33 @@ class SessionStore {
   private loadFromStorage() {
     try {
       const storedUser = localStorage.getItem('current_log_user');
-      if (storedUser) {
+      const storedToken = localStorage.getItem('access_token');
+      
+      if (storedUser && storedToken) {
         this.currentUser = JSON.parse(storedUser);
+        console.log('Session restored from storage:', this.currentUser);
+      } else {
+        console.log('No stored session found');
+        this.clearCurrentUser();
       }
     } catch (error) {
       console.error('Error loading user from storage:', error);
-      localStorage.removeItem('current_log_user');
+      this.clearCurrentUser();
     }
   }
 
   private saveToStorage() {
-    if (this.currentUser) {
-      localStorage.setItem('current_log_user', JSON.stringify(this.currentUser));
-    } else {
-      localStorage.removeItem('current_log_user');
+    try {
+      if (this.currentUser) {
+        localStorage.setItem('current_log_user', JSON.stringify(this.currentUser));
+        console.log('Session saved to storage');
+      } else {
+        localStorage.removeItem('current_log_user');
+        localStorage.removeItem('access_token');
+        console.log('Session cleared from storage');
+      }
+    } catch (error) {
+      console.error('Error saving session to storage:', error);
     }
   }
 
@@ -43,6 +56,7 @@ class SessionStore {
     this.currentUser = user;
     this.saveToStorage();
     this.notifyListeners();
+    console.log('User session set:', user);
   }
 
   getCurrentUser(): CurrentUser | null {
@@ -53,10 +67,13 @@ class SessionStore {
     this.currentUser = null;
     this.saveToStorage();
     this.notifyListeners();
+    console.log('User session cleared');
   }
 
   isLoggedIn(): boolean {
-    return this.currentUser !== null;
+    const hasUser = this.currentUser !== null;
+    const hasToken = localStorage.getItem('access_token') !== null;
+    return hasUser && hasToken;
   }
 
   subscribe(listener: (user: CurrentUser | null) => void) {
