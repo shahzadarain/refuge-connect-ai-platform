@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, LogOut, User } from 'lucide-react';
@@ -8,7 +9,8 @@ import {
   Company,
   fetchCompanies,
   approveCompany,
-  rejectCompany
+  rejectCompany,
+  fetchCompanyAdmin
 } from '@/utils/adminApi';
 import { sendCompanyApprovalEmail } from '@/utils/emailApi';
 
@@ -73,20 +75,31 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     try {
       console.log('Starting company approval process...');
       
-      // Step 1: Approve company via backend API
+      // Step 1: Get company details for the email
+      const company = companies.find(c => c.id === companyId);
+      if (!company) {
+        throw new Error('Company not found');
+      }
+
+      // Step 2: Approve company via backend API
       const approvalResponse = await approveCompany(companyId, currentUser.id, comment);
       console.log('Backend approval response:', approvalResponse);
       
-      // Step 2: Send approval email if verification details are provided
-      if (approvalResponse.verification_details) {
-        console.log('Sending approval email...');
+      // Step 3: Fetch the company admin's email
+      console.log('Fetching company admin email...');
+      const companyAdmin = await fetchCompanyAdmin(companyId);
+      
+      if (companyAdmin && companyAdmin.email) {
+        console.log('Sending approval email to:', companyAdmin.email);
         try {
-          // Map the backend data to the email API format
+          // Generate a verification code (you might want to get this from backend)
+          const verificationCode = Math.random().toString(36).substring(2, 15).toUpperCase();
+          
           const emailData = {
-            to: approvalResponse.verification_details.email,
-            company_name: approvalResponse.verification_details.company_name,
-            verification_code: approvalResponse.verification_details.verification_code,
-            expires_in_days: approvalResponse.verification_details.expires_in_days
+            to: companyAdmin.email,
+            company_name: company.legal_name,
+            verification_code: verificationCode,
+            expires_in_days: 7
           };
           
           await sendCompanyApprovalEmail(emailData);
@@ -103,9 +116,11 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
           });
         }
       } else {
+        console.log('No company admin found or email missing');
         toast({
-          title: "Success",
-          description: "Company approved successfully",
+          title: "Partial Success",
+          description: "Company approved but no admin email found. Please contact the company manually.",
+          variant: "destructive",
         });
       }
       

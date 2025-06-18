@@ -23,6 +23,7 @@ export interface User {
   is_verified: boolean;
   created_at: string;
   last_login?: string;
+  company_id?: string;
 }
 
 // Add interface for approval response
@@ -83,6 +84,25 @@ export const fetchUsers = async (): Promise<User[]> => {
   const data = await response.json();
   console.log('Users data received:', data);
   return data;
+};
+
+export const fetchCompanyAdmin = async (companyId: string): Promise<User | null> => {
+  console.log('Fetching company admin for company:', companyId);
+  const response = await fetch(`${API_BASE_URL}/users?user_type=employer_admin&company_id=${companyId}`, {
+    method: 'GET',
+    headers: API_HEADERS
+  });
+
+  if (!response.ok) {
+    console.log('Failed to fetch company admin:', response.status);
+    return null;
+  }
+
+  const users = await response.json();
+  console.log('Company admin data received:', users);
+  
+  // Return the first employer_admin user found for this company
+  return users.find((user: User) => user.user_type === 'employer_admin' && user.company_id === companyId) || null;
 };
 
 export const approveCompany = async (companyId: string, adminId: string, adminComment?: string): Promise<ApprovalResponse> => {
