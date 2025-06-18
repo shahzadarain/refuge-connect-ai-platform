@@ -1,8 +1,9 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Definition of the design system with UN color palette */
 
 @layer base {
   :root {
@@ -15,10 +16,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 204 100% 37%;  /* UN Blue #0072BC */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
+    --secondary: 201 100% 42%;  /* UN Light Blue #00A6D9 */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
@@ -27,30 +28,32 @@
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 354 70% 54.1%;  /* Error Red #DC3545 */
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 204 100% 37%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Custom UN color variables */
+    --un-blue: 204 100% 37%;
+    --un-light-blue: 201 100% 42%;
+    --success-green: 142 100% 35%;
+    --warning-orange: 33 95% 50%;
+    --error-red: 354 70% 54%;
+    --neutral-gray: 0 0% 30%;
+    --light-gray: 0 0% 96%;
   }
 
   .dark {
@@ -98,6 +101,134 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-roboto;
+  }
+
+  /* RTL Support */
+  [dir="rtl"] {
+    @apply font-arabic;
+  }
+
+  /* Mobile-first typography */
+  h1 {
+    @apply text-h1-mobile;
+  }
+
+  h2 {
+    @apply text-h2-mobile;
+  }
+
+  p {
+    @apply text-body-mobile;
+  }
+
+  small {
+    @apply text-small-mobile;
+  }
+
+  /* Focus indicators for accessibility */
+  *:focus {
+    @apply outline-none ring-2 ring-ring ring-offset-2;
+  }
+
+  /* High contrast support */
+  @media (prefers-contrast: high) {
+    :root {
+      --border: 0 0% 0%;
+      --ring: 204 100% 20%;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Mobile-first form card */
+  .form-card {
+    @apply bg-white rounded-lg shadow-sm border border-border p-6 mx-4 my-4;
+  }
+
+  /* Mobile optimized input */
+  .mobile-input {
+    @apply w-full min-h-touch p-3 border border-input rounded-md text-base bg-background focus:border-primary focus:ring-1 focus:ring-primary;
+  }
+
+  /* Mobile touch button */
+  .touch-button {
+    @apply min-h-touch min-w-touch px-6 py-3 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* Primary UN button */
+  .btn-primary {
+    @apply touch-button bg-un-blue text-white hover:bg-un-blue/90 active:bg-un-blue/80;
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    @apply touch-button bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  /* Role selection card */
+  .role-card {
+    @apply form-card cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] focus:ring-2 focus:ring-primary;
+  }
+
+  /* Progress indicator */
+  .progress-step {
+    @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium;
+  }
+
+  .progress-step.active {
+    @apply bg-un-blue text-white;
+  }
+
+  .progress-step.completed {
+    @apply bg-success-green text-white;
+  }
+
+  .progress-step.inactive {
+    @apply bg-gray-200 text-gray-500;
+  }
+
+  /* Language toggle */
+  .lang-toggle {
+    @apply flex bg-gray-100 rounded-md p-1;
+  }
+
+  .lang-option {
+    @apply px-3 py-1 rounded text-sm font-medium cursor-pointer transition-colors;
+  }
+
+  .lang-option.active {
+    @apply bg-white text-un-blue shadow-sm;
+  }
+
+  .lang-option.inactive {
+    @apply text-gray-600 hover:text-gray-800;
+  }
+}
+
+/* RTL-specific styles */
+[dir="rtl"] .form-card {
+  direction: rtl;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
   }
 }
