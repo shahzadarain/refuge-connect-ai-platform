@@ -1,0 +1,113 @@
+
+import React from 'react';
+import { Building2, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Company } from '@/utils/adminApi';
+
+interface CompaniesTabProps {
+  companies: Company[];
+  isLoading: boolean;
+  onApprove: (companyId: string) => void;
+  onReject: (companyId: string) => void;
+}
+
+const CompaniesTab: React.FC<CompaniesTabProps> = ({
+  companies,
+  isLoading,
+  onApprove,
+  onReject
+}) => {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-h2-mobile font-semibold text-neutral-gray">
+          Company Applications
+        </h2>
+        <div className="flex gap-2">
+          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-small-mobile">
+            {companies.filter(c => !c.is_approved).length} Pending
+          </span>
+          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-small-mobile">
+            {companies.filter(c => c.is_approved).length} Approved
+          </span>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-8">
+          <p className="text-neutral-gray">Loading companies...</p>
+        </div>
+      ) : companies.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-neutral-gray">No companies found</p>
+        </div>
+      ) : (
+        companies.map((company) => (
+          <div key={company.id} className="form-card">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-un-blue/10 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-6 h-6 text-un-blue" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-gray">{company.legal_name}</h3>
+                  <p className="text-small-mobile text-neutral-gray/70">
+                    {company.country_of_registration} • {company.registration_number}
+                  </p>
+                </div>
+              </div>
+              <div className={`px-3 py-1 rounded-full text-small-mobile ${
+                company.is_approved 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {company.is_approved ? 'Approved' : 'Pending'}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-small-mobile text-neutral-gray/70">Website</p>
+                <p className="text-body-mobile">{company.website || 'Not provided'}</p>
+              </div>
+              <div>
+                <p className="text-small-mobile text-neutral-gray/70">Employees</p>
+                <p className="text-body-mobile">{company.number_of_employees || 'Not specified'}</p>
+              </div>
+            </div>
+
+            {company.about_company && (
+              <div className="mb-4">
+                <p className="text-small-mobile text-neutral-gray/70 mb-1">About Company</p>
+                <p className="text-body-mobile">{company.about_company}</p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => onApprove(company.id)}
+                className="flex items-center gap-2 px-4 py-2 bg-success-green text-white rounded-md hover:bg-success-green/90 transition-colors"
+                disabled={company.is_approved}
+              >
+                <CheckCircle className="w-4 h-4" />
+                Approve
+              </button>
+              <button
+                onClick={() => onReject(company.id)}
+                className="flex items-center gap-2 px-4 py-2 bg-error-red text-white rounded-md hover:bg-error-red/90 transition-colors"
+              >
+                <XCircle className="w-4 h-4" />
+                Reject
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 border border-border text-neutral-gray rounded-md hover:bg-light-gray transition-colors">
+                <Eye className="w-4 h-4" />
+                View Details
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
+
+export default CompaniesTab;
