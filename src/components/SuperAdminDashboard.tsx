@@ -81,7 +81,15 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
       if (approvalResponse.verification_details) {
         console.log('Sending approval email...');
         try {
-          await sendCompanyApprovalEmail(approvalResponse.verification_details);
+          // Map the backend data to the email API format
+          const emailData = {
+            to: approvalResponse.verification_details.email,
+            company_name: approvalResponse.verification_details.company_name,
+            verification_code: approvalResponse.verification_details.verification_code,
+            expires_in_days: approvalResponse.verification_details.expires_in_days
+          };
+          
+          await sendCompanyApprovalEmail(emailData);
           toast({
             title: "Success",
             description: "Company approved successfully and verification email sent!",
