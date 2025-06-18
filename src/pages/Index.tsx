@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSession } from '@/hooks/useSession';
@@ -9,9 +10,8 @@ import SuperAdminDashboard from '@/components/SuperAdminDashboard';
 import JobBoard from '@/components/JobBoard';
 import SuperAdminLogin from '@/components/SuperAdminLogin';
 import EmailVerification from '@/components/EmailVerification';
-import CompanyAdminSetup from '@/components/CompanyAdminSetup';
 
-type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'job-board' | 'super-admin-login' | 'email-verification' | 'company-admin-setup';
+type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'job-board' | 'super-admin-login' | 'email-verification';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -32,46 +32,13 @@ const Index = () => {
     }
   }, [isLoggedIn, currentUser]);
 
-  // Check for email verification or company setup links on mount
+  // Check for email verification links on mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const currentPath = window.location.pathname;
     const email = urlParams.get('email');
     const action = urlParams.get('action');
     
-    console.log('Current path:', currentPath);
     console.log('URL params - email:', email, 'action:', action);
-    
-    // Handle /company-setup route
-    if (currentPath === '/company-setup') {
-      console.log('Company setup route detected, email from params:', email);
-      if (email) {
-        setVerificationEmail(email);
-        setCurrentView('company-admin-setup');
-      } else {
-        // If no email in URL, redirect to landing
-        console.log('No email found for company setup, redirecting to landing');
-        setCurrentView('landing');
-      }
-      // Clean up URL
-      window.history.replaceState({}, document.title, '/');
-      return;
-    }
-    
-    // Handle company setup via query parameter
-    if (action === 'setup') {
-      console.log('Company setup detected via action param, email from params:', email);
-      if (email) {
-        setVerificationEmail(email);
-        setCurrentView('company-admin-setup');
-      } else {
-        console.log('No email found for company setup, redirecting to landing');
-        setCurrentView('landing');
-      }
-      // Clean up URL
-      window.history.replaceState({}, document.title, '/');
-      return;
-    }
     
     // Handle email verification
     if (email && action === 'verify') {
@@ -112,13 +79,8 @@ const Index = () => {
   };
 
   const handleVerificationSuccess = () => {
-    setCurrentView('company-admin-setup');
-    // Don't clear verification email as we need it for setup
-  };
-
-  const handleCompanySetupSuccess = () => {
-    setCurrentView('super-admin-login');
-    setVerificationEmail('');
+    // After email verification, user should be redirected to company activation page
+    window.location.href = `/company-setup?email=${verificationEmail}&action=setup`;
   };
 
   if (currentView === 'employer-registration') {
@@ -146,16 +108,6 @@ const Index = () => {
       <EmailVerification 
         onBack={handleBackToLanding} 
         onVerificationSuccess={handleVerificationSuccess}
-        email={verificationEmail}
-      />
-    );
-  }
-
-  if (currentView === 'company-admin-setup') {
-    return (
-      <CompanyAdminSetup 
-        onBack={handleBackToLanding} 
-        onSetupSuccess={handleCompanySetupSuccess}
         email={verificationEmail}
       />
     );

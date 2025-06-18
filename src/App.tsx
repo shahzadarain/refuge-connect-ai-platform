@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import CompanyActivation from "./pages/CompanyActivation";
 
 const queryClient = new QueryClient();
 
@@ -19,7 +20,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/company-setup" element={<Index />} />
+            <Route path="/company-setup" element={<CompanyActivation />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
