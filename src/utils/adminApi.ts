@@ -26,7 +26,7 @@ export interface User {
   company_id?: string;
 }
 
-// Add interface for approval response
+// Updated interface for approval response with verification details
 export interface ApprovalResponse {
   success: boolean;
   message: string;

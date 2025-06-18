@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, LogOut, User } from 'lucide-react';
@@ -9,8 +8,7 @@ import {
   Company,
   fetchCompanies,
   approveCompany,
-  rejectCompany,
-  fetchCompanyAdmin
+  rejectCompany
 } from '@/utils/adminApi';
 import { sendCompanyApprovalEmail } from '@/utils/emailApi';
 
@@ -83,51 +81,36 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     try {
       console.log('Starting company approval process...');
       
-      // Step 1: Get company details from current state - ensure we have a fresh copy
+      // Get company details from current state
       const currentCompanies = Array.isArray(companies) ? [...companies] : [];
-      console.log('Current companies array:', currentCompanies);
-      
       const company = currentCompanies.find(c => c.id === companyId);
+      
       if (!company) {
         console.error('Company not found in current list:', companyId);
-        // Try to reload companies and find again
-        await loadCompanies();
-        const refreshedCompanies = await fetchCompanies();
-        const refreshedCompany = refreshedCompanies.find(c => c.id === companyId);
-        
-        if (!refreshedCompany) {
-          toast({
-            title: "Error", 
-            description: "Company not found. Please refresh the page.",
-            variant: "destructive",
-          });
-          return;
-        }
+        toast({
+          title: "Error", 
+          description: "Company not found. Please refresh the page.",
+          variant: "destructive",
+        });
+        return;
       }
 
-      // Step 2: Approve company via backend API
+      // Step 1: Approve company via backend API
       const approvalResponse = await approveCompany(companyId, currentUser.id, comment);
       console.log('Backend approval response:', approvalResponse);
       
-      // Step 3: Fetch the company admin's email and send approval email
-      console.log('Fetching company admin email...');
-      try {
-        const companyAdmin = await fetchCompanyAdmin(companyId);
-        console.log('Company admin response:', companyAdmin);
+      // Step 2: Check if verification details are included in the response
+      if (approvalResponse.verification_details && approvalResponse.verification_details.email) {
+        console.log('Sending approval email using verification details...');
         
-        if (companyAdmin && companyAdmin.email) {
-          console.log('Sending approval email to:', companyAdmin.email);
-          
-          // Generate a verification code
-          const verificationCode = Math.random().toString(36).substring(2, 15).toUpperCase();
-          
-          const emailData = {
-            to: companyAdmin.email,
-            company_name: company?.legal_name || 'Company',
-            verification_code: verificationCode,
-            expires_in_days: 7
-          };
-          
+        const emailData = {
+          to: approvalResponse.verification_details.email,
+          company_name: approvalResponse.verification_details.company_name || company.legal_name,
+          verification_code: approvalResponse.verification_details.verification_code,
+          expires_in_days: approvalResponse.verification_details.expires_in_days || 7
+        };
+        
+        try {
           const emailResponse = await sendCompanyApprovalEmail(emailData);
           console.log('Email sent successfully:', emailResponse);
           
@@ -135,24 +118,24 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
             title: "Success",
             description: "Company approved successfully and verification email sent!",
           });
-        } else {
-          console.log('No company admin found or email missing:', companyAdmin);
+        } catch (emailError) {
+          console.error('Email process failed:', emailError);
           toast({
             title: "Partial Success",
-            description: "Company approved but no admin email found. Please contact the company manually.",
+            description: "Company approved but email could not be sent. Please contact the company manually.",
             variant: "destructive",
           });
         }
-      } catch (emailError) {
-        console.error('Email process failed:', emailError);
+      } else {
+        console.log('No verification details found in approval response');
         toast({
           title: "Partial Success",
-          description: "Company approved but email could not be sent. Please contact the company manually.",
+          description: "Company approved but no verification details found. Please contact the company manually.",
           variant: "destructive",
         });
       }
       
-      // Step 4: Reload companies to get the updated state
+      // Step 3: Reload companies to get the updated state
       await loadCompanies();
     } catch (error) {
       console.error('Error approving company:', error);
