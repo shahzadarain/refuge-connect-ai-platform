@@ -64,38 +64,63 @@ export const fetchUsers = async (): Promise<User[]> => {
 
 export const approveCompany = async (companyId: string, adminId: string): Promise<void> => {
   console.log('Approving company:', companyId, 'by admin:', adminId);
+  
+  const requestBody = {
+    approved_by: adminId
+  };
+  
+  console.log('Request body being sent:', requestBody);
+  
   const response = await fetch(`${API_BASE_URL}/companies/${companyId}/approve`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       ...API_HEADERS
     },
-    body: JSON.stringify({
-      approved_by: adminId
-    })
+    body: JSON.stringify(requestBody)
   });
 
+  console.log('Response status:', response.status);
+  console.log('Response headers:', response.headers);
+
   if (!response.ok) {
-    throw new Error('Failed to approve company');
+    const errorText = await response.text();
+    console.error('Error response:', errorText);
+    throw new Error(`Failed to approve company: ${response.status} - ${errorText}`);
   }
+
+  const responseData = await response.json();
+  console.log('Approval response data:', responseData);
 };
 
 export const rejectCompany = async (companyId: string, adminId: string): Promise<void> => {
   console.log('Rejecting company:', companyId, 'by admin:', adminId);
+  
+  const requestBody = {
+    rejected_by: adminId
+  };
+  
+  console.log('Request body being sent:', requestBody);
+  
   const response = await fetch(`${API_BASE_URL}/companies/${companyId}/reject`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       ...API_HEADERS
     },
-    body: JSON.stringify({
-      rejected_by: adminId
-    })
+    body: JSON.stringify(requestBody)
   });
 
+  console.log('Response status:', response.status);
+
   if (!response.ok) {
-    throw new Error('Failed to reject company');
+    const errorText = await response.text();
+    console.error('Error response:', errorText);
+    throw new Error(`Failed to reject company: ${response.status} - ${errorText}`);
   }
+
+  const responseData = await response.json();
+  console.log('Rejection response data:', responseData);
 };
 
 export const activateUser = async (userId: string): Promise<void> => {
