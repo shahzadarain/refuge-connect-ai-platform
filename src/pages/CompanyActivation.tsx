@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -11,6 +12,7 @@ const CompanyActivation = () => {
   const navigate = useNavigate();
   
   const [email, setEmail] = useState<string>('');
+  const [verificationCode, setVerificationCode] = useState<string>('');
   const [step, setStep] = useState<'email-input' | 'verification' | 'setup'>('email-input');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,11 +27,17 @@ const CompanyActivation = () => {
   useEffect(() => {
     const emailParam = searchParams.get('email');
     const actionParam = searchParams.get('action');
+    const codeParam = searchParams.get('code');
     
-    console.log('Company activation page - email:', emailParam, 'action:', actionParam);
+    console.log('Company activation page - email:', emailParam, 'action:', actionParam, 'code:', codeParam);
     
     if (emailParam) {
       setEmail(emailParam);
+      
+      // If we have a verification code, store it
+      if (codeParam) {
+        setVerificationCode(codeParam);
+      }
       
       // If action is setup, skip verification and go directly to setup
       if (actionParam === 'setup') {
@@ -62,6 +70,13 @@ const CompanyActivation = () => {
     try {
       console.log('Verifying email for company activation:', email);
       
+      const requestBody: any = { email };
+      
+      // If we have a verification code from URL params, include it
+      if (verificationCode) {
+        requestBody.verification_code = verificationCode;
+      }
+      
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/verify-email', {
         method: 'POST',
         headers: {
@@ -69,7 +84,7 @@ const CompanyActivation = () => {
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true'
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify(requestBody)
       });
 
       console.log('Email verification response status:', response.status);
@@ -308,11 +323,19 @@ const CompanyActivation = () => {
                     Verify Your Email
                   </h1>
                   <p className="text-body-mobile text-neutral-gray/70 mb-4">
-                    Please verify your email address to activate your company account
+                    {verificationCode ? 
+                      'We have received your verification code. Click verify to continue.' :
+                      'Please verify your email address to activate your company account'
+                    }
                   </p>
                   <p className="text-body-mobile font-medium text-un-blue bg-blue-50 px-4 py-2 rounded-lg">
                     {email}
                   </p>
+                  {verificationCode && (
+                    <p className="text-body-mobile font-mono text-green-600 bg-green-50 px-4 py-2 rounded-lg mt-2">
+                      Verification Code: {verificationCode}
+                    </p>
+                  )}
                 </div>
 
                 <button
