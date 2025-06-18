@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Shield, Eye, EyeOff } from 'lucide-react';
@@ -181,15 +180,6 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
                 {isLoading ? 'Logging in...' : 'Login to Dashboard'}
               </button>
             </form>
-
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-small-mobile text-blue-800">
-                <strong>Demo Credentials:</strong><br />
-                Email: asghar@unhcr.org<br />
-                Password: Manago@787345<br />
-                Phone: 0790035642
-              </p>
-            </div>
           </div>
         </div>
       </div>
