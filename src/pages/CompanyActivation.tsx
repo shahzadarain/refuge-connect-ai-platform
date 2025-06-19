@@ -213,12 +213,12 @@ const CompanyActivation = () => {
 
       toast({
         title: "Account Setup Complete!",
-        description: "Your admin account has been created successfully. Redirecting to login...",
+        description: "Your admin account has been created successfully. Redirecting to your company dashboard...",
       });
 
-      // Redirect to home page after a brief delay
+      // Redirect to company dashboard after a brief delay
       setTimeout(() => {
-        navigate('/');
+        navigate('/company-dashboard');
       }, 2000);
     } catch (error) {
       console.error('Setup error:', error);

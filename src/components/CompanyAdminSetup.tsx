@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Building, User } from 'lucide-react';
@@ -98,7 +97,7 @@ const CompanyAdminSetup: React.FC<CompanyAdminSetupProps> = ({
 
       toast({
         title: "Account Setup Complete!",
-        description: "Your admin account has been created successfully. You can now log in.",
+        description: "Your admin account has been created successfully. Welcome to your company dashboard!",
       });
 
       onSetupSuccess();
