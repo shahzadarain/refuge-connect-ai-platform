@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,7 +14,7 @@ const CompanyActivation = () => {
   
   const [email, setEmail] = useState<string>('');
   const [verificationCode, setVerificationCode] = useState<string>('');
-  const [step, setStep] = useState<'email-input' | 'verification' | 'login'>('email-input');
+  const [step, setStep] = useState<'email-input' | 'verification' | 'login' | 'setup'>('email-input');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
