@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Shield, Eye, EyeOff } from 'lucide-react';
@@ -19,6 +20,7 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
     phone: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +88,85 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingReset(true);
+
+    try {
+      console.log('Sending password reset for super admin:', formData.email);
+      
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({ 
+          email: formData.email,
+          user_type: 'super_admin'
+        })
+      });
+
+      console.log('Password reset response status:', response.status);
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to send reset link';
+        
+        try {
+          const errorData = await response.json();
+          console.log('Error response data:', errorData);
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      console.log('Password reset successful:', result);
+
+      toast({
+        title: "Reset Link Sent",
+        description: "Please check your email for password reset instructions. The link will expire in 3 hours.",
+      });
+    } catch (error) {
+      console.error('Password reset error:', error);
+      
+      let errorMessage = 'Failed to send password reset link';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingReset(false);
     }
   };
 
@@ -179,6 +260,17 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
               >
                 {isLoading ? 'Logging in...' : 'Login to Dashboard'}
               </button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={isSendingReset}
+                  className="text-un-blue hover:text-un-blue/80 text-small-mobile font-medium disabled:opacity-50"
+                >
+                  {isSendingReset ? 'Sending Reset Link...' : 'Forgot Password?'}
+                </button>
+              </div>
             </form>
           </div>
         </div>
