@@ -27,8 +27,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Sending company approval email to:', to, 'for company:', company_name);
 
-    // Construct the proper setup URL with all required parameters
-    const baseUrl = "https://drtcphgiwjojienkbkid.supabase.co".replace('supabase.co', 'lovable.app');
+    // Construct the proper setup URL with all required parameters using SITE_URL
+    const baseUrl = Deno.env.get('SITE_URL') || 'https://refuge-connect-ai-platform.lovable.app';
     const setupUrl = `${baseUrl}/company-setup?email=${encodeURIComponent(to)}&code=${encodeURIComponent(verification_code)}&action=setup`;
 
     const emailResponse = await resend.emails.send({
