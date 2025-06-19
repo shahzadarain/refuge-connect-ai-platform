@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSession } from '@/hooks/useSession';
@@ -23,10 +22,10 @@ const EmployerAdminDashboard: React.FC = () => {
 
       try {
         const token = localStorage.getItem('access_token');
-        console.log('Fetching company details for company_id:', currentUser.company_id);
+        console.log('Fetching user company details...');
         
-        // Fetch all companies and find the one matching the user's company_id
-        const response = await fetch(`https://ab93e9536acd.ngrok.app/api/companies`, {
+        // Use the new secure endpoint that automatically gets the current user's company
+        const response = await fetch(`https://ab93e9536acd.ngrok.app/api/user/company`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -36,23 +35,17 @@ const EmployerAdminDashboard: React.FC = () => {
         });
 
         if (response.ok) {
-          const companies = await response.json();
-          console.log('Companies data:', companies);
+          const companyData = await response.json();
+          console.log('Company data received:', companyData);
           
-          // Find the company that matches the user's company_id
-          const userCompany = Array.isArray(companies) 
-            ? companies.find(company => company.id === currentUser.company_id)
-            : null;
-          
-          if (userCompany) {
-            console.log('Found user company:', userCompany);
-            setCompanyName(userCompany.legal_name || 'Your Company');
+          if (companyData && companyData.legal_name) {
+            setCompanyName(companyData.legal_name);
           } else {
-            console.log('No company found with matching company_id');
+            console.log('No legal_name found in company data');
             setCompanyName('Your Company');
           }
         } else {
-          console.error('Failed to fetch companies:', response.status);
+          console.error('Failed to fetch company details:', response.status);
           setCompanyName('Your Company');
         }
       } catch (error) {
