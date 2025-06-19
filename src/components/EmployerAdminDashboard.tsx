@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSession } from '@/hooks/useSession';
@@ -13,8 +14,8 @@ const EmployerAdminDashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchCompanyDetails = async () => {
-      if (!currentUser?.company_id) {
-        console.log('No company_id found for user:', currentUser);
+      if (!currentUser) {
+        console.log('No current user found');
         setCompanyName('Your Company');
         setIsLoading(false);
         return;
@@ -34,18 +35,22 @@ const EmployerAdminDashboard: React.FC = () => {
           }
         });
 
+        console.log('API Response status:', response.status);
+
         if (response.ok) {
           const companyData = await response.json();
           console.log('Company data received:', companyData);
           
           if (companyData && companyData.legal_name) {
             setCompanyName(companyData.legal_name);
+            console.log('Company name set to:', companyData.legal_name);
           } else {
-            console.log('No legal_name found in company data');
+            console.log('No legal_name found in company data:', companyData);
             setCompanyName('Your Company');
           }
         } else {
-          console.error('Failed to fetch company details:', response.status);
+          const errorText = await response.text();
+          console.error('Failed to fetch company details:', response.status, errorText);
           setCompanyName('Your Company');
         }
       } catch (error) {
