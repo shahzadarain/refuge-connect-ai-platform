@@ -18,6 +18,7 @@ const CompanyActivation = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
   
   const [loginData, setLoginData] = useState({
     password: ''
@@ -38,9 +39,9 @@ const CompanyActivation = () => {
         setVerificationCode(codeParam);
       }
       
-      // If action is setup, skip verification and go directly to setup
+      // If action is setup, skip to verification step (no password needed for new users)
       if (actionParam === 'setup') {
-        setStep('setup');
+        setStep('verification');
       } else {
         setStep('verification');
       }
@@ -107,12 +108,28 @@ const CompanyActivation = () => {
       const result = await response.json();
       console.log('Email verification successful:', result);
 
-      toast({
-        title: "Email Verified!",
-        description: "Your email has been verified successfully. Please log in with your password.",
-      });
-
-      setStep('login');
+      // Check if this is a new user (needs setup) or existing user (needs login)
+      if (result.is_new_user || result.requires_setup) {
+        toast({
+          title: "Email Verified!",
+          description: "Your email has been verified successfully. You can now access your company dashboard.",
+        });
+        
+        // For new users, store session and redirect to dashboard
+        if (result.user) {
+          sessionStore.setCurrentUser(result.user);
+          localStorage.setItem('access_token', result.access_token);
+        }
+        
+        navigate('/company-dashboard');
+      } else {
+        toast({
+          title: "Email Verified!",
+          description: "Your email has been verified successfully. Please log in with your password.",
+        });
+        
+        setStep('login');
+      }
     } catch (error) {
       console.error('Email verification error:', error);
       
@@ -238,7 +255,11 @@ const CompanyActivation = () => {
       return;
     }
 
+    setIsSendingReset(true);
+
     try {
+      console.log('Sending password reset for:', email);
+      
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
         method: 'POST',
         headers: {
@@ -246,24 +267,61 @@ const CompanyActivation = () => {
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true'
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ 
+          email,
+          user_type: 'employer_admin'
+        })
       });
 
-      if (response.ok) {
-        toast({
-          title: "Reset Link Sent",
-          description: "Please check your email for password reset instructions.",
-        });
-        setShowForgotPassword(false);
-      } else {
-        throw new Error('Failed to send reset link');
+      console.log('Password reset response status:', response.status);
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to send reset link';
+        
+        try {
+          const errorData = await response.json();
+          console.log('Error response data:', errorData);
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
+
+      const result = await response.json();
+      console.log('Password reset successful:', result);
+
+      toast({
+        title: "Reset Link Sent",
+        description: "Please check your email for password reset instructions. The link will expire in 3 hours.",
+      });
+      setShowForgotPassword(false);
     } catch (error) {
+      console.error('Password reset error:', error);
+      
+      let errorMessage = 'Failed to send password reset link';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to send password reset link. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setIsSendingReset(false);
     }
   };
 
@@ -345,9 +403,10 @@ const CompanyActivation = () => {
                     </p>
                     <button
                       onClick={handleForgotPassword}
-                      className="btn-secondary w-full text-small-mobile"
+                      disabled={isSendingReset}
+                      className="btn-secondary w-full text-small-mobile disabled:opacity-50"
                     >
-                      Send Reset Link
+                      {isSendingReset ? 'Sending...' : 'Send Reset Link'}
                     </button>
                   </div>
                 )}
@@ -411,13 +470,14 @@ const CompanyActivation = () => {
                 {showForgotPassword && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                     <p className="text-small-mobile text-blue-800 mb-2">
-                      Click the button below to receive password reset instructions.
+                      Click the button below to receive password reset instructions. The reset link will expire in 3 hours.
                     </p>
                     <button
                       onClick={handleForgotPassword}
-                      className="btn-secondary w-full text-small-mobile"
+                      disabled={isSendingReset}
+                      className="btn-secondary w-full text-small-mobile disabled:opacity-50"
                     >
-                      Send Reset Link
+                      {isSendingReset ? 'Sending...' : 'Send Reset Link'}
                     </button>
                   </div>
                 )}
@@ -491,13 +551,14 @@ const CompanyActivation = () => {
                 {showForgotPassword && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                     <p className="text-small-mobile text-blue-800 mb-2">
-                      Click the button below to receive password reset instructions.
+                      Click the button below to receive password reset instructions. The reset link will expire in 3 hours.
                     </p>
                     <button
                       onClick={handleForgotPassword}
-                      className="btn-secondary w-full text-small-mobile"
+                      disabled={isSendingReset}
+                      className="btn-secondary w-full text-small-mobile disabled:opacity-50"
                     >
-                      Send Reset Link
+                      {isSendingReset ? 'Sending...' : 'Send Reset Link'}
                     </button>
                   </div>
                 )}

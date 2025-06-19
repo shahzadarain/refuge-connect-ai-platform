@@ -21,6 +21,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
 
   const handleVerifyCode = async () => {
     if (verificationCode.length !== 6) {
@@ -105,6 +106,8 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
 
   const handleResendCode = async () => {
     try {
+      console.log('Resending verification code for:', email);
+      
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/resend-verification', {
         method: 'POST',
         headers: {
@@ -115,18 +118,50 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
         body: JSON.stringify({ email })
       });
 
-      if (response.ok) {
-        toast({
-          title: "Code Resent",
-          description: "A new verification code has been sent to your email.",
-        });
-      } else {
-        throw new Error('Failed to resend code');
+      console.log('Resend verification response status:', response.status);
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to resend code';
+        
+        try {
+          const errorData = await response.json();
+          console.log('Error response data:', errorData);
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
+
+      const result = await response.json();
+      console.log('Resend verification successful:', result);
+
+      toast({
+        title: "Code Resent",
+        description: "A new verification code has been sent to your email. The code will expire in 3 hours.",
+      });
     } catch (error) {
+      console.error('Resend verification error:', error);
+      
+      let errorMessage = 'Failed to resend verification code';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to resend verification code. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -142,7 +177,11 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
       return;
     }
 
+    setIsSendingReset(true);
+
     try {
+      console.log('Sending password reset for:', email);
+      
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
         method: 'POST',
         headers: {
@@ -150,24 +189,61 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true'
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ 
+          email,
+          user_type: 'refugee' // Default for EmailVerification component
+        })
       });
 
-      if (response.ok) {
-        toast({
-          title: "Reset Link Sent",
-          description: "Please check your email for password reset instructions.",
-        });
-        setShowForgotPassword(false);
-      } else {
-        throw new Error('Failed to send reset link');
+      console.log('Password reset response status:', response.status);
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to send reset link';
+        
+        try {
+          const errorData = await response.json();
+          console.log('Error response data:', errorData);
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
+
+      const result = await response.json();
+      console.log('Password reset successful:', result);
+
+      toast({
+        title: "Reset Link Sent",
+        description: "Please check your email for password reset instructions. The link will expire in 3 hours.",
+      });
+      setShowForgotPassword(false);
     } catch (error) {
+      console.error('Password reset error:', error);
+      
+      let errorMessage = 'Failed to send password reset link';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to send password reset link. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setIsSendingReset(false);
     }
   };
 
@@ -259,15 +335,16 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                         Reset Password
                       </p>
                       <p className="text-xs text-blue-700 mb-2">
-                        Click the button below to receive password reset instructions.
+                        Click the button below to receive password reset instructions. The reset link will expire in 3 hours.
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={handleForgotPassword}
-                    className="btn-secondary w-full text-small-mobile"
+                    disabled={isSendingReset}
+                    className="btn-secondary w-full text-small-mobile disabled:opacity-50"
                   >
-                    Send Reset Link
+                    {isSendingReset ? 'Sending...' : 'Send Reset Link'}
                   </button>
                 </div>
               )}
