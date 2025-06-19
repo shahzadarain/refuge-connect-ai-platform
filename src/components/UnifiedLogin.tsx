@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, User, Eye, EyeOff } from 'lucide-react';
@@ -57,7 +56,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
           login({
             id: result.user_id,
             email: formData.email,
-            user_type: result.user_type,
+            user_type: 'super_admin', // Explicitly set to super_admin
             phone: formData.phone,
             is_active: true,
             is_verified: true,
@@ -69,10 +68,10 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
 
           toast({
             title: "Login Successful",
-            description: `Welcome ${result.user_type.replace('_', ' ')}`,
+            description: `Welcome Super Admin`,
           });
           
-          onLoginSuccess(result.user_type);
+          onLoginSuccess('super_admin');
           return;
         }
       }
@@ -99,7 +98,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
           login({
             id: result.user_id,
             email: formData.email,
-            user_type: result.user_type,
+            user_type: 'employer_admin', // Explicitly set to employer_admin
             first_name: result.first_name,
             last_name: result.last_name,
             phone: formData.phone,
@@ -116,12 +115,12 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
             description: `Welcome ${result.first_name || 'User'}`,
           });
           
-          onLoginSuccess(result.user_type);
+          onLoginSuccess('employer_admin');
           return;
         }
       }
 
-      // If both fail, try refugee login (you'll need to implement this API endpoint)
+      // If both fail, try refugee login
       const refugeeResponse = await fetch('https://ab93e9536acd.ngrok.app/api/refugee/login', {
         method: 'POST',
         headers: {
@@ -143,7 +142,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
           login({
             id: result.user_id,
             email: formData.email,
-            user_type: result.user_type || 'refugee',
+            user_type: 'refugee', // Explicitly set to refugee
             first_name: result.first_name,
             last_name: result.last_name,
             phone: formData.phone,
@@ -160,7 +159,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
             description: `Welcome ${result.first_name || 'User'}`,
           });
           
-          onLoginSuccess(result.user_type || 'refugee');
+          onLoginSuccess('refugee');
           return;
         }
       }
