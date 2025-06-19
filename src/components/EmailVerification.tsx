@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Mail, Shield, KeyRound } from 'lucide-react';
@@ -20,7 +19,6 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
   const { toast } = useToast();
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
 
   const handleVerifyCode = async () => {
@@ -221,7 +219,6 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
         title: "Reset Link Sent",
         description: "Please check your email for password reset instructions. The link will expire in 3 hours.",
       });
-      setShowForgotPassword(false);
     } catch (error) {
       console.error('Password reset error:', error);
       
@@ -308,46 +305,26 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                 {isVerifying ? 'Verifying...' : 'Verify Email'}
               </button>
 
-              <div className="text-center space-y-2">
+              <div className="text-center space-y-4">
                 <p className="text-small-mobile text-neutral-gray/70">
                   Didn't receive the code?
                 </p>
-                <button
-                  onClick={handleResendCode}
-                  className="text-un-blue hover:underline text-small-mobile font-medium mr-4"
-                >
-                  Resend Code
-                </button>
-                <button
-                  onClick={() => setShowForgotPassword(true)}
-                  className="text-un-blue hover:underline text-small-mobile font-medium"
-                >
-                  Forgot Password?
-                </button>
-              </div>
-
-              {showForgotPassword && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start gap-3 mb-3">
-                    <KeyRound className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-small-mobile font-medium text-blue-800 mb-1">
-                        Reset Password
-                      </p>
-                      <p className="text-xs text-blue-700 mb-2">
-                        Click the button below to receive password reset instructions. The reset link will expire in 3 hours.
-                      </p>
-                    </div>
-                  </div>
+                <div className="space-y-2">
+                  <button
+                    onClick={handleResendCode}
+                    className="btn-secondary w-full text-small-mobile font-medium"
+                  >
+                    Resend Code
+                  </button>
                   <button
                     onClick={handleForgotPassword}
                     disabled={isSendingReset}
-                    className="btn-secondary w-full text-small-mobile disabled:opacity-50"
+                    className="btn-secondary w-full text-small-mobile font-medium disabled:opacity-50"
                   >
-                    {isSendingReset ? 'Sending...' : 'Send Reset Link'}
+                    {isSendingReset ? 'Sending Reset Link...' : 'Forgot Password?'}
                   </button>
                 </div>
-              )}
+              </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">

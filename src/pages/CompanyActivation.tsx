@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -387,29 +386,15 @@ const CompanyActivation = () => {
                   </button>
                 </form>
 
-                <div className="text-center mt-4">
+                <div className="text-center mt-6">
                   <button
-                    onClick={() => setShowForgotPassword(true)}
-                    className="text-un-blue hover:underline text-small-mobile"
+                    onClick={handleForgotPassword}
+                    disabled={isSendingReset}
+                    className="btn-secondary w-full disabled:opacity-50"
                   >
-                    Forgot Password?
+                    {isSendingReset ? 'Sending Reset Link...' : 'Forgot Password?'}
                   </button>
                 </div>
-
-                {showForgotPassword && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                    <p className="text-small-mobile text-blue-800 mb-2">
-                      Enter your email above and click the button below to receive password reset instructions.
-                    </p>
-                    <button
-                      onClick={handleForgotPassword}
-                      disabled={isSendingReset}
-                      className="btn-secondary w-full text-small-mobile disabled:opacity-50"
-                    >
-                      {isSendingReset ? 'Sending...' : 'Send Reset Link'}
-                    </button>
-                  </div>
-                )}
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
                   <div className="flex items-start gap-3">
@@ -458,31 +443,17 @@ const CompanyActivation = () => {
                   {isVerifying ? 'Verifying Email...' : 'Verify Email'}
                 </button>
 
-                <div className="text-center">
+                <div className="text-center mb-6">
                   <button
-                    onClick={() => setShowForgotPassword(true)}
-                    className="text-un-blue hover:underline text-small-mobile"
+                    onClick={handleForgotPassword}
+                    disabled={isSendingReset}
+                    className="btn-secondary w-full disabled:opacity-50"
                   >
-                    Forgot Password?
+                    {isSendingReset ? 'Sending Reset Link...' : 'Forgot Password?'}
                   </button>
                 </div>
 
-                {showForgotPassword && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                    <p className="text-small-mobile text-blue-800 mb-2">
-                      Click the button below to receive password reset instructions. The reset link will expire in 3 hours.
-                    </p>
-                    <button
-                      onClick={handleForgotPassword}
-                      disabled={isSendingReset}
-                      className="btn-secondary w-full text-small-mobile disabled:opacity-50"
-                    >
-                      {isSendingReset ? 'Sending...' : 'Send Reset Link'}
-                    </button>
-                  </div>
-                )}
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div>
@@ -539,29 +510,15 @@ const CompanyActivation = () => {
                   </button>
                 </form>
 
-                <div className="text-center mt-4">
+                <div className="text-center mt-6">
                   <button
-                    onClick={() => setShowForgotPassword(true)}
-                    className="text-un-blue hover:underline text-small-mobile"
+                    onClick={handleForgotPassword}
+                    disabled={isSendingReset}
+                    className="btn-secondary w-full disabled:opacity-50"
                   >
-                    Forgot Password?
+                    {isSendingReset ? 'Sending Reset Link...' : 'Forgot Password?'}
                   </button>
                 </div>
-
-                {showForgotPassword && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                    <p className="text-small-mobile text-blue-800 mb-2">
-                      Click the button below to receive password reset instructions. The reset link will expire in 3 hours.
-                    </p>
-                    <button
-                      onClick={handleForgotPassword}
-                      disabled={isSendingReset}
-                      className="btn-secondary w-full text-small-mobile disabled:opacity-50"
-                    >
-                      {isSendingReset ? 'Sending...' : 'Send Reset Link'}
-                    </button>
-                  </div>
-                )}
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
                   <div className="flex items-start gap-3">
