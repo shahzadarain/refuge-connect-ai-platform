@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSession } from '@/hooks/useSession';
@@ -22,30 +21,40 @@ const Index = () => {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [verificationEmail, setVerificationEmail] = useState<string>('');
 
-  // Check for existing session on mount
+  // Check for existing session on mount and when auth state changes
   useEffect(() => {
     console.log('Index component checking session:', { isLoggedIn, currentUser });
-    if (isLoggedIn && currentUser) {
+    
+    // Only redirect if we have both a logged in user AND a current user object
+    if (isLoggedIn && currentUser && currentUser.id) {
+      console.log('User is authenticated, routing based on user type:', currentUser.user_type);
+      
       // Route users based on their type
       switch (currentUser.user_type) {
         case 'super_admin':
-          console.log('Found super admin session, navigating to dashboard');
+          console.log('Routing super admin to dashboard');
           setCurrentView('super-admin-dashboard');
           break;
         case 'employer_admin':
-          console.log('Found employer admin session, navigating to dashboard');
+          console.log('Routing employer admin to dashboard');
           setCurrentView('employer-admin-dashboard');
           break;
         case 'refugee':
-          console.log('Found refugee session, navigating to dashboard');
+          console.log('Routing refugee to dashboard');
           setCurrentView('refugee-dashboard');
           break;
         default:
-          console.log('Unknown user type:', currentUser.user_type);
+          console.log('Unknown user type or no user type, staying on landing:', currentUser.user_type);
           setCurrentView('landing');
       }
+    } else {
+      console.log('User not authenticated or no user data, staying on landing');
+      // Only set to landing if we're currently on a dashboard view
+      if (currentView.includes('dashboard')) {
+        setCurrentView('landing');
+      }
     }
-  }, [isLoggedIn, currentUser]);
+  }, [isLoggedIn, currentUser]); // React to changes in both isLoggedIn AND currentUser
 
   // Check for email verification links on mount
   useEffect(() => {
@@ -90,18 +99,23 @@ const Index = () => {
   };
 
   const handleLoginSuccess = (userType: string) => {
+    console.log('Login success callback triggered with userType:', userType);
     // Route users to their appropriate dashboard after login
     switch (userType) {
       case 'super_admin':
+        console.log('Setting view to super-admin-dashboard');
         setCurrentView('super-admin-dashboard');
         break;
       case 'employer_admin':
+        console.log('Setting view to employer-admin-dashboard');
         setCurrentView('employer-admin-dashboard');
         break;
       case 'refugee':
+        console.log('Setting view to refugee-dashboard');
         setCurrentView('refugee-dashboard');
         break;
       default:
+        console.log('Unknown user type, staying on landing');
         setCurrentView('landing');
     }
   };
@@ -110,6 +124,10 @@ const Index = () => {
     // After email verification, user should be redirected to company activation page
     window.location.href = `/company-setup?email=${verificationEmail}&action=setup`;
   };
+
+  // Add debug logging for current view
+  console.log('Current view state:', currentView);
+  console.log('Authentication state:', { isLoggedIn, currentUser: currentUser?.user_type });
 
   if (currentView === 'employer-registration') {
     return <EmployerRegistration onBack={handleBackToLanding} />;
@@ -124,6 +142,7 @@ const Index = () => {
   }
 
   if (currentView === 'super-admin-dashboard') {
+    console.log('Rendering SuperAdminDashboard component');
     return <SuperAdminDashboard onBack={handleBackToLanding} />;
   }
 
