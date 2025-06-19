@@ -3,6 +3,8 @@ interface CurrentUser {
   id: string;
   email: string;
   user_type: 'super_admin' | 'employer_admin' | 'refugee';
+  first_name?: string;
+  last_name?: string;
   phone?: string;
   is_active: boolean;
   is_verified: boolean;

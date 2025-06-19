@@ -12,6 +12,8 @@ const CompanyDashboard: React.FC = () => {
     logout();
   };
 
+  const displayName = currentUser?.first_name || currentUser?.email?.split('@')[0] || 'User';
+
   return (
     <div className="min-h-screen bg-light-gray">
       {/* Header */}
@@ -27,7 +29,7 @@ const CompanyDashboard: React.FC = () => {
                   Company Dashboard
                 </h1>
                 <p className="text-small-mobile text-neutral-gray/70">
-                  Welcome, {currentUser?.first_name || currentUser?.email}
+                  Welcome, {displayName}
                 </p>
               </div>
             </div>
