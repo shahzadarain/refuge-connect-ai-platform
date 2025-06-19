@@ -1,4 +1,3 @@
-
 export interface Company {
   id: string;
   legal_name: string;
@@ -57,7 +56,7 @@ export const fetchCompanies = async (): Promise<Company[]> => {
   console.log('Fetching companies from API...');
   const response = await fetch(`${API_BASE_URL}/companies`, {
     method: 'GET',
-    headers: API_HEADERS
+    headers: getAuthHeaders() // Use auth headers instead of API_HEADERS
   });
 
   if (!response.ok) {
@@ -73,7 +72,7 @@ export const fetchUsers = async (): Promise<User[]> => {
   console.log('Fetching users from API...');
   const response = await fetch(`${API_BASE_URL}/users`, {
     method: 'GET',
-    headers: API_HEADERS
+    headers: getAuthHeaders() // Use auth headers instead of API_HEADERS
   });
 
   if (!response.ok) {
@@ -93,7 +92,7 @@ export const fetchCompanyAdmin = async (companyId: string): Promise<User | null>
     // First try to get all users and filter
     const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'GET',
-      headers: API_HEADERS
+      headers: getAuthHeaders() // Use auth headers instead of API_HEADERS
     });
 
     if (!response.ok) {

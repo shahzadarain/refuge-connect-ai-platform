@@ -29,6 +29,7 @@ const API_HEADERS = {
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('access_token');
+  console.log('Getting auth headers, token exists:', !!token);
   return {
     ...API_HEADERS,
     'Content-Type': 'application/json',
