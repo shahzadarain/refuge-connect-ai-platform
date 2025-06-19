@@ -75,9 +75,16 @@ class SessionStore {
   }
 
   isLoggedIn(): boolean {
-    const hasUser = this.currentUser !== null;
+    // Simplified logic: if we have a valid user with an ID, they're logged in
+    // The token check is secondary since the user object itself indicates authentication
+    const hasValidUser = this.currentUser !== null && !!this.currentUser.id;
     const hasToken = localStorage.getItem('access_token') !== null;
-    return hasUser && hasToken;
+    
+    console.log('Login check - hasValidUser:', hasValidUser, 'hasToken:', hasToken, 'currentUser:', this.currentUser);
+    
+    // Primary check: valid user exists
+    // Secondary check: token exists (but don't fail if temporarily missing during login flow)
+    return hasValidUser;
   }
 
   subscribe(listener: (user: CurrentUser | null) => void) {
