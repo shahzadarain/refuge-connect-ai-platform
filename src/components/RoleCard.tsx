@@ -12,6 +12,20 @@ interface RoleCardProps {
 const RoleCard: React.FC<RoleCardProps> = ({ role, icon, onClick, selected = false }) => {
   const { t } = useLanguage();
 
+  const getRoleTitle = () => {
+    if (role === 'admin') {
+      return 'Login to Account';
+    }
+    return t(`role.${role}`);
+  };
+
+  const getRoleDescription = () => {
+    if (role === 'admin') {
+      return 'Access your existing account (Admin, Employer, or Refugee)';
+    }
+    return t(`role.${role}.description`);
+  };
+
   return (
     <div
       className={`role-card ${selected ? 'ring-2 ring-un-blue' : ''}`}
@@ -33,10 +47,10 @@ const RoleCard: React.FC<RoleCardProps> = ({ role, icon, onClick, selected = fal
         
         <div>
           <h3 className="text-h2-mobile font-semibold text-neutral-gray mb-2">
-            {t(`role.${role}`)}
+            {getRoleTitle()}
           </h3>
           <p className="text-body-mobile text-neutral-gray/80">
-            {t(`role.${role}.description`)}
+            {getRoleDescription()}
           </p>
         </div>
       </div>

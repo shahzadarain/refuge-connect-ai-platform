@@ -7,11 +7,13 @@ import RoleCard from '@/components/RoleCard';
 import EmployerRegistration from '@/components/EmployerRegistration';
 import RefugeeRegistration from '@/components/RefugeeRegistration';
 import SuperAdminDashboard from '@/components/SuperAdminDashboard';
+import EmployerAdminDashboard from '@/components/EmployerAdminDashboard';
+import RefugeeDashboard from '@/components/RefugeeDashboard';
 import JobBoard from '@/components/JobBoard';
-import SuperAdminLogin from '@/components/SuperAdminLogin';
+import UnifiedLogin from '@/components/UnifiedLogin';
 import EmailVerification from '@/components/EmailVerification';
 
-type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'job-board' | 'super-admin-login' | 'email-verification';
+type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'employer-admin-dashboard' | 'refugee-dashboard' | 'job-board' | 'unified-login' | 'email-verification';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -24,11 +26,24 @@ const Index = () => {
   useEffect(() => {
     console.log('Index component checking session:', { isLoggedIn, currentUser });
     if (isLoggedIn && currentUser) {
-      if (currentUser.user_type === 'super_admin') {
-        console.log('Found super admin session, navigating to dashboard');
-        setCurrentView('super-admin-dashboard');
+      // Route users based on their type
+      switch (currentUser.user_type) {
+        case 'super_admin':
+          console.log('Found super admin session, navigating to dashboard');
+          setCurrentView('super-admin-dashboard');
+          break;
+        case 'employer_admin':
+          console.log('Found employer admin session, navigating to dashboard');
+          setCurrentView('employer-admin-dashboard');
+          break;
+        case 'refugee':
+          console.log('Found refugee session, navigating to dashboard');
+          setCurrentView('refugee-dashboard');
+          break;
+        default:
+          console.log('Unknown user type:', currentUser.user_type);
+          setCurrentView('landing');
       }
-      // Add other user types here if needed in the future
     }
   }, [isLoggedIn, currentUser]);
 
@@ -59,8 +74,8 @@ const Index = () => {
       setCurrentView('employer-registration');
     } else if (selectedRole === 'refugee') {
       setCurrentView('refugee-registration');
-    } else if (selectedRole === 'admin') {
-      setCurrentView('super-admin-login');
+    } else if (selectedRole === 'login') {
+      setCurrentView('unified-login');
     }
   };
 
@@ -74,8 +89,21 @@ const Index = () => {
     setCurrentView('job-board');
   };
 
-  const handleSuperAdminLoginSuccess = () => {
-    setCurrentView('super-admin-dashboard');
+  const handleLoginSuccess = (userType: string) => {
+    // Route users to their appropriate dashboard after login
+    switch (userType) {
+      case 'super_admin':
+        setCurrentView('super-admin-dashboard');
+        break;
+      case 'employer_admin':
+        setCurrentView('employer-admin-dashboard');
+        break;
+      case 'refugee':
+        setCurrentView('refugee-dashboard');
+        break;
+      default:
+        setCurrentView('landing');
+    }
   };
 
   const handleVerificationSuccess = () => {
@@ -91,12 +119,20 @@ const Index = () => {
     return <RefugeeRegistration onBack={handleBackToLanding} />;
   }
 
-  if (currentView === 'super-admin-login') {
-    return <SuperAdminLogin onBack={handleBackToLanding} onLoginSuccess={handleSuperAdminLoginSuccess} />;
+  if (currentView === 'unified-login') {
+    return <UnifiedLogin onBack={handleBackToLanding} onLoginSuccess={handleLoginSuccess} />;
   }
 
   if (currentView === 'super-admin-dashboard') {
     return <SuperAdminDashboard onBack={handleBackToLanding} />;
+  }
+
+  if (currentView === 'employer-admin-dashboard') {
+    return <EmployerAdminDashboard />;
+  }
+
+  if (currentView === 'refugee-dashboard') {
+    return <RefugeeDashboard />;
   }
 
   if (currentView === 'job-board') {
@@ -161,16 +197,16 @@ const Index = () => {
               selected={selectedRole === 'refugee'}
             />
 
-            {/* Admin Role */}
+            {/* Login Option */}
             <RoleCard
               role="admin"
               icon={
                 <svg className="w-8 h-8 text-un-blue" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11.5C14.8,11.78 14.58,12 14.3,12H9.7C9.42,12 9.2,11.78 9.2,11.5V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.4,8.7 10.4,10V10.8H13.6V10C13.6,8.7 12.8,8.2 12,8.2Z"/>
+                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L9 7V9C9 10.1 9.9 11 11 11V22H13V11C14.1 11 15 10.1 15 9Z"/>
                 </svg>
               }
-              onClick={() => handleRoleSelect('admin')}
-              selected={selectedRole === 'admin'}
+              onClick={() => handleRoleSelect('login')}
+              selected={selectedRole === 'login'}
             />
           </div>
 
@@ -181,7 +217,7 @@ const Index = () => {
                 onClick={handleContinue}
                 className="btn-primary w-full max-w-md mx-auto"
               >
-                {t('landing.continue')}
+                {selectedRole === 'login' ? 'Login to Account' : t('landing.continue')}
               </button>
             </div>
           )}
