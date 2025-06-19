@@ -67,9 +67,11 @@ class SessionStore {
 
   clearCurrentUser() {
     this.currentUser = null;
-    this.saveToStorage();
+    // Clear all auth-related data from localStorage
+    localStorage.removeItem('current_log_user');
+    localStorage.removeItem('access_token');
     this.notifyListeners();
-    console.log('User session cleared');
+    console.log('User session cleared completely');
   }
 
   isLoggedIn(): boolean {
