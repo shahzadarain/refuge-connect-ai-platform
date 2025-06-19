@@ -9,13 +9,14 @@ const EmployerAdminDashboard: React.FC = () => {
   const { t } = useLanguage();
   const { currentUser, logout } = useSession();
   const { toast } = useToast();
-  const [companyName, setCompanyName] = useState<string>('Your Company');
+  const [companyName, setCompanyName] = useState<string>('Loading...');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchCompanyDetails = async () => {
       if (!currentUser?.company_id) {
         console.log('No company_id found for user:', currentUser);
+        setCompanyName('Your Company');
         setIsLoading(false);
         return;
       }
@@ -48,12 +49,15 @@ const EmployerAdminDashboard: React.FC = () => {
             setCompanyName(userCompany.legal_name || 'Your Company');
           } else {
             console.log('No company found with matching company_id');
+            setCompanyName('Your Company');
           }
         } else {
           console.error('Failed to fetch companies:', response.status);
+          setCompanyName('Your Company');
         }
       } catch (error) {
         console.error('Error fetching company details:', error);
+        setCompanyName('Your Company');
       } finally {
         setIsLoading(false);
       }
