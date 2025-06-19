@@ -14,11 +14,18 @@ const EmployerAdminDashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchCompanyDetails = async () => {
-      if (!currentUser?.id) return;
+      if (!currentUser?.company_id) {
+        console.log('No company_id found for user:', currentUser);
+        setIsLoading(false);
+        return;
+      }
 
       try {
         const token = localStorage.getItem('access_token');
-        const response = await fetch(`https://ab93e9536acd.ngrok.app/api/company/profile`, {
+        console.log('Fetching company details for company_id:', currentUser.company_id);
+        
+        // Fetch all companies and find the one matching the user's company_id
+        const response = await fetch(`https://ab93e9536acd.ngrok.app/api/companies`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -28,9 +35,22 @@ const EmployerAdminDashboard: React.FC = () => {
         });
 
         if (response.ok) {
-          const companyData = await response.json();
-          console.log('Company data:', companyData);
-          setCompanyName(companyData.legal_name || companyData.company_name || 'Your Company');
+          const companies = await response.json();
+          console.log('Companies data:', companies);
+          
+          // Find the company that matches the user's company_id
+          const userCompany = Array.isArray(companies) 
+            ? companies.find(company => company.id === currentUser.company_id)
+            : null;
+          
+          if (userCompany) {
+            console.log('Found user company:', userCompany);
+            setCompanyName(userCompany.legal_name || 'Your Company');
+          } else {
+            console.log('No company found with matching company_id');
+          }
+        } else {
+          console.error('Failed to fetch companies:', response.status);
         }
       } catch (error) {
         console.error('Error fetching company details:', error);
