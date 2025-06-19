@@ -1,4 +1,3 @@
-
 interface CurrentUser {
   id: string;
   email: string;
@@ -10,6 +9,7 @@ interface CurrentUser {
   is_verified: boolean;
   created_at: string;
   last_login?: string;
+  company_id?: string; // Added this property
 }
 
 class SessionStore {
