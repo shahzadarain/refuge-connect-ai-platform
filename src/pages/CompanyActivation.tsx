@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, Building, User, CheckCircle, Mail } from 'lucide-react';
+import { ArrowLeft, Building, CheckCircle, Mail, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { sessionStore } from '@/stores/sessionStore';
 
 const CompanyActivation = () => {
   const { t } = useLanguage();
@@ -13,15 +13,13 @@ const CompanyActivation = () => {
   
   const [email, setEmail] = useState<string>('');
   const [verificationCode, setVerificationCode] = useState<string>('');
-  const [step, setStep] = useState<'email-input' | 'verification' | 'setup'>('email-input');
+  const [step, setStep] = useState<'email-input' | 'verification' | 'login'>('email-input');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    password: '',
-    confirmPassword: ''
+  const [loginData, setLoginData] = useState({
+    password: ''
   });
 
   useEffect(() => {
@@ -72,7 +70,6 @@ const CompanyActivation = () => {
       
       const requestBody: any = { email };
       
-      // If we have a verification code from URL params, include it
       if (verificationCode) {
         requestBody.verification_code = verificationCode;
       }
@@ -111,10 +108,10 @@ const CompanyActivation = () => {
 
       toast({
         title: "Email Verified!",
-        description: "Your email has been verified successfully. You can now set up your admin account.",
+        description: "Your email has been verified successfully. Please log in with your password.",
       });
 
-      setStep('setup');
+      setStep('login');
     } catch (error) {
       console.error('Email verification error:', error);
       
@@ -140,41 +137,24 @@ const CompanyActivation = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSetupSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
+    if (!loginData.password) {
       toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match. Please try again.",
+        title: "Password Required",
+        description: "Please enter your password.",
         variant: "destructive",
       });
       return;
     }
 
-    if (formData.password.length < 6) {
-      toast({
-        title: "Password Too Short",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
+    setIsLoggingIn(true);
 
     try {
-      console.log('Setting up company admin account for:', email);
+      console.log('Logging in company admin:', email);
 
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/setup-admin-account', {
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,16 +163,15 @@ const CompanyActivation = () => {
         },
         body: JSON.stringify({
           email: email,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          password: formData.password
+          password: loginData.password,
+          user_type: 'employer_admin'
         })
       });
 
-      console.log('Setup response status:', response.status);
+      console.log('Login response status:', response.status);
 
       if (!response.ok) {
-        let errorMessage = 'Failed to setup admin account';
+        let errorMessage = 'Login failed';
         
         try {
           const errorData = await response.json();
@@ -209,21 +188,24 @@ const CompanyActivation = () => {
       }
 
       const result = await response.json();
-      console.log('Admin setup successful:', result);
+      console.log('Login successful:', result);
+
+      // Store user session
+      if (result.user) {
+        sessionStore.setCurrentUser(result.user);
+        localStorage.setItem('access_token', result.access_token);
+      }
 
       toast({
-        title: "Account Setup Complete!",
-        description: "Your admin account has been created successfully. Redirecting to your company dashboard...",
+        title: "Login Successful!",
+        description: "Welcome to your company dashboard.",
       });
 
-      // Redirect to company dashboard after a brief delay
-      setTimeout(() => {
-        navigate('/company-dashboard');
-      }, 2000);
+      navigate('/company-dashboard');
     } catch (error) {
-      console.error('Setup error:', error);
+      console.error('Login error:', error);
       
-      let errorMessage = 'Failed to setup admin account';
+      let errorMessage = 'Login failed';
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
@@ -236,13 +218,60 @@ const CompanyActivation = () => {
       }
       
       toast({
-        title: "Setup Failed",
+        title: "Login Failed",
         description: errorMessage,
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsLoggingIn(false);
     }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Reset Link Sent",
+          description: "Please check your email for password reset instructions.",
+        });
+        setShowForgotPassword(false);
+      } else {
+        throw new Error('Failed to send reset link');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send password reset link. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setLoginData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleBackToHome = () => {
@@ -269,10 +298,10 @@ const CompanyActivation = () => {
                     <Mail className="w-8 h-8 text-un-blue" />
                   </div>
                   <h1 className="text-h2-mobile font-bold text-neutral-gray mb-2">
-                    Company Setup
+                    Company Login
                   </h1>
                   <p className="text-body-mobile text-neutral-gray/70">
-                    Enter your company email address to begin the setup process
+                    Enter your company email address to continue
                   </p>
                 </div>
 
@@ -299,15 +328,38 @@ const CompanyActivation = () => {
                   </button>
                 </form>
 
+                <div className="text-center mt-4">
+                  <button
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-un-blue hover:underline text-small-mobile"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+
+                {showForgotPassword && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                    <p className="text-small-mobile text-blue-800 mb-2">
+                      Enter your email above and click the button below to receive password reset instructions.
+                    </p>
+                    <button
+                      onClick={handleForgotPassword}
+                      className="btn-secondary w-full text-small-mobile"
+                    >
+                      Send Reset Link
+                    </button>
+                  </div>
+                )}
+
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
                   <div className="flex items-start gap-3">
                     <Building className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-small-mobile font-medium text-blue-800 mb-1">
-                        Company Registration
+                        Company Access
                       </p>
                       <p className="text-xs text-blue-700">
-                        Use your official company email address to set up your organization's admin account.
+                        Use your company email address that was approved by the administrator.
                       </p>
                     </div>
                   </div>
@@ -325,7 +377,7 @@ const CompanyActivation = () => {
                   <p className="text-body-mobile text-neutral-gray/70 mb-4">
                     {verificationCode ? 
                       'We have received your verification code. Click verify to continue.' :
-                      'Please verify your email address to activate your company account'
+                      'Please verify your email address to access your company account'
                     }
                   </p>
                   <p className="text-body-mobile font-medium text-un-blue bg-blue-50 px-4 py-2 rounded-lg">
@@ -341,10 +393,33 @@ const CompanyActivation = () => {
                 <button
                   onClick={handleEmailVerification}
                   disabled={isVerifying}
-                  className="btn-primary w-full disabled:opacity-50"
+                  className="btn-primary w-full disabled:opacity-50 mb-4"
                 >
                   {isVerifying ? 'Verifying Email...' : 'Verify Email'}
                 </button>
+
+                <div className="text-center">
+                  <button
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-un-blue hover:underline text-small-mobile"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+
+                {showForgotPassword && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                    <p className="text-small-mobile text-blue-800 mb-2">
+                      Click the button below to receive password reset instructions.
+                    </p>
+                    <button
+                      onClick={handleForgotPassword}
+                      className="btn-secondary w-full text-small-mobile"
+                    >
+                      Send Reset Link
+                    </button>
+                  </div>
+                )}
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
                   <div className="flex items-start gap-3">
@@ -354,7 +429,7 @@ const CompanyActivation = () => {
                         Email Verification Required
                       </p>
                       <p className="text-xs text-blue-700">
-                        This step ensures that your company email is valid and you have access to it.
+                        This step ensures that your company email is valid and you have access to it. Verification codes expire in 3 hours.
                       </p>
                     </div>
                   </div>
@@ -364,54 +439,20 @@ const CompanyActivation = () => {
               <>
                 <div className="text-center mb-6">
                   <div className="w-16 h-16 bg-un-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <User className="w-8 h-8 text-un-blue" />
+                    <KeyRound className="w-8 h-8 text-un-blue" />
                   </div>
                   <h1 className="text-h2-mobile font-bold text-neutral-gray mb-2">
-                    Setup Admin Account
+                    Welcome Back
                   </h1>
                   <p className="text-body-mobile text-neutral-gray/70 mb-2">
-                    Complete your company administrator account setup
+                    Enter your password to access your company dashboard
                   </p>
                   <p className="text-body-mobile font-medium text-un-blue">
                     {email}
                   </p>
                 </div>
 
-                <form onSubmit={handleSetupSubmit} className="space-y-6">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label htmlFor="firstName" className="block text-small-mobile font-medium text-neutral-gray mb-2">
-                        First Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="firstName"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-un-blue/20 focus:border-un-blue"
-                        placeholder="Enter your first name"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="lastName" className="block text-small-mobile font-medium text-neutral-gray mb-2">
-                        Last Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="lastName"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-un-blue/20 focus:border-un-blue"
-                        placeholder="Enter your last name"
-                      />
-                    </div>
-                  </div>
-
+                <form onSubmit={handleLogin} className="space-y-6">
                   <div>
                     <label htmlFor="password" className="block text-small-mobile font-medium text-neutral-gray mb-2">
                       Password *
@@ -420,50 +461,55 @@ const CompanyActivation = () => {
                       type="password"
                       id="password"
                       name="password"
-                      value={formData.password}
+                      value={loginData.password}
                       onChange={handleInputChange}
                       required
-                      minLength={6}
                       className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-un-blue/20 focus:border-un-blue"
-                      placeholder="Enter your password (min 6 characters)"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="confirmPassword" className="block text-small-mobile font-medium text-neutral-gray mb-2">
-                      Confirm Password *
-                    </label>
-                    <input
-                      type="password"
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      required
-                      minLength={6}
-                      className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-un-blue/20 focus:border-un-blue"
-                      placeholder="Confirm your password"
+                      placeholder="Enter your password"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    disabled={isSubmitting || !formData.firstName || !formData.lastName || !formData.password || !formData.confirmPassword}
+                    disabled={isLoggingIn || !loginData.password}
                     className="btn-primary w-full disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Setting up Account...' : 'Complete Setup'}
+                    {isLoggingIn ? 'Signing In...' : 'Sign In'}
                   </button>
                 </form>
 
+                <div className="text-center mt-4">
+                  <button
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-un-blue hover:underline text-small-mobile"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+
+                {showForgotPassword && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                    <p className="text-small-mobile text-blue-800 mb-2">
+                      Click the button below to receive password reset instructions.
+                    </p>
+                    <button
+                      onClick={handleForgotPassword}
+                      className="btn-secondary w-full text-small-mobile"
+                    >
+                      Send Reset Link
+                    </button>
+                  </div>
+                )}
+
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
                   <div className="flex items-start gap-3">
-                    <User className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <KeyRound className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-small-mobile font-medium text-blue-800 mb-1">
-                        Admin Account Setup
+                        Secure Access
                       </p>
                       <p className="text-xs text-blue-700">
-                        You are setting up an administrator account for your company. This will give you access to manage jobs, users, and company settings.
+                        Use the password you set during company registration to access your dashboard.
                       </p>
                     </div>
                   </div>

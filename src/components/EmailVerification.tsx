@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, Mail, Shield } from 'lucide-react';
+import { ArrowLeft, Mail, Shield, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
@@ -20,6 +20,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
   const { toast } = useToast();
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleVerifyCode = async () => {
     if (verificationCode.length !== 6) {
@@ -131,6 +132,45 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Email address is required for password reset.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Reset Link Sent",
+          description: "Please check your email for password reset instructions.",
+        });
+        setShowForgotPassword(false);
+      } else {
+        throw new Error('Failed to send reset link');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send password reset link. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-light-gray">
       <div className="container mx-auto px-4 py-8">
@@ -192,17 +232,45 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                 {isVerifying ? 'Verifying...' : 'Verify Email'}
               </button>
 
-              <div className="text-center">
-                <p className="text-small-mobile text-neutral-gray/70 mb-2">
+              <div className="text-center space-y-2">
+                <p className="text-small-mobile text-neutral-gray/70">
                   Didn't receive the code?
                 </p>
                 <button
                   onClick={handleResendCode}
-                  className="text-un-blue hover:underline text-small-mobile font-medium"
+                  className="text-un-blue hover:underline text-small-mobile font-medium mr-4"
                 >
                   Resend Code
                 </button>
+                <button
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-un-blue hover:underline text-small-mobile font-medium"
+                >
+                  Forgot Password?
+                </button>
               </div>
+
+              {showForgotPassword && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3 mb-3">
+                    <KeyRound className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-small-mobile font-medium text-blue-800 mb-1">
+                        Reset Password
+                      </p>
+                      <p className="text-xs text-blue-700 mb-2">
+                        Click the button below to receive password reset instructions.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleForgotPassword}
+                    className="btn-secondary w-full text-small-mobile"
+                  >
+                    Send Reset Link
+                  </button>
+                </div>
+              )}
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
@@ -212,7 +280,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                       Security Note
                     </p>
                     <p className="text-xs text-blue-700">
-                      The verification code expires in 7 days. If you don't verify your email within this time, you'll need to contact support.
+                      The verification code expires in 3 hours. If you don't verify your email within this time, you'll need to request a new code.
                     </p>
                   </div>
                 </div>
