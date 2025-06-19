@@ -27,6 +27,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Sending company approval email to:', to, 'for company:', company_name);
 
+    // Construct the proper setup URL with all required parameters
+    const baseUrl = "https://drtcphgiwjojienkbkid.supabase.co".replace('supabase.co', 'lovable.app');
+    const setupUrl = `${baseUrl}/company-setup?email=${encodeURIComponent(to)}&code=${encodeURIComponent(verification_code)}&action=setup`;
+
     const emailResponse = await resend.emails.send({
       from: "JobApp <onboarding@resend.dev>",
       to: [to],
@@ -57,14 +61,14 @@ const handler = async (req: Request): Promise<Response> => {
               <h3 style="color: #333; margin: 0 0 15px 0;">Next Steps:</h3>
               <ol style="margin: 0; padding-left: 20px;">
                 <li style="margin-bottom: 10px;">Click the setup button below</li>
-                <li style="margin-bottom: 10px;">Enter your email and the verification code above</li>
-                <li style="margin-bottom: 10px;">Choose a username and secure password</li>
+                <li style="margin-bottom: 10px;">Your email and verification code will be pre-filled</li>
+                <li style="margin-bottom: 10px;">Choose a secure password for your admin account</li>
                 <li style="margin-bottom: 10px;">Start managing your company profile and team</li>
               </ol>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovable.app') || 'https://your-app.lovable.app'}/company-setup" 
+              <a href="${setupUrl}" 
                  style="background: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 Setup Admin Account
               </a>
@@ -73,6 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 30px; color: #6c757d; font-size: 14px;">
               <p><strong>Important:</strong> This verification code will expire in ${expires_in_days} days. If you don't complete the setup process within this time, you'll need to contact support.</p>
               <p>If you didn't request this or have any questions, please contact our support team.</p>
+              <p style="margin-top: 15px;"><strong>Direct link:</strong> <a href="${setupUrl}" style="color: #007bff; word-break: break-all;">${setupUrl}</a></p>
             </div>
           </div>
         </div>
