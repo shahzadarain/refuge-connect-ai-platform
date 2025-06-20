@@ -1,14 +1,20 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, LogOut, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CompaniesTab from './CompaniesTab';
+import UsersTab from './UsersTab';
 import {
   Company,
+  User as UserType,
   fetchCompanies,
+  fetchUsers,
   approveCompany,
-  rejectCompany
+  rejectCompany,
+  activateUser
 } from '@/utils/adminApi';
 import { sendCompanyApprovalEmail } from '@/utils/emailApi';
 
@@ -21,7 +27,9 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
   const { toast } = useToast();
   const { currentUser, logout, isLoggedIn } = useSession();
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   // Check if user is still logged in on component mount
   useEffect(() => {
@@ -40,7 +48,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
   }, [isLoggedIn, currentUser, onBack, toast]);
 
   const loadCompanies = async () => {
-    setIsLoading(true);
+    setIsLoadingCompanies(true);
     try {
       const data = await fetchCompanies();
       console.log('Loaded companies:', data);
@@ -60,12 +68,38 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsLoadingCompanies(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const data = await fetchUsers();
+      console.log('Loaded users:', data);
+      // Ensure we have an array
+      if (Array.isArray(data)) {
+        setUsers(data);
+      } else {
+        console.error('Users data is not an array:', data);
+        setUsers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsers([]); // Set to empty array on error
+      toast({
+        title: "Error",
+        description: "Failed to fetch users data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingUsers(false);
     }
   };
 
   useEffect(() => {
     loadCompanies();
+    loadUsers();
   }, []);
 
   const handleApproveCompany = async (companyId: string, comment: string) => {
@@ -175,6 +209,25 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     }
   };
 
+  const handleActivateUser = async (userId: string) => {
+    try {
+      await activateUser(userId);
+      toast({
+        title: "Success",
+        description: "User activated successfully",
+      });
+      // Reload users to get the updated state
+      await loadUsers();
+    } catch (error) {
+      console.error('Error activating user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to activate user",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleLogout = () => {
     logout();
     toast({
@@ -210,7 +263,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
                 Super Admin Dashboard
               </h1>
               <p className="text-body-mobile text-neutral-gray/80">
-                Manage company applications
+                Manage company applications and users
               </p>
             </div>
             
@@ -239,12 +292,28 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
           </div>
         </div>
 
-        <CompaniesTab
-          companies={companies}
-          isLoading={isLoading}
-          onApprove={handleApproveCompany}
-          onReject={handleRejectCompany}
-        />
+        <Tabs defaultValue="companies" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="companies">Companies</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="companies" className="mt-6">
+            <CompaniesTab
+              companies={companies}
+              isLoading={isLoadingCompanies}
+              onApprove={handleApproveCompany}
+              onReject={handleRejectCompany}
+            />
+          </TabsContent>
+          
+          <TabsContent value="users" className="mt-6">
+            <UsersTab
+              users={users}
+              onActivate={handleActivateUser}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
