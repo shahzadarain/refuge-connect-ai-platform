@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, LogOut, User } from 'lucide-react';
@@ -73,19 +72,24 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
   };
 
   const loadUsers = async () => {
+    console.log('SuperAdminDashboard: Starting to load users...');
     setIsLoadingUsers(true);
     try {
       const data = await fetchUsers();
-      console.log('Loaded users:', data);
+      console.log('SuperAdminDashboard: Loaded users data:', data);
+      console.log('SuperAdminDashboard: Users data type:', typeof data);
+      console.log('SuperAdminDashboard: Users data length:', Array.isArray(data) ? data.length : 'not an array');
+      
       // Ensure we have an array
       if (Array.isArray(data)) {
         setUsers(data);
+        console.log('SuperAdminDashboard: Set users state with', data.length, 'users');
       } else {
-        console.error('Users data is not an array:', data);
+        console.error('SuperAdminDashboard: Users data is not an array:', data);
         setUsers([]);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('SuperAdminDashboard: Error fetching users:', error);
       setUsers([]); // Set to empty array on error
       toast({
         title: "Error",
@@ -94,10 +98,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
       });
     } finally {
       setIsLoadingUsers(false);
+      console.log('SuperAdminDashboard: Finished loading users');
     }
   };
 
   useEffect(() => {
+    console.log('SuperAdminDashboard: Component mounted, loading data...');
     loadCompanies();
     loadUsers();
   }, []);
@@ -244,6 +250,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     return null;
   }
 
+  console.log('SuperAdminDashboard: Rendering with', users.length, 'users and loading state:', isLoadingUsers);
+
   return (
     <div className="min-h-screen bg-light-gray">
       <div className="container mx-auto px-4 py-8">
@@ -308,6 +316,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
           </TabsContent>
           
           <TabsContent value="users" className="mt-6">
+            {console.log('SuperAdminDashboard: Rendering UsersTab with users:', users, 'loading:', isLoadingUsers)}
             <UsersTab
               users={users}
               onActivate={handleActivateUser}

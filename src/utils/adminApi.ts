@@ -70,19 +70,48 @@ export const fetchCompanies = async (): Promise<Company[]> => {
 
 export const fetchUsers = async (): Promise<User[]> => {
   console.log('Fetching users from API...');
-  const response = await fetch(`${API_BASE_URL}/users`, {
-    method: 'GET',
-    headers: getAuthHeaders() // Use auth headers instead of API_HEADERS
-  });
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
 
-  if (!response.ok) {
-    console.log('Users endpoint not available or failed:', response.status);
+    console.log('Users API response status:', response.status);
+    console.log('Users API response headers:', Object.fromEntries(response.headers.entries()));
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Failed to fetch users:', response.status, errorText);
+      
+      // If endpoint doesn't exist, return empty array
+      if (response.status === 404 || response.status === 405) {
+        console.log('Users endpoint not available, returning empty array');
+        return [];
+      }
+      
+      throw new Error(`Failed to fetch users: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('Users data received:', data);
+    
+    // Handle different response formats
+    if (data && data.users && Array.isArray(data.users)) {
+      return data.users;
+    } else if (Array.isArray(data)) {
+      return data;
+    } else if (data && data.data && Array.isArray(data.data)) {
+      return data.data;
+    } else {
+      console.warn('Unexpected users response format:', data);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    // Return empty array instead of throwing to prevent UI crashes
     return [];
   }
-
-  const data = await response.json();
-  console.log('Users data received:', data);
-  return Array.isArray(data) ? data : [];
 };
 
 export const fetchCompanyAdmin = async (companyId: string): Promise<User | null> => {

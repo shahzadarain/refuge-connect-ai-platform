@@ -9,6 +9,9 @@ interface UsersTabProps {
 }
 
 const UsersTab: React.FC<UsersTabProps> = ({ users, onActivate }) => {
+  console.log('UsersTab: Rendering with users:', users);
+  console.log('UsersTab: Users array length:', users ? users.length : 'users is null/undefined');
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
@@ -22,12 +25,21 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, onActivate }) => {
           <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-small-mobile">
             {users.filter(u => u.user_type === 'refugee').length} Refugees
           </span>
+          <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-small-mobile">
+            Total: {users.length}
+          </span>
         </div>
       </div>
 
       {users.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-neutral-gray">No users found</p>
+          <div className="w-16 h-16 bg-neutral-gray/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <Users className="w-8 h-8 text-neutral-gray/50" />
+          </div>
+          <h3 className="text-lg font-medium text-neutral-gray mb-2">No Users Found</h3>
+          <p className="text-neutral-gray/70">
+            No users are currently registered in the system, or the users endpoint is not available.
+          </p>
         </div>
       ) : (
         users.map((user) => (
