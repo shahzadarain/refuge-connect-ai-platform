@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -291,9 +290,6 @@ const ResetPassword = () => {
                   maxLength={6}
                   required
                 />
-                <p className="text-small-mobile text-neutral-gray/70 mt-1">
-                  Enter the 6-digit code from your email
-                </p>
                 {validationErrors.verification_code && (
                   <p className="text-red-500 text-xs mt-1">{validationErrors.verification_code}</p>
                 )}
