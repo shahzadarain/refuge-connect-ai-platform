@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface FormData {
   email: string;
@@ -44,19 +44,19 @@ const ResetPassword = () => {
     // Try to get email from localStorage (from forgot password flow)
     const storedEmail = localStorage.getItem('resetEmail');
     
-    // Also check URL params (from email links)
+    // Also check URL params (from email links or direct navigation)
     const emailParam = searchParams.get('email');
-    const tokenParam = searchParams.get('token');
+    const codeParam = searchParams.get('code');
     
     console.log('Stored email:', storedEmail);
     console.log('Email param:', emailParam);
-    console.log('Token param:', tokenParam);
+    console.log('Code param:', codeParam);
     
     if (emailParam) {
       setFormData(prev => ({
         ...prev,
         email: decodeURIComponent(emailParam),
-        verification_code: tokenParam || ''
+        verification_code: codeParam || ''
       }));
     } else if (storedEmail) {
       setFormData(prev => ({
@@ -77,6 +77,8 @@ const ResetPassword = () => {
     
     if (!formData.verification_code) {
       errors.verification_code = 'Verification code is required';
+    } else if (formData.verification_code.length !== 6) {
+      errors.verification_code = 'Verification code must be 6 digits';
     }
     
     if (!formData.new_password) {
@@ -107,39 +109,76 @@ const ResetPassword = () => {
       console.log('Verification code:', formData.verification_code);
       console.log('Form data being sent:', {
         email: formData.email.trim(),
-        token: formData.verification_code.trim(),
+        verification_code: formData.verification_code.trim(),
         new_password: formData.new_password
       });
       
-      // Use Supabase Edge Function instead of direct API call
-      const { data, error } = await supabase.functions.invoke('reset-password', {
-        body: {
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({
           email: formData.email.trim(),
-          token: formData.verification_code.trim(),
+          verification_code: formData.verification_code.trim(),
           new_password: formData.new_password
-        }
+        })
       });
 
-      console.log('Supabase Edge Function response:', { data, error });
+      console.log('Reset password response status:', response.status);
       
-      if (error) {
-        console.error('Supabase Edge Function error:', error);
-        throw new Error(error.message || 'Failed to reset password');
+      if (!response.ok) {
+        let errorMessage = 'Failed to reset password';
+        
+        try {
+          const errorData = await response.json();
+          console.log('Error response data:', errorData);
+          
+          if (response.status === 422 && errorData.detail) {
+            if (Array.isArray(errorData.detail)) {
+              // FastAPI validation errors
+              const validationErrors = errorData.detail.map((err: any) => {
+                const field = err.loc ? err.loc[err.loc.length - 1] : 'unknown';
+                const message = err.msg || err.message || 'Validation error';
+                return `${field}: ${message}`;
+              }).join(', ');
+              errorMessage = `Validation error: ${validationErrors}`;
+            } else {
+              errorMessage = errorData.detail;
+            }
+          } else {
+            errorMessage = errorData.detail || errorData.message || errorData.error || errorMessage;
+          }
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          
+          if (errorText.includes("Internal Server Error")) {
+            errorMessage = "Server error occurred. Please try again later.";
+          } else if (errorText.includes("502 Bad Gateway")) {
+            errorMessage = "Service temporarily unavailable. Please try again later.";
+          } else if (errorText.includes("404")) {
+            errorMessage = "Reset service not found. Please contact support.";
+          } else {
+            errorMessage = errorText || errorMessage;
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      if (data && !data.success) {
-        console.error('Password reset failed:', data.error);
-        throw new Error(data.error || 'Failed to reset password');
-      }
-
-      console.log('Password reset successful:', data);
+      const result = await response.json();
+      console.log('Password reset successful:', result);
       
       // Clear stored email
       localStorage.removeItem('resetEmail');
       
       toast({
         title: "Password Reset Successful",
-        description: "Your password has been updated successfully. You can now log in with your new password.",
+        description: result.message || "Your password has been updated successfully. You can now log in with your new password.",
       });
 
       // Redirect to login
@@ -156,12 +195,12 @@ const ResetPassword = () => {
           errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
         } else if (error.message.includes('NetworkError')) {
           errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
-        } else if (error.message.toLowerCase().includes('cors')) {
+        } else if (error.message.includes('cors')) {
           errorMessage = 'CORS error: The server is not configured to allow requests from this domain. Please contact support.';
         } else if (error.message.toLowerCase().includes('expired')) {
           errorMessage = 'This reset code has expired. Please request a new password reset.';
-        } else if (error.message.toLowerCase().includes('invalid reset code')) {
-          errorMessage = 'Invalid reset code. Please check the code and try again.';
+        } else if (error.message.toLowerCase().includes('invalid reset code') || error.message.toLowerCase().includes('invalid verification code')) {
+          errorMessage = 'Invalid verification code. Please check the code and try again.';
         } else if (error.message.toLowerCase().includes('already been used')) {
           errorMessage = 'This reset code has already been used. Please request a new password reset.';
         } else if (error.message.toLowerCase().includes('deactivated')) {
@@ -231,7 +270,7 @@ const ResetPassword = () => {
                 Reset Your Password
               </h1>
               <p className="text-body-mobile text-neutral-gray/70 mb-2">
-                Enter the verification code sent to your email and your new password
+                Enter the 6-digit verification code sent to your email and your new password
               </p>
               {formData.email && (
                 <p className="text-body-mobile font-medium text-un-blue bg-blue-50 px-4 py-2 rounded-lg">

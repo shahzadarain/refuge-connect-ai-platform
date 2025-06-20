@@ -1,26 +1,27 @@
+
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Mail, Shield, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { supabase } from '@/integrations/supabase/client';
 
 interface EmailVerificationProps {
   onBack: () => void;
   onVerificationSuccess: () => void;
+  onForgotPassword: (email: string) => void;
   email?: string;
 }
 
 const EmailVerification: React.FC<EmailVerificationProps> = ({ 
   onBack, 
   onVerificationSuccess,
+  onForgotPassword,
   email 
 }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isSendingReset, setIsSendingReset] = useState(false);
 
   const handleVerifyCode = async () => {
     if (verificationCode.length !== 6) {
@@ -45,8 +46,8 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
           'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify({
-          verification_code: verificationCode,
-          email: email
+          email: email,
+          verification_code: verificationCode
         })
       });
 
@@ -166,7 +167,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
     }
   };
 
-  const handleForgotPassword = async () => {
+  const handleForgotPasswordClick = () => {
     if (!email) {
       toast({
         title: "Email Required",
@@ -176,58 +177,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
       return;
     }
 
-    setIsSendingReset(true);
-
-    try {
-      console.log('Sending password reset for:', email);
-      
-      // Generate a secure reset URL
-      const resetUrl = `${window.location.origin}/reset-password?email=${encodeURIComponent(email)}&token=SECURE_TOKEN_HERE`;
-      
-      const { data, error } = await supabase.functions.invoke('send-password-reset-email', {
-        body: { 
-          email,
-          reset_url: resetUrl
-        }
-      });
-
-      console.log('Password reset response:', { data, error });
-
-      if (error) {
-        throw new Error(error.message || 'Failed to send password reset email');
-      }
-
-      if (!data?.success) {
-        throw new Error(data?.error || 'Failed to send password reset email');
-      }
-
-      toast({
-        title: "Reset Link Sent",
-        description: "Please check your email for password reset instructions. The link will expire in 3 hours.",
-      });
-    } catch (error) {
-      console.error('Password reset error:', error);
-      
-      let errorMessage = 'Failed to send password reset link';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('Failed to fetch')) {
-          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
-        } else if (error.message.includes('NetworkError')) {
-          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSendingReset(false);
-    }
+    onForgotPassword(email);
   };
 
   return (
@@ -303,11 +253,10 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                     Resend Code
                   </button>
                   <button
-                    onClick={handleForgotPassword}
-                    disabled={isSendingReset}
-                    className="btn-secondary w-full text-small-mobile font-medium disabled:opacity-50"
+                    onClick={handleForgotPasswordClick}
+                    className="btn-secondary w-full text-small-mobile font-medium"
                   >
-                    {isSendingReset ? 'Sending Reset Link...' : 'Forgot Password?'}
+                    Forgot Password?
                   </button>
                 </div>
               </div>
