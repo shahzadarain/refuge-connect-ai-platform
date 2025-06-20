@@ -5,6 +5,20 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+interface FormData {
+  email: string;
+  verification_code: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+interface ValidationErrors {
+  email?: string;
+  verification_code?: string;
+  new_password?: string;
+  confirm_password?: string;
+}
+
 const ResetPassword = () => {
   console.log('ResetPassword component mounted');
   
@@ -13,7 +27,7 @@ const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     email: '',
     verification_code: '',
     new_password: '',
@@ -22,7 +36,7 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const [validationErrors, setValidationErrors] = useState({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
   useEffect(() => {
     console.log('ResetPassword useEffect - checking for stored email or URL params');
@@ -52,8 +66,8 @@ const ResetPassword = () => {
     }
   }, [searchParams]);
 
-  const validateForm = () => {
-    const errors = {};
+  const validateForm = (): boolean => {
+    const errors: ValidationErrors = {};
     
     if (!formData.email) {
       errors.email = 'Email is required';
@@ -193,7 +207,7 @@ const ResetPassword = () => {
     navigate('/?action=forgot-password');
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -203,7 +217,7 @@ const ResetPassword = () => {
     if (validationErrors[field]) {
       setValidationErrors(prev => ({
         ...prev,
-        [field]: ''
+        [field]: undefined
       }));
     }
   };
