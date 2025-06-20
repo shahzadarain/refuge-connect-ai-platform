@@ -32,7 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Users, UserPlus, Trash2, Power, PowerOff } from 'lucide-react';
+import { Users, UserPlus, Trash2, Power, PowerOff, Shield } from 'lucide-react';
 
 interface CompanyUser {
   id: string;
@@ -57,6 +57,36 @@ interface CreateUserForm {
 const CompanyUserManagement: React.FC = () => {
   const { currentUser } = useSession();
   const { toast } = useToast();
+  
+  // Check if user has admin privileges
+  const hasAdminAccess = currentUser?.role === 'company_admin' || currentUser?.user_type === 'employer_admin';
+
+  // If user doesn't have admin access, show access denied message
+  if (!hasAdminAccess) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center max-w-md">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-red-600" />
+            </div>
+            <h2 className="text-h2-mobile font-bold text-neutral-gray mb-2">
+              Access Restricted
+            </h2>
+            <p className="text-body-mobile text-neutral-gray/70 mb-4">
+              You don't have permission to access user management. Only company administrators can manage users.
+            </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-small-mobile text-yellow-800">
+                Contact your company administrator if you need access to user management features.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const [users, setUsers] = useState<CompanyUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
