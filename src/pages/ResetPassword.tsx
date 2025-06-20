@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -106,7 +107,7 @@ const ResetPassword = () => {
       console.log('Verification code:', formData.verification_code);
       console.log('Form data being sent:', {
         email: formData.email.trim(),
-        token: formData.verification_code.trim(),
+        verification_code: formData.verification_code.trim(),
         new_password: formData.new_password
       });
       
@@ -119,7 +120,7 @@ const ResetPassword = () => {
         },
         body: JSON.stringify({
           email: formData.email.trim(),
-          token: formData.verification_code.trim(),
+          verification_code: formData.verification_code.trim(),
           new_password: formData.new_password
         })
       });
