@@ -16,13 +16,13 @@ export const canManageUsers = (user: CurrentUser | null): boolean => {
     roleValue: user.role
   });
   
-  // Original company creator
+  // Original company creator - should ALWAYS have access regardless of role
   if (user.user_type === 'employer_admin') {
-    console.log('canManageUsers: Access granted - employer_admin');
+    console.log('canManageUsers: Access granted - employer_admin (ignoring role field)');
     return true;
   }
   
-  // Company admin (additional admin users)
+  // Company admin (additional admin users) - only if role is company_admin
   if (user.user_type === 'company_user' && user.role === 'company_admin') {
     console.log('canManageUsers: Access granted - company_admin');
     return true;
@@ -36,5 +36,6 @@ export const canManageUsers = (user: CurrentUser | null): boolean => {
   
   // Everyone else cannot access (including company_user with role company_user)
   console.log('canManageUsers: Access denied - insufficient privileges');
+  console.log(`canManageUsers: User type "${user.user_type}" with role "${user.role}" does not have admin access`);
   return false;
 };
