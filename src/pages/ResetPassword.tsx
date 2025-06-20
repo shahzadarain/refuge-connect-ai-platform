@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -82,28 +81,21 @@ const ResetPassword = () => {
     try {
       console.log('Processing password reset for:', email);
       
-      // In a real implementation, you would send the new password along with the token
-      // to your backend API to validate the token and update the password
-      // For now, we'll simulate this process
-      
-      // Simulate API call to backend
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify({
+      // Call our Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('reset-password', {
+        body: {
           email: email,
           token: token,
           new_password: newPassword
-        })
+        }
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Password reset successful:', result);
+      if (error) {
+        throw new Error(error.message || 'Failed to reset password');
+      }
+
+      if (data?.success) {
+        console.log('Password reset successful:', data);
         
         toast({
           title: "Password Reset Successful",
@@ -113,8 +105,7 @@ const ResetPassword = () => {
         // Redirect to login page
         navigate('/?action=login');
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to reset password');
+        throw new Error(data?.error || 'Failed to reset password');
       }
     } catch (error) {
       console.error('Password reset error:', error);
