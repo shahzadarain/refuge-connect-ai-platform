@@ -114,7 +114,7 @@ const ResetPassword = () => {
         },
         body: JSON.stringify({
           email: formData.email.trim(),
-          verification_code: formData.verification_code.trim(),
+          token: formData.verification_code.trim(),
           new_password: formData.new_password
         })
       });
