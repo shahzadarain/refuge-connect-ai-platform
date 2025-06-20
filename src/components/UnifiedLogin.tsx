@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, User, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
+import { sendForgotPasswordEmail } from '@/utils/emailApi';
 
 interface UnifiedLoginProps {
   onBack: () => void;
@@ -274,39 +274,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
     try {
       console.log('Sending password reset for:', formData.email);
       
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify({ 
-          email: formData.email
-        })
-      });
-
-      console.log('Password reset response status:', response.status);
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to send reset link';
-        
-        try {
-          const errorData = await response.json();
-          console.log('Error response data:', errorData);
-          errorMessage = errorData.detail || errorData.message || errorMessage;
-        } catch (parseError) {
-          console.log('Could not parse error response as JSON');
-          const errorText = await response.text();
-          console.log('Error response text:', errorText);
-          errorMessage = errorText || errorMessage;
-        }
-        
-        throw new Error(errorMessage);
-      }
-
-      const result = await response.json();
-      console.log('Password reset successful:', result);
+      await sendForgotPasswordEmail({ email: formData.email });
 
       toast({
         title: "Reset Link Sent",
