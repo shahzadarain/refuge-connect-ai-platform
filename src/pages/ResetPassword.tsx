@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -77,8 +76,6 @@ const ResetPassword = () => {
     
     if (!formData.verification_code) {
       errors.verification_code = 'Verification code is required';
-    } else if (formData.verification_code.length !== 6) {
-      errors.verification_code = 'Code must be 6 digits';
     }
     
     if (!formData.new_password) {
