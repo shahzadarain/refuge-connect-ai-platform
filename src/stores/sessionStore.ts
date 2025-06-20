@@ -2,7 +2,7 @@
 interface CurrentUser {
   id: string;
   email: string;
-  user_type: 'super_admin' | 'employer_admin' | 'refugee';
+  user_type: 'super_admin' | 'admin' | 'employer_admin' | 'company_user' | 'refugee';
   first_name?: string;
   last_name?: string;
   phone?: string;
