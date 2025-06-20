@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useSession } from '@/hooks/useSession';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,12 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { sendUserInvitation } from '@/utils/userInvitationApi';
 
 interface CreateUserForm {
   email: string;
   first_name: string;
   last_name: string;
-  password: string;
   phone: string;
 }
 
@@ -33,31 +34,51 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   onUserCreated,
 }) => {
   const { toast } = useToast();
+  const { currentUser } = useSession();
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState<CreateUserForm>({
     email: '',
     first_name: '',
     last_name: '',
-    password: '',
     phone: '',
   });
 
   const handleClose = () => {
-    setForm({ email: '', first_name: '', last_name: '', password: '', phone: '' });
+    setForm({ email: '', first_name: '', last_name: '', phone: '' });
     onClose();
   };
 
+  const generateTemporaryPassword = (): string => {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
+
   const createUser = async () => {
-    if (!form.email || !form.first_name || !form.password) {
+    if (!form.email || !form.first_name) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields (email, first name, password)",
+        description: "Please fill in all required fields (email, first name)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!currentUser?.company_id) {
+      toast({
+        title: "Error",
+        description: "Company information not found. Please refresh and try again.",
         variant: "destructive",
       });
       return;
     }
 
     setIsCreating(true);
+    const temporaryPassword = generateTemporaryPassword();
+    
     try {
       const token = localStorage.getItem('access_token');
       console.log('Creating user with data:', form);
@@ -73,7 +94,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         email: form.email,
         first_name: form.first_name,
         last_name: form.last_name,
-        password: form.password,
+        password: temporaryPassword,
         role: 'company_user'
       };
 
@@ -98,10 +119,31 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
       if (response.ok) {
         const responseData = await response.json();
         console.log('User created successfully:', responseData);
-        toast({
-          title: "Success",
-          description: "Company user created successfully",
-        });
+
+        // Send invitation email after successful user creation
+        try {
+          await sendUserInvitation({
+            email: form.email,
+            name: `${form.first_name} ${form.last_name}`.trim(),
+            temporary_password: temporaryPassword,
+            company_id: currentUser.company_id,
+            company_name: 'Your Company', // You might want to get this from user context
+            invited_by: `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email
+          });
+
+          toast({
+            title: "Success",
+            description: `User created successfully! An invitation email has been sent to ${form.email} with login instructions.`,
+          });
+        } catch (emailError) {
+          console.error('Failed to send invitation email:', emailError);
+          toast({
+            title: "User Created",
+            description: "User created successfully, but failed to send invitation email. Please share the login details manually.",
+            variant: "destructive",
+          });
+        }
+
         handleClose();
         onUserCreated();
       } else {
@@ -166,7 +208,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Create New Company User</DialogTitle>
           <DialogDescription>
-            Add a new user to your company. They will have access to the company dashboard.
+            Add a new user to your company. They will receive an email invitation with login instructions and can set their own password.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -207,18 +249,21 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value }))}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password *</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-            />
-            <p className="text-xs text-neutral-gray/70">
-              Minimum 6 characters recommended
-            </p>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+                <span className="text-white text-xs">📧</span>
+              </div>
+              <div>
+                <p className="text-small-mobile font-medium text-blue-800 mb-1">
+                  Email Invitation
+                </p>
+                <p className="text-xs text-blue-700">
+                  The user will receive an email with a temporary password and instructions to activate their account. They can change their password after logging in.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
         <DialogFooter>
@@ -234,7 +279,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
             disabled={isCreating}
             className="btn-primary"
           >
-            {isCreating ? 'Creating...' : 'Create User'}
+            {isCreating ? 'Creating & Sending...' : 'Create User & Send Invitation'}
           </Button>
         </DialogFooter>
       </DialogContent>
