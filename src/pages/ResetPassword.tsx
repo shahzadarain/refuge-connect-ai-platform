@@ -103,7 +103,12 @@ const ResetPassword = () => {
 
     try {
       console.log('Processing password reset for:', formData.email);
-      console.log('Verification code length:', formData.verification_code.length);
+      console.log('Verification code:', formData.verification_code);
+      console.log('Form data being sent:', {
+        email: formData.email.trim(),
+        token: formData.verification_code.trim(),
+        new_password: formData.new_password
+      });
       
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/reset-password', {
         method: 'POST',
@@ -128,20 +133,34 @@ const ResetPassword = () => {
           const errorData = await response.json();
           console.log('Error response data:', errorData);
           
-          // Handle different error response formats
-          if (typeof errorData === 'string') {
-            errorMessage = errorData;
-          } else if (errorData.detail) {
-            errorMessage = errorData.detail;
-          } else if (errorData.message) {
-            errorMessage = errorData.message;
-          } else if (errorData.error) {
-            errorMessage = errorData.error;
-          } else if (Array.isArray(errorData) && errorData.length > 0) {
-            // Handle validation errors array
-            errorMessage = errorData.map(err => err.msg || err.message || err).join(', ');
+          // Handle 422 validation errors specifically
+          if (response.status === 422) {
+            if (errorData.detail && Array.isArray(errorData.detail)) {
+              // FastAPI validation errors format
+              const validationErrors = errorData.detail.map((err: any) => {
+                const field = err.loc ? err.loc[err.loc.length - 1] : 'unknown';
+                const message = err.msg || err.message || 'Validation error';
+                return `${field}: ${message}`;
+              }).join(', ');
+              errorMessage = `Validation error: ${validationErrors}`;
+            } else if (errorData.detail) {
+              errorMessage = errorData.detail;
+            } else {
+              errorMessage = 'Validation failed. Please check your input.';
+            }
           } else {
-            errorMessage = JSON.stringify(errorData);
+            // Handle other error formats
+            if (typeof errorData === 'string') {
+              errorMessage = errorData;
+            } else if (errorData.detail) {
+              errorMessage = errorData.detail;
+            } else if (errorData.message) {
+              errorMessage = errorData.message;
+            } else if (errorData.error) {
+              errorMessage = errorData.error;
+            } else {
+              errorMessage = JSON.stringify(errorData);
+            }
           }
         } catch (parseError) {
           console.log('Could not parse error response as JSON');
