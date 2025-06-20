@@ -137,14 +137,11 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
         console.log('Employer login successful:', result);
 
         if (result.access_token) {
-          // Validate token payload for employer_admin
-          if (!validateTokenPayload(result.access_token, 'employer_admin')) {
-            return;
-          }
-
-          // Decode token to extract company_id and role
+          // Decode token to extract user details including correct user_type
           let companyId = undefined;
           let role = undefined;
+          let userType = 'employer_admin'; // default fallback
+          
           try {
             const base64Url = result.access_token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -153,16 +150,24 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
             }).join(''));
             
             const decoded = JSON.parse(jsonPayload);
+            console.log('Decoded token payload:', decoded);
+            
             companyId = decoded.company_id;
             role = decoded.role;
+            userType = decoded.user_type || 'employer_admin'; // Use actual user_type from token
           } catch (error) {
             console.error('Error extracting token data:', error);
+          }
+
+          // Validate token payload with the correct user_type
+          if (!validateTokenPayload(result.access_token, userType)) {
+            return;
           }
 
           login({
             id: result.user_id,
             email: formData.email,
-            user_type: 'employer_admin',
+            user_type: userType as 'employer_admin' | 'company_user', // Use the actual user_type from token
             first_name: result.first_name,
             last_name: result.last_name,
             phone: formData.phone,
@@ -181,7 +186,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
             description: `Welcome ${result.first_name || 'User'}`,
           });
           
-          onLoginSuccess('employer_admin');
+          onLoginSuccess(userType);
           return;
         }
       }
