@@ -127,7 +127,22 @@ const ResetPassword = () => {
         try {
           const errorData = await response.json();
           console.log('Error response data:', errorData);
-          errorMessage = errorData.detail || errorData.message || errorData.error || errorMessage;
+          
+          // Handle different error response formats
+          if (typeof errorData === 'string') {
+            errorMessage = errorData;
+          } else if (errorData.detail) {
+            errorMessage = errorData.detail;
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          } else if (Array.isArray(errorData) && errorData.length > 0) {
+            // Handle validation errors array
+            errorMessage = errorData.map(err => err.msg || err.message || err).join(', ');
+          } else {
+            errorMessage = JSON.stringify(errorData);
+          }
         } catch (parseError) {
           console.log('Could not parse error response as JSON');
           const errorText = await response.text();
