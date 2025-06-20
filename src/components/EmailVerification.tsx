@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Mail, Shield, KeyRound } from 'lucide-react';
@@ -22,8 +21,18 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
   const { toast } = useToast();
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   const handleVerifyCode = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Email address is required for verification",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (verificationCode.length !== 6) {
       toast({
         title: "Invalid Code",
@@ -36,7 +45,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
     setIsVerifying(true);
 
     try {
-      console.log('Verifying email with code:', verificationCode);
+      console.log('Verifying email:', email, 'with code:', verificationCode);
 
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/verify-email', {
         method: 'POST',
@@ -52,33 +61,46 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
       });
 
       console.log('Verification response status:', response.status);
+      const responseData = await response.json();
+      console.log('Verification response:', responseData);
 
       if (!response.ok) {
-        let errorMessage = 'Verification failed';
-        
-        try {
-          const errorData = await response.json();
-          console.log('Error response data:', errorData);
-          errorMessage = errorData.detail || errorData.message || errorMessage;
-        } catch (parseError) {
-          console.log('Could not parse error response as JSON');
-          const errorText = await response.text();
-          console.log('Error response text:', errorText);
-          errorMessage = errorText || errorMessage;
+        // Handle specific error cases
+        if (response.status === 404) {
+          throw new Error('User not found. Please check your email address.');
+        } else if (response.status === 403) {
+          if (responseData.detail?.includes('pending approval')) {
+            throw new Error('Your company registration is pending approval. You will receive an email once approved.');
+          } else if (responseData.detail?.includes('deactivated')) {
+            throw new Error('This account is deactivated. Please contact support.');
+          }
+        } else if (response.status === 400) {
+          if (responseData.detail?.includes('Invalid or expired')) {
+            throw new Error('Invalid or expired verification code. Please check the code or request a new one.');
+          }
         }
         
-        throw new Error(errorMessage);
+        throw new Error(responseData.detail || responseData.message || 'Verification failed');
       }
 
-      const result = await response.json();
-      console.log('Verification successful:', result);
+      // Check if already verified
+      if (responseData.already_verified) {
+        toast({
+          title: "Already Verified",
+          description: "Your email is already verified. You can now log in.",
+        });
+      } else {
+        toast({
+          title: "Email Verified!",
+          description: "Your account has been verified successfully. You can now log in.",
+        });
+      }
 
-      toast({
-        title: "Email Verified!",
-        description: "Your account has been verified successfully. You can now log in.",
-      });
-
-      onVerificationSuccess();
+      // Small delay before redirecting
+      setTimeout(() => {
+        onVerificationSuccess();
+      }, 1500);
+      
     } catch (error) {
       console.error('Verification error:', error);
       
@@ -86,9 +108,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
-          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
-        } else if (error.message.includes('NetworkError')) {
-          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+          errorMessage = 'Unable to connect to the server. Please check your internet connection.';
         } else {
           errorMessage = error.message;
         }
@@ -105,10 +125,22 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
   };
 
   const handleResendCode = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Email address is required to resend verification code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResending(true);
+
     try {
-      console.log('Resending verification code for:', email);
+      console.log('Requesting new verification code for:', email);
       
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/resend-verification', {
+      // Use the forgot-password endpoint to get a new verification code
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,42 +150,38 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
         body: JSON.stringify({ email })
       });
 
-      console.log('Resend verification response status:', response.status);
+      console.log('Resend code response status:', response.status);
+      const responseData = await response.json();
+      console.log('Resend code response:', responseData);
 
       if (!response.ok) {
-        let errorMessage = 'Failed to resend code';
-        
-        try {
-          const errorData = await response.json();
-          console.log('Error response data:', errorData);
-          errorMessage = errorData.detail || errorData.message || errorMessage;
-        } catch (parseError) {
-          console.log('Could not parse error response as JSON');
-          const errorText = await response.text();
-          console.log('Error response text:', errorText);
-          errorMessage = errorText || errorMessage;
-        }
-        
-        throw new Error(errorMessage);
+        throw new Error(responseData.detail || responseData.message || 'Failed to send verification code');
       }
 
-      const result = await response.json();
-      console.log('Resend verification successful:', result);
+      // Clear the current code
+      setVerificationCode('');
 
       toast({
-        title: "Code Resent",
+        title: "Verification Code Sent",
         description: "A new verification code has been sent to your email. The code will expire in 3 hours.",
       });
-    } catch (error) {
-      console.error('Resend verification error:', error);
+
+      // In debug mode, show the code if available
+      if (responseData.verification_code && responseData.debug_note) {
+        toast({
+          title: "Debug Mode - Verification Code",
+          description: `Your code is: ${responseData.verification_code}`,
+        });
+      }
       
-      let errorMessage = 'Failed to resend verification code';
+    } catch (error) {
+      console.error('Resend code error:', error);
+      
+      let errorMessage = 'Failed to send verification code';
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
-          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
-        } else if (error.message.includes('NetworkError')) {
-          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+          errorMessage = 'Unable to connect to the server. Please check your internet connection.';
         } else {
           errorMessage = error.message;
         }
@@ -164,6 +192,8 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
         description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -178,6 +208,12 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
     }
 
     onForgotPassword(email);
+  };
+
+  const handleCodeChange = (value: string) => {
+    // Only allow digits
+    const digitsOnly = value.replace(/\D/g, '');
+    setVerificationCode(digitsOnly.slice(0, 6));
   };
 
   return (
@@ -201,7 +237,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                 Verify Your Email
               </h1>
               <p className="text-body-mobile text-neutral-gray/70 mb-2">
-                We've sent a 6-digit verification code to:
+                {email ? 'We\'ve sent a 6-digit verification code to:' : 'Enter the 6-digit verification code sent to your email'}
               </p>
               {email && (
                 <p className="text-body-mobile font-medium text-un-blue">
@@ -219,7 +255,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                   <InputOTP
                     maxLength={6}
                     value={verificationCode}
-                    onChange={setVerificationCode}
+                    onChange={handleCodeChange}
                   >
                     <InputOTPGroup>
                       <InputOTPSlot index={0} />
@@ -231,12 +267,15 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
+                <p className="text-xs text-neutral-gray/60 mt-2">
+                  Enter the 6-digit code from your email
+                </p>
               </div>
 
               <button
                 onClick={handleVerifyCode}
-                disabled={isVerifying || verificationCode.length !== 6}
-                className="btn-primary w-full disabled:opacity-50"
+                disabled={isVerifying || verificationCode.length !== 6 || !email}
+                className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isVerifying ? 'Verifying...' : 'Verify Email'}
               </button>
@@ -248,15 +287,17 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                 <div className="space-y-2">
                   <button
                     onClick={handleResendCode}
-                    className="btn-secondary w-full text-small-mobile font-medium"
+                    disabled={isResending || !email}
+                    className="btn-secondary w-full text-small-mobile font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Resend Code
+                    {isResending ? 'Sending...' : 'Resend Code'}
                   </button>
                   <button
                     onClick={handleForgotPasswordClick}
-                    className="btn-secondary w-full text-small-mobile font-medium"
+                    disabled={!email}
+                    className="btn-secondary w-full text-small-mobile font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Forgot Password?
+                    Use for Password Reset Instead
                   </button>
                 </div>
               </div>
@@ -266,14 +307,26 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                   <Shield className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-small-mobile font-medium text-blue-800 mb-1">
-                      Security Note
+                      Important Information
                     </p>
-                    <p className="text-xs text-blue-700">
-                      The verification code expires in 3 hours. If you don't verify your email within this time, you'll need to request a new code.
-                    </p>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      <li>• The verification code expires in 3 hours</li>
+                      <li>• Check your spam folder if you don't see the email</li>
+                      <li>• You can use the same code for password reset</li>
+                      <li>• Each code can only be used once</li>
+                    </ul>
                   </div>
                 </div>
               </div>
+
+              {/* Debug info - remove in production */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
+                  <p className="text-xs text-yellow-800">
+                    <strong>Debug Info:</strong> If emails aren't working, check the API response for verification_code in debug mode.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
