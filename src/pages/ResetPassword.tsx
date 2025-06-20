@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -20,6 +21,7 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isValidResetLink, setIsValidResetLink] = useState(false);
 
   useEffect(() => {
     console.log('Current URL search params:', window.location.search);
@@ -39,8 +41,11 @@ const ResetPassword = () => {
       setToken(tokenParam);
     }
     
-    // If no email or token, redirect to home
-    if (!emailParam || !tokenParam || tokenParam === 'SECURE_TOKEN_HERE') {
+    // Check if we have valid reset parameters
+    if (emailParam && tokenParam && tokenParam !== 'SECURE_TOKEN_HERE') {
+      setIsValidResetLink(true);
+      console.log('Valid reset link detected');
+    } else {
       console.log('Invalid reset link detected, redirecting to home');
       toast({
         title: "Invalid Reset Link",
@@ -75,32 +80,57 @@ const ResetPassword = () => {
     setIsResetting(true);
 
     try {
-      console.log('Resetting password for:', email);
+      console.log('Processing password reset for:', email);
       
-      // In a real implementation, you would validate the token with your backend
-      // For now, we'll use Supabase's built-in password reset
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
+      // In a real implementation, you would send the new password along with the token
+      // to your backend API to validate the token and update the password
+      // For now, we'll simulate this process
+      
+      // Simulate API call to backend
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({
+          email: email,
+          token: token,
+          new_password: newPassword
+        })
       });
 
-      if (error) {
-        throw new Error(error.message);
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Password reset successful:', result);
+        
+        toast({
+          title: "Password Reset Successful",
+          description: "Your password has been updated successfully. You can now log in with your new password.",
+        });
+
+        // Redirect to login page
+        navigate('/?action=login');
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to reset password');
       }
-
-      toast({
-        title: "Password Reset Successful",
-        description: "Your password has been updated successfully. You can now log in with your new password.",
-      });
-
-      // Redirect to login page
-      navigate('/?action=login');
     } catch (error) {
       console.error('Password reset error:', error);
       
       let errorMessage = 'Failed to reset password';
       
       if (error instanceof Error) {
-        errorMessage = error.message;
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+        } else if (error.message.includes('token')) {
+          errorMessage = 'This reset link has expired or is invalid. Please request a new password reset.';
+        } else {
+          errorMessage = error.message;
+        }
       }
       
       toast({
@@ -116,6 +146,35 @@ const ResetPassword = () => {
   const handleBackToHome = () => {
     navigate('/');
   };
+
+  // Don't render the form if the reset link is invalid
+  if (!isValidResetLink) {
+    return (
+      <div className="min-h-screen bg-light-gray">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-md mx-auto">
+            <button
+              onClick={handleBackToHome}
+              className="flex items-center gap-2 text-neutral-gray hover:text-un-blue transition-colors mb-6"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Home
+            </button>
+            <div className="form-card">
+              <div className="text-center">
+                <h1 className="text-h2-mobile font-bold text-neutral-gray mb-2">
+                  Invalid Reset Link
+                </h1>
+                <p className="text-body-mobile text-neutral-gray/70">
+                  This password reset link is invalid or has expired.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-light-gray">
