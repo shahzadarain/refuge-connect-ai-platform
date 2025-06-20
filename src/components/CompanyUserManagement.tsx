@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSession } from '@/hooks/useSession';
 import { useToast } from '@/hooks/use-toast';
@@ -130,7 +129,14 @@ const CompanyUserManagement: React.FC = () => {
       const token = localStorage.getItem('access_token');
       console.log('Creating user with data:', createForm);
       
-      const requestBody = {
+      const requestBody: {
+        email: string;
+        first_name: string;
+        last_name: string;
+        password: string;
+        role: string;
+        phone?: string;
+      } = {
         email: createForm.email,
         first_name: createForm.first_name,
         last_name: createForm.last_name,
