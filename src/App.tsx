@@ -13,6 +13,9 @@ import EmployerAdminDashboard from "./components/EmployerAdminDashboard";
 
 const queryClient = new QueryClient();
 
+console.log('App.tsx loaded - Routes being registered');
+console.log('ResetPassword component:', ResetPassword);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>

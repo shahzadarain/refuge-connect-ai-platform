@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -7,6 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const ResetPassword = () => {
+  console.log('ResetPassword component mounted');
+  
   const { t } = useLanguage();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -21,8 +22,14 @@ const ResetPassword = () => {
   const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
+    console.log('Current URL search params:', window.location.search);
+    console.log('Search params:', searchParams.toString());
+    
     const emailParam = searchParams.get('email');
     const tokenParam = searchParams.get('token');
+    
+    console.log('Email param:', emailParam);
+    console.log('Token param:', tokenParam);
     
     if (emailParam) {
       setEmail(decodeURIComponent(emailParam));
@@ -34,6 +41,7 @@ const ResetPassword = () => {
     
     // If no email or token, redirect to home
     if (!emailParam || !tokenParam || tokenParam === 'SECURE_TOKEN_HERE') {
+      console.log('Invalid reset link detected, redirecting to home');
       toast({
         title: "Invalid Reset Link",
         description: "This password reset link is invalid or has expired. Please request a new one.",
