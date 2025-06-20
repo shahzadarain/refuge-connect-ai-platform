@@ -40,10 +40,11 @@ interface CompanyUser {
   email: string;
   first_name?: string;
   last_name?: string;
+  phone?: string;
   role: 'company_admin' | 'company_user';
   is_active: boolean;
+  is_verified: boolean;
   created_at: string;
-  last_login?: string;
 }
 
 interface CreateUserForm {
@@ -51,6 +52,7 @@ interface CreateUserForm {
   first_name: string;
   last_name: string;
   password: string;
+  phone: string;
 }
 
 const CompanyUserManagement: React.FC = () => {
@@ -65,6 +67,7 @@ const CompanyUserManagement: React.FC = () => {
     first_name: '',
     last_name: '',
     password: '',
+    phone: '',
   });
 
   useEffect(() => {
@@ -74,6 +77,8 @@ const CompanyUserManagement: React.FC = () => {
   const fetchCompanyUsers = async () => {
     try {
       const token = localStorage.getItem('access_token');
+      console.log('Fetching company users...');
+      
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/company/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -83,11 +88,15 @@ const CompanyUserManagement: React.FC = () => {
         }
       });
 
+      console.log('Company users API response status:', response.status);
+
       if (response.ok) {
         const userData = await response.json();
+        console.log('Company users data received:', userData);
         setUsers(Array.isArray(userData) ? userData : []);
       } else {
-        console.error('Failed to fetch company users:', response.status);
+        const errorData = await response.text();
+        console.error('Failed to fetch company users:', response.status, errorData);
         toast({
           title: "Error",
           description: "Failed to load company users",
@@ -110,7 +119,7 @@ const CompanyUserManagement: React.FC = () => {
     if (!createForm.email || !createForm.first_name || !createForm.password) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields (email, first name, password)",
         variant: "destructive",
       });
       return;
@@ -119,6 +128,21 @@ const CompanyUserManagement: React.FC = () => {
     setIsCreatingUser(true);
     try {
       const token = localStorage.getItem('access_token');
+      console.log('Creating user with data:', createForm);
+      
+      const requestBody = {
+        email: createForm.email,
+        first_name: createForm.first_name,
+        last_name: createForm.last_name,
+        password: createForm.password,
+        role: 'company_user'
+      };
+
+      // Only include phone if it's not empty
+      if (createForm.phone.trim()) {
+        requestBody.phone = createForm.phone;
+      }
+
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/company/users', {
         method: 'POST',
         headers: {
@@ -127,31 +151,44 @@ const CompanyUserManagement: React.FC = () => {
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true'
         },
-        body: JSON.stringify({
-          email: createForm.email,
-          first_name: createForm.first_name,
-          last_name: createForm.last_name,
-          password: createForm.password,
-          role: 'company_user'
-        })
+        body: JSON.stringify(requestBody)
       });
 
+      console.log('Create user response status:', response.status);
+
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('User created successfully:', responseData);
         toast({
           title: "Success",
           description: "Company user created successfully",
         });
         setIsCreateDialogOpen(false);
-        setCreateForm({ email: '', first_name: '', last_name: '', password: '' });
+        setCreateForm({ email: '', first_name: '', last_name: '', password: '', phone: '' });
         fetchCompanyUsers();
       } else {
-        const errorData = await response.text();
+        const errorData = await response.json();
         console.error('Failed to create user:', response.status, errorData);
-        toast({
-          title: "Error",
-          description: "Failed to create user. Please try again.",
-          variant: "destructive",
-        });
+        
+        if (response.status === 409) {
+          toast({
+            title: "Error",
+            description: "Email already exists",
+            variant: "destructive",
+          });
+        } else if (response.status === 403) {
+          toast({
+            title: "Error",
+            description: "Company admin privileges required",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: errorData.detail || "Failed to create user. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error('Error creating user:', error);
@@ -168,6 +205,8 @@ const CompanyUserManagement: React.FC = () => {
   const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
       const token = localStorage.getItem('access_token');
+      console.log('Toggling user status for:', userId, 'current status:', currentStatus);
+      
       const response = await fetch(`https://ab93e9536acd.ngrok.app/api/company/users/${userId}/status`, {
         method: 'PUT',
         headers: {
@@ -181,19 +220,33 @@ const CompanyUserManagement: React.FC = () => {
         })
       });
 
+      console.log('Toggle status response:', response.status);
+
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('Status updated successfully:', responseData);
         toast({
           title: "Success",
           description: `User ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
         });
         fetchCompanyUsers();
       } else {
-        console.error('Failed to update user status:', response.status);
-        toast({
-          title: "Error",
-          description: "Failed to update user status",
-          variant: "destructive",
-        });
+        const errorData = await response.json();
+        console.error('Failed to update user status:', response.status, errorData);
+        
+        if (response.status === 400) {
+          toast({
+            title: "Error",
+            description: "Cannot deactivate your own account",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: errorData.detail || "Failed to update user status",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error('Error updating user status:', error);
@@ -208,6 +261,8 @@ const CompanyUserManagement: React.FC = () => {
   const deleteUser = async (userId: string) => {
     try {
       const token = localStorage.getItem('access_token');
+      console.log('Deleting user:', userId);
+      
       const response = await fetch(`https://ab93e9536acd.ngrok.app/api/company/users/${userId}`, {
         method: 'DELETE',
         headers: {
@@ -218,19 +273,33 @@ const CompanyUserManagement: React.FC = () => {
         }
       });
 
+      console.log('Delete user response:', response.status);
+
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('User deleted successfully:', responseData);
         toast({
           title: "Success",
           description: "User deleted successfully",
         });
         fetchCompanyUsers();
       } else {
-        console.error('Failed to delete user:', response.status);
-        toast({
-          title: "Error",
-          description: "Failed to delete user",
-          variant: "destructive",
-        });
+        const errorData = await response.json();
+        console.error('Failed to delete user:', response.status, errorData);
+        
+        if (response.status === 400) {
+          toast({
+            title: "Error",
+            description: "Cannot delete your own account",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: errorData.detail || "Failed to delete user",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -322,6 +391,15 @@ const CompanyUserManagement: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  placeholder="+962791234567"
+                  value={createForm.phone}
+                  onChange={(e) => setCreateForm(prev => ({ ...prev, phone: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="password">Password *</Label>
                 <Input
                   id="password"
@@ -330,6 +408,9 @@ const CompanyUserManagement: React.FC = () => {
                   value={createForm.password}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, password: e.target.value }))}
                 />
+                <p className="text-xs text-neutral-gray/70">
+                  Minimum 6 characters recommended
+                </p>
               </div>
             </div>
             <DialogFooter>
@@ -358,10 +439,10 @@ const CompanyUserManagement: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
+              <TableHead>Phone</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead>Last Login</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -390,6 +471,9 @@ const CompanyUserManagement: React.FC = () => {
                       </div>
                     </div>
                   </TableCell>
+                  <TableCell className="text-sm text-neutral-gray/70">
+                    {user.phone || 'Not provided'}
+                  </TableCell>
                   <TableCell>
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                       user.role === 'company_admin' 
@@ -400,23 +484,29 @@ const CompanyUserManagement: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      user.is_active 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {user.is_active ? 'Active' : 'Inactive'}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        user.is_active 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {user.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        user.is_verified 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {user.is_verified ? 'Verified' : 'Unverified'}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-sm text-neutral-gray/70">
                     {formatDate(user.created_at)}
                   </TableCell>
-                  <TableCell className="text-sm text-neutral-gray/70">
-                    {user.last_login ? formatDate(user.last_login) : 'Never'}
-                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {user.role !== 'company_admin' && (
+                      {user.role !== 'company_admin' && user.id !== currentUser?.id && (
                         <>
                           <Button
                             variant="outline"
@@ -453,7 +543,7 @@ const CompanyUserManagement: React.FC = () => {
                                 <AlertDialogTitle>Delete User</AlertDialogTitle>
                                 <AlertDialogDescription>
                                   Are you sure you want to delete {user.first_name} {user.last_name}? 
-                                  This action cannot be undone and they will lose access to the company dashboard.
+                                  This action will deactivate the user and mark them as unverified.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -469,9 +559,9 @@ const CompanyUserManagement: React.FC = () => {
                           </AlertDialog>
                         </>
                       )}
-                      {user.role === 'company_admin' && (
+                      {(user.role === 'company_admin' || user.id === currentUser?.id) && (
                         <span className="text-xs text-neutral-gray/50 px-2 py-1">
-                          Admin (Protected)
+                          {user.id === currentUser?.id ? 'You' : 'Admin (Protected)'}
                         </span>
                       )}
                     </div>
