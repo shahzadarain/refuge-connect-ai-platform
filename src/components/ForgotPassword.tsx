@@ -39,7 +39,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack, onEmailSent }) 
     setIsLoading(true);
 
     try {
-      console.log('Sending forgot password request for:', email);
+      console.log('Sending forgot password request to backend API for:', email);
       
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
         method: 'POST',
@@ -53,7 +53,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack, onEmailSent }) 
         })
       });
 
-      console.log('Forgot password response status:', response.status);
+      console.log('Backend API forgot password response status:', response.status);
 
       if (!response.ok) {
         let errorMessage = 'Failed to send reset code';
@@ -73,7 +73,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack, onEmailSent }) 
       }
 
       const result = await response.json();
-      console.log('Forgot password successful:', result);
+      console.log('Backend API forgot password successful:', result);
 
       toast({
         title: "Reset Code Sent",
