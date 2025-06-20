@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, User, Eye, EyeOff } from 'lucide-react';
@@ -15,8 +16,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
   const { login } = useSession();
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    phone: ''
+    password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
@@ -99,7 +99,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
             id: result.user_id,
             email: formData.email,
             user_type: 'super_admin',
-            phone: formData.phone,
+            phone: '',
             is_active: true,
             is_verified: true,
             created_at: new Date().toISOString(),
@@ -170,7 +170,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
             user_type: userType as 'employer_admin' | 'company_user', // Use the actual user_type from token
             first_name: result.first_name,
             last_name: result.last_name,
-            phone: formData.phone,
+            phone: '',
             is_active: true,
             is_verified: true,
             created_at: new Date().toISOString(),
@@ -221,7 +221,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
             user_type: 'refugee',
             first_name: result.first_name,
             last_name: result.last_name,
-            phone: formData.phone,
+            phone: '',
             is_active: true,
             is_verified: true,
             created_at: new Date().toISOString(),
@@ -402,22 +402,6 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-              </div>
-
-              <div>
-                <label htmlFor="phone" className="block text-small-mobile font-medium text-neutral-gray mb-2">
-                  Phone Number *
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  placeholder="Enter phone number"
-                  required
-                />
               </div>
 
               <button
