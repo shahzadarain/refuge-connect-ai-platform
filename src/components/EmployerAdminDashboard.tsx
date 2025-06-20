@@ -5,6 +5,7 @@ import { useSession } from '@/hooks/useSession';
 import { useToast } from '@/hooks/use-toast';
 import { Building, Users, Briefcase, Settings, LogOut, LayoutDashboard } from 'lucide-react';
 import CompanyUserManagement from './CompanyUserManagement';
+import { canManageUsers } from '@/utils/permissions';
 
 const EmployerAdminDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -13,6 +14,9 @@ const EmployerAdminDashboard: React.FC = () => {
   const [companyName, setCompanyName] = useState<string>('Loading...');
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users'>('dashboard');
+
+  // Use the consistent permission function
+  const hasUserManagementAccess = canManageUsers(currentUser);
 
   useEffect(() => {
     const fetchCompanyDetails = async () => {
@@ -116,7 +120,7 @@ const EmployerAdminDashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* Navigation Tabs */}
+      {/* Navigation Tabs - Only show User Management if user has access */}
       <div className="bg-white border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex space-x-8">
@@ -131,17 +135,19 @@ const EmployerAdminDashboard: React.FC = () => {
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
             </button>
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'users'
-                  ? 'border-un-blue text-un-blue'
-                  : 'border-transparent text-neutral-gray hover:text-un-blue'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              User Management
-            </button>
+            {hasUserManagementAccess && (
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'users'
+                    ? 'border-un-blue text-un-blue'
+                    : 'border-transparent text-neutral-gray hover:text-un-blue'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                User Management
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -253,7 +259,7 @@ const EmployerAdminDashboard: React.FC = () => {
             </>
           )}
 
-          {activeTab === 'users' && <CompanyUserManagement />}
+          {activeTab === 'users' && hasUserManagementAccess && <CompanyUserManagement />}
         </div>
       </main>
     </div>

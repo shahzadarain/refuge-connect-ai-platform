@@ -7,19 +7,20 @@ import { fetchCompanyUsers, toggleUserStatus, deleteUser } from '@/utils/company
 import UserManagementHeader from './company-user-management/UserManagementHeader';
 import CreateUserDialog from './company-user-management/CreateUserDialog';
 import UsersTable from './company-user-management/UsersTable';
+import { canManageUsers } from '@/utils/permissions';
 
 const CompanyUserManagement: React.FC = () => {
   const { currentUser } = useSession();
   const { toast } = useToast();
   
-  // Check if user has admin privileges - return null immediately if not
-  const hasAdminAccess = currentUser?.role === 'company_admin' || currentUser?.user_type === 'employer_admin';
+  // Check if user has proper access using the new permission function
+  const hasAccess = canManageUsers(currentUser);
 
   console.log('CompanyUserManagement - Current user:', currentUser);
-  console.log('CompanyUserManagement - Has admin access:', hasAdminAccess);
+  console.log('CompanyUserManagement - Has access:', hasAccess);
 
-  // If user doesn't have admin access, don't render anything at all
-  if (!hasAdminAccess) {
+  // If user doesn't have access, don't render anything at all
+  if (!hasAccess) {
     console.log('CompanyUserManagement - Access denied, returning null');
     return null;
   }
@@ -29,11 +30,11 @@ const CompanyUserManagement: React.FC = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Only load data if user has admin access
-    if (hasAdminAccess) {
+    // Only load data if user has access
+    if (hasAccess) {
       loadCompanyUsers();
     }
-  }, [hasAdminAccess]);
+  }, [hasAccess]);
 
   const loadCompanyUsers = async () => {
     try {
