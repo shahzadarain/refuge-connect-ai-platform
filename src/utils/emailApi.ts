@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+// Updated to use backend API instead of Supabase Edge Functions
 
 export interface CompanyApprovalEmailData {
   to: string;
@@ -18,33 +18,49 @@ export interface UserInvitationEmailData {
 }
 
 export const sendCompanyApprovalEmail = async (data: CompanyApprovalEmailData) => {
-  console.log('Sending company approval email via Supabase Edge Function');
+  console.log('Sending company approval email via backend API');
   
-  const { data: response, error } = await supabase.functions.invoke('send-company-approval-email', {
-    body: data
+  const response = await fetch('https://ab93e9536acd.ngrok.app/api/send-company-approval-email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true'
+    },
+    body: JSON.stringify(data)
   });
 
-  if (error) {
-    console.error('Error sending company approval email:', error);
-    throw new Error(`Failed to send approval email: ${error.message}`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Error sending company approval email:', errorText);
+    throw new Error(`Failed to send approval email: ${errorText}`);
   }
 
-  console.log('Company approval email sent successfully:', response);
-  return response;
+  const result = await response.json();
+  console.log('Company approval email sent successfully:', result);
+  return result;
 };
 
 export const sendUserInvitationEmail = async (data: UserInvitationEmailData) => {
-  console.log('Sending user invitation email via Supabase Edge Function');
+  console.log('Sending user invitation email via backend API');
   
-  const { data: response, error } = await supabase.functions.invoke('send-user-invitation-email', {
-    body: data
+  const response = await fetch('https://ab93e9536acd.ngrok.app/api/send-user-invitation-email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true'
+    },
+    body: JSON.stringify(data)
   });
 
-  if (error) {
-    console.error('Error sending user invitation email:', error);
-    throw new Error(`Failed to send invitation email: ${error.message}`);
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Error sending user invitation email:', errorText);
+    throw new Error(`Failed to send invitation email: ${errorText}`);
   }
 
-  console.log('User invitation email sent successfully:', response);
-  return response;
+  const result = await response.json();
+  console.log('User invitation email sent successfully:', result);
+  return result;
 };
