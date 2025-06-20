@@ -9,6 +9,9 @@ export const useSession = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
     sessionStore.isLoggedIn()
   );
+  const [needsTokenRefresh, setNeedsTokenRefresh] = useState<boolean>(
+    sessionStore.needsTokenRefresh()
+  );
 
   useEffect(() => {
     const unsubscribe = sessionStore.subscribe((user) => {
@@ -19,6 +22,9 @@ export const useSession = () => {
       const loggedIn = !!user && !!user.id;
       console.log('Setting isLoggedIn to:', loggedIn);
       setIsLoggedIn(loggedIn);
+      
+      // Check if token refresh is needed
+      setNeedsTokenRefresh(sessionStore.needsTokenRefresh());
     });
     return unsubscribe;
   }, []);
@@ -29,6 +35,7 @@ export const useSession = () => {
     // Force immediate state update
     setCurrentUser(user);
     setIsLoggedIn(true);
+    setNeedsTokenRefresh(sessionStore.needsTokenRefresh());
   };
 
   const logout = () => {
@@ -37,6 +44,7 @@ export const useSession = () => {
     // Force immediate state update
     setCurrentUser(null);
     setIsLoggedIn(false);
+    setNeedsTokenRefresh(false);
     // Force a page reload to ensure clean state
     window.location.href = '/';
   };
@@ -45,6 +53,7 @@ export const useSession = () => {
     currentUser,
     login,
     logout,
-    isLoggedIn
+    isLoggedIn,
+    needsTokenRefresh
   };
 };

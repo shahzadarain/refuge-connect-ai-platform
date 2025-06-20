@@ -30,6 +30,43 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
     }));
   };
 
+  const validateTokenPayload = (token: string, userType: string) => {
+    try {
+      // Basic JWT decode (without verification - just for checking payload)
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      const decoded = JSON.parse(jsonPayload);
+      console.log('Token payload validation:', decoded);
+      
+      // Check if employer_admin has required fields
+      if (userType === 'employer_admin') {
+        if (!decoded.company_id || !decoded.role) {
+          console.warn('Token missing required fields for employer_admin:', {
+            has_company_id: !!decoded.company_id,
+            has_role: !!decoded.role
+          });
+          
+          toast({
+            title: "Session Error",
+            description: "Your login token is missing required company information. Please contact support if this persists.",
+            variant: "destructive",
+          });
+          
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error validating token payload:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -53,10 +90,15 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
         console.log('Super admin login successful:', result);
 
         if (result.access_token) {
+          // Validate token payload
+          if (!validateTokenPayload(result.access_token, 'super_admin')) {
+            return;
+          }
+
           login({
             id: result.user_id,
             email: formData.email,
-            user_type: 'super_admin', // Explicitly set to super_admin
+            user_type: 'super_admin',
             phone: formData.phone,
             is_active: true,
             is_verified: true,
@@ -95,17 +137,41 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
         console.log('Employer login successful:', result);
 
         if (result.access_token) {
+          // Validate token payload for employer_admin
+          if (!validateTokenPayload(result.access_token, 'employer_admin')) {
+            return;
+          }
+
+          // Decode token to extract company_id and role
+          let companyId = undefined;
+          let role = undefined;
+          try {
+            const base64Url = result.access_token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            
+            const decoded = JSON.parse(jsonPayload);
+            companyId = decoded.company_id;
+            role = decoded.role;
+          } catch (error) {
+            console.error('Error extracting token data:', error);
+          }
+
           login({
             id: result.user_id,
             email: formData.email,
-            user_type: 'employer_admin', // Explicitly set to employer_admin
+            user_type: 'employer_admin',
             first_name: result.first_name,
             last_name: result.last_name,
             phone: formData.phone,
             is_active: true,
             is_verified: true,
             created_at: new Date().toISOString(),
-            last_login: new Date().toISOString()
+            last_login: new Date().toISOString(),
+            company_id: companyId,
+            role: role
           });
 
           localStorage.setItem('access_token', result.access_token);
@@ -139,10 +205,15 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
         console.log('Refugee login successful:', result);
 
         if (result.access_token) {
+          // Validate token payload
+          if (!validateTokenPayload(result.access_token, 'refugee')) {
+            return;
+          }
+
           login({
             id: result.user_id,
             email: formData.email,
-            user_type: 'refugee', // Explicitly set to refugee
+            user_type: 'refugee',
             first_name: result.first_name,
             last_name: result.last_name,
             phone: formData.phone,

@@ -1,3 +1,4 @@
+
 interface CurrentUser {
   id: string;
   email: string;
@@ -9,7 +10,8 @@ interface CurrentUser {
   is_verified: boolean;
   created_at: string;
   last_login?: string;
-  company_id?: string; // Added this property
+  company_id?: string;
+  role?: string; // Added role field
 }
 
 class SessionStore {
@@ -27,7 +29,19 @@ class SessionStore {
       const storedToken = localStorage.getItem('access_token');
       
       if (storedUser && storedToken) {
-        this.currentUser = JSON.parse(storedUser);
+        const user = JSON.parse(storedUser);
+        
+        // Validate token for employer_admin users
+        if (user.user_type === 'employer_admin') {
+          const isValidToken = this.validateEmployerAdminToken(storedToken);
+          if (!isValidToken) {
+            console.log('Invalid token detected for employer_admin - clearing session');
+            this.clearCurrentUser();
+            return;
+          }
+        }
+        
+        this.currentUser = user;
         console.log('Session restored from storage:', this.currentUser);
       } else {
         console.log('No stored session found');
@@ -36,6 +50,36 @@ class SessionStore {
     } catch (error) {
       console.error('Error loading user from storage:', error);
       this.clearCurrentUser();
+    }
+  }
+
+  private validateEmployerAdminToken(token: string): boolean {
+    try {
+      // Basic JWT decode (without verification - just for checking payload)
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      
+      const decoded = JSON.parse(jsonPayload);
+      console.log('Token payload validation:', decoded);
+      
+      // Check if employer_admin has required fields
+      if (decoded.user_type === 'employer_admin') {
+        if (!decoded.company_id || !decoded.role) {
+          console.warn('Token missing required fields for employer_admin:', {
+            has_company_id: !!decoded.company_id,
+            has_role: !!decoded.role
+          });
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error validating token:', error);
+      return false;
     }
   }
 
@@ -85,6 +129,17 @@ class SessionStore {
     // Primary check: valid user exists
     // Secondary check: token exists (but don't fail if temporarily missing during login flow)
     return hasValidUser;
+  }
+
+  // New method to check if user needs token refresh
+  needsTokenRefresh(): boolean {
+    if (!this.currentUser) return false;
+    
+    if (this.currentUser.user_type === 'employer_admin') {
+      return !this.currentUser.company_id || !this.currentUser.role;
+    }
+    
+    return false;
   }
 
   subscribe(listener: (user: CurrentUser | null) => void) {

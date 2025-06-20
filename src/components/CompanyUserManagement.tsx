@@ -176,7 +176,27 @@ const CompanyUserManagement: React.FC = () => {
         const errorData = await response.json();
         console.error('Failed to create user:', response.status, errorData);
         
-        if (response.status === 409) {
+        // Special handling for company_id related errors
+        if (response.status === 400 && errorData.detail && 
+            (errorData.detail.includes('No company associated') || 
+             errorData.detail.includes('company_id'))) {
+          toast({
+            title: "Session Error",
+            description: "Your session is missing company information. Please log out and log in again to refresh your permissions.",
+            variant: "destructive",
+          });
+          
+          // Optionally auto-logout after a delay
+          setTimeout(() => {
+            const shouldLogout = confirm('Would you like to log out now to refresh your session?');
+            if (shouldLogout) {
+              localStorage.removeItem('access_token');
+              localStorage.removeItem('current_log_user');
+              window.location.href = '/';
+            }
+          }, 3000);
+          
+        } else if (response.status === 409) {
           toast({
             title: "Error",
             description: "Email already exists",
