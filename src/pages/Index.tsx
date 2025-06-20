@@ -12,9 +12,8 @@ import RefugeeDashboard from '@/components/RefugeeDashboard';
 import JobBoard from '@/components/JobBoard';
 import UnifiedLogin from '@/components/UnifiedLogin';
 import EmailVerification from '@/components/EmailVerification';
-import ForgotPassword from '@/components/ForgotPassword';
 
-type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'employer-admin-dashboard' | 'refugee-dashboard' | 'job-board' | 'unified-login' | 'email-verification' | 'forgot-password';
+type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'employer-admin-dashboard' | 'refugee-dashboard' | 'job-board' | 'unified-login' | 'email-verification';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -59,7 +58,7 @@ const Index = () => {
     }
   }, [isLoggedIn, currentUser]); // React to changes in both isLoggedIn AND currentUser
 
-  // Check for URL parameters on mount
+  // Check for email verification links on mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const email = urlParams.get('email');
@@ -72,22 +71,6 @@ const Index = () => {
       console.log('Email verification link detected for:', email);
       setVerificationEmail(email);
       setCurrentView('email-verification');
-      // Clean up URL
-      window.history.replaceState({}, document.title, '/');
-    }
-    
-    // Handle forgot password
-    if (action === 'forgot-password') {
-      console.log('Forgot password action detected');
-      setCurrentView('forgot-password');
-      // Clean up URL
-      window.history.replaceState({}, document.title, '/');
-    }
-    
-    // Handle login
-    if (action === 'login') {
-      console.log('Login action detected');
-      setCurrentView('unified-login');
       // Clean up URL
       window.history.replaceState({}, document.title, '/');
     }
@@ -145,17 +128,6 @@ const Index = () => {
     window.location.href = `/company-setup?email=${verificationEmail}&action=setup`;
   };
 
-  const handleForgotPasswordEmailSent = (email: string) => {
-    // Store email and redirect to reset password page
-    localStorage.setItem('resetEmail', email);
-    window.location.href = `/reset-password?email=${encodeURIComponent(email)}`;
-  };
-
-  const handleEmailVerificationForgotPassword = (email: string) => {
-    setVerificationEmail(email);
-    setCurrentView('forgot-password');
-  };
-
   // Add debug logging for current view
   console.log('Current view state:', currentView);
   console.log('Authentication state:', { isLoggedIn, currentUser: currentUser?.user_type, needsTokenRefresh });
@@ -194,17 +166,7 @@ const Index = () => {
       <EmailVerification 
         onBack={handleBackToLanding} 
         onVerificationSuccess={handleVerificationSuccess}
-        onForgotPassword={handleEmailVerificationForgotPassword}
         email={verificationEmail}
-      />
-    );
-  }
-
-  if (currentView === 'forgot-password') {
-    return (
-      <ForgotPassword
-        onBack={handleBackToLanding}
-        onEmailSent={handleForgotPasswordEmailSent}
       />
     );
   }

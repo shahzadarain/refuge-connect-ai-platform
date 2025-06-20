@@ -1,5 +1,5 @@
 
-// Updated to use backend API instead of Supabase Edge Functions
+import { supabase } from '@/integrations/supabase/client';
 
 export interface CompanyApprovalEmailData {
   to: string;
@@ -17,93 +17,34 @@ export interface UserInvitationEmailData {
   invited_by?: string;
 }
 
-export interface ForgotPasswordEmailData {
-  email: string;
-}
-
-export const sendForgotPasswordEmail = async (data: ForgotPasswordEmailData) => {
-  console.log('Sending forgot password email via backend API');
-  
-  const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'ngrok-skip-browser-warning': 'true'
-    },
-    body: JSON.stringify({
-      email: data.email.trim()
-    })
-  });
-
-  console.log('Backend API forgot password response status:', response.status);
-
-  if (!response.ok) {
-    let errorMessage = 'Failed to send reset code';
-    
-    try {
-      const errorData = await response.json();
-      console.log('Error response data:', errorData);
-      errorMessage = errorData.detail || errorData.message || errorMessage;
-    } catch (parseError) {
-      console.log('Could not parse error response as JSON');
-      const errorText = await response.text();
-      console.log('Error response text:', errorText);
-      errorMessage = errorText || errorMessage;
-    }
-    
-    throw new Error(errorMessage);
-  }
-
-  const result = await response.json();
-  console.log('Backend API forgot password successful:', result);
-  return result;
-};
-
 export const sendCompanyApprovalEmail = async (data: CompanyApprovalEmailData) => {
-  console.log('Sending company approval email via backend API');
+  console.log('Sending company approval email via Supabase Edge Function');
   
-  const response = await fetch('https://ab93e9536acd.ngrok.app/api/send-company-approval-email', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'ngrok-skip-browser-warning': 'true'
-    },
-    body: JSON.stringify(data)
+  const { data: response, error } = await supabase.functions.invoke('send-company-approval-email', {
+    body: data
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Error sending company approval email:', errorText);
-    throw new Error(`Failed to send approval email: ${errorText}`);
+  if (error) {
+    console.error('Error sending company approval email:', error);
+    throw new Error(`Failed to send approval email: ${error.message}`);
   }
 
-  const result = await response.json();
-  console.log('Company approval email sent successfully:', result);
-  return result;
+  console.log('Company approval email sent successfully:', response);
+  return response;
 };
 
 export const sendUserInvitationEmail = async (data: UserInvitationEmailData) => {
-  console.log('Sending user invitation email via backend API');
+  console.log('Sending user invitation email via Supabase Edge Function');
   
-  const response = await fetch('https://ab93e9536acd.ngrok.app/api/send-user-invitation-email', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'ngrok-skip-browser-warning': 'true'
-    },
-    body: JSON.stringify(data)
+  const { data: response, error } = await supabase.functions.invoke('send-user-invitation-email', {
+    body: data
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Error sending user invitation email:', errorText);
-    throw new Error(`Failed to send invitation email: ${errorText}`);
+  if (error) {
+    console.error('Error sending user invitation email:', error);
+    throw new Error(`Failed to send invitation email: ${error.message}`);
   }
 
-  const result = await response.json();
-  console.log('User invitation email sent successfully:', result);
-  return result;
+  console.log('User invitation email sent successfully:', response);
+  return response;
 };
