@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, User, Eye, EyeOff } from 'lucide-react';
@@ -274,39 +273,25 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
     try {
       console.log('Sending password reset for:', formData.email);
       
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify({ 
-          email: formData.email
-        })
+      // Generate a secure reset URL (this would typically come from your backend)
+      const resetUrl = `${window.location.origin}/reset-password?email=${encodeURIComponent(formData.email)}&token=SECURE_TOKEN_HERE`;
+      
+      const { data, error } = await supabase.functions.invoke('send-password-reset-email', {
+        body: { 
+          email: formData.email,
+          reset_url: resetUrl
+        }
       });
 
-      console.log('Password reset response status:', response.status);
+      console.log('Password reset response:', { data, error });
 
-      if (!response.ok) {
-        let errorMessage = 'Failed to send reset link';
-        
-        try {
-          const errorData = await response.json();
-          console.log('Error response data:', errorData);
-          errorMessage = errorData.detail || errorData.message || errorMessage;
-        } catch (parseError) {
-          console.log('Could not parse error response as JSON');
-          const errorText = await response.text();
-          console.log('Error response text:', errorText);
-          errorMessage = errorText || errorMessage;
-        }
-        
-        throw new Error(errorMessage);
+      if (error) {
+        throw new Error(error.message || 'Failed to send password reset email');
       }
 
-      const result = await response.json();
-      console.log('Password reset successful:', result);
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to send password reset email');
+      }
 
       toast({
         title: "Reset Link Sent",
