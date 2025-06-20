@@ -20,7 +20,8 @@ const CompanyDashboard: React.FC = () => {
   // Use the new permission function with detailed logging
   const hasUserManagementAccess = canManageUsers(currentUser);
 
-  console.log('CompanyDashboard - Current user:', currentUser);
+  console.log('CompanyDashboard - Raw currentUser from session:', JSON.stringify(currentUser, null, 2));
+  console.log('CompanyDashboard - localStorage current_log_user:', localStorage.getItem('current_log_user'));
   console.log('CompanyDashboard - Has user management access:', hasUserManagementAccess);
   console.log('CompanyDashboard - Active tab:', activeTab);
 

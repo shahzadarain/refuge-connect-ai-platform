@@ -7,10 +7,13 @@ export const canManageUsers = (user: CurrentUser | null): boolean => {
     return false;
   }
   
+  console.log('canManageUsers: Full user object:', JSON.stringify(user, null, 2));
   console.log('canManageUsers: Checking permissions for user:', {
     user_type: user.user_type,
     role: user.role,
-    id: user.id
+    id: user.id,
+    hasRole: user.hasOwnProperty('role'),
+    roleValue: user.role
   });
   
   // Original company creator
