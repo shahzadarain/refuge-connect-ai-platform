@@ -12,11 +12,15 @@ const CompanyUserManagement: React.FC = () => {
   const { currentUser } = useSession();
   const { toast } = useToast();
   
-  // Check if user has admin privileges
+  // Check if user has admin privileges - return null immediately if not
   const hasAdminAccess = currentUser?.role === 'company_admin' || currentUser?.user_type === 'employer_admin';
 
-  // If user doesn't have admin access, don't render anything
+  console.log('CompanyUserManagement - Current user:', currentUser);
+  console.log('CompanyUserManagement - Has admin access:', hasAdminAccess);
+
+  // If user doesn't have admin access, don't render anything at all
   if (!hasAdminAccess) {
+    console.log('CompanyUserManagement - Access denied, returning null');
     return null;
   }
 
@@ -25,11 +29,15 @@ const CompanyUserManagement: React.FC = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
-    loadCompanyUsers();
-  }, []);
+    // Only load data if user has admin access
+    if (hasAdminAccess) {
+      loadCompanyUsers();
+    }
+  }, [hasAdminAccess]);
 
   const loadCompanyUsers = async () => {
     try {
+      console.log('Loading company users...');
       const userData = await fetchCompanyUsers();
       setUsers(userData);
     } catch (error) {

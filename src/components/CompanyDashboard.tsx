@@ -47,6 +47,22 @@ const CompanyDashboard: React.FC = () => {
         </div>
       </header>
 
+      {/* Navigation Tabs - Only show User Management for admin users */}
+      <div className="bg-white border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="flex space-x-8">
+            <button className="px-4 py-3 text-sm font-medium text-un-blue border-b-2 border-un-blue">
+              Dashboard
+            </button>
+            {hasAdminAccess && (
+              <button className="px-4 py-3 text-sm font-medium text-neutral-gray hover:text-un-blue transition-colors">
+                User Management
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
@@ -61,7 +77,7 @@ const CompanyDashboard: React.FC = () => {
                   Welcome to Your Company Dashboard
                 </h2>
                 <p className="text-body-mobile text-neutral-gray/70 mb-4">
-                  Your admin account has been successfully set up. You can now manage your company's job postings, review applications, and configure settings.
+                  Your {hasAdminAccess ? 'admin' : 'user'} account has been successfully set up. You can now {hasAdminAccess ? 'manage your company\'s job postings, review applications, and configure settings' : 'view job postings and manage your profile'}.
                 </p>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-center gap-2">
@@ -71,7 +87,7 @@ const CompanyDashboard: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-xs text-blue-700 mt-1">
-                    Your company admin account is fully activated and ready to use.
+                    Your company {hasAdminAccess ? 'admin' : 'user'} account is fully activated and ready to use.
                   </p>
                 </div>
               </div>
@@ -80,23 +96,25 @@ const CompanyDashboard: React.FC = () => {
 
           {/* Quick Actions Grid */}
           <div className={`grid gap-6 mb-8 ${hasAdminAccess ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2'}`}>
-            {/* Post a Job */}
-            <div className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Briefcase className="w-5 h-5 text-green-600" />
+            {/* Post a Job - Only for admin users */}
+            {hasAdminAccess && (
+              <div className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Briefcase className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h3 className="text-h3-mobile font-semibold text-neutral-gray">
+                    Post a Job
+                  </h3>
                 </div>
-                <h3 className="text-h3-mobile font-semibold text-neutral-gray">
-                  Post a Job
-                </h3>
+                <p className="text-body-mobile text-neutral-gray/70 mb-4">
+                  Create and publish new job opportunities for refugees and other candidates.
+                </p>
+                <button className="btn-primary w-full">
+                  Create Job Posting
+                </button>
               </div>
-              <p className="text-body-mobile text-neutral-gray/70 mb-4">
-                Create and publish new job opportunities for refugees and other candidates.
-              </p>
-              <button className="btn-primary w-full">
-                Create Job Posting
-              </button>
-            </div>
+            )}
 
             {/* Manage Applications */}
             <div className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
@@ -105,36 +123,16 @@ const CompanyDashboard: React.FC = () => {
                   <Users className="w-5 h-5 text-blue-600" />
                 </div>
                 <h3 className="text-h3-mobile font-semibold text-neutral-gray">
-                  Applications
+                  {hasAdminAccess ? 'Applications' : 'My Applications'}
                 </h3>
               </div>
               <p className="text-body-mobile text-neutral-gray/70 mb-4">
-                Review and manage job applications from candidates.
+                {hasAdminAccess ? 'Review and manage job applications from candidates.' : 'View and manage your job applications.'}
               </p>
               <button className="btn-secondary w-full">
                 View Applications
               </button>
             </div>
-
-            {/* User Management - Only show for admin users */}
-            {hasAdminAccess && (
-              <div className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <h3 className="text-h3-mobile font-semibold text-neutral-gray">
-                    User Management
-                  </h3>
-                </div>
-                <p className="text-body-mobile text-neutral-gray/70 mb-4">
-                  Manage company users and their access permissions.
-                </p>
-                <button className="btn-secondary w-full">
-                  Manage Users
-                </button>
-              </div>
-            )}
 
             {/* Company Settings */}
             <div className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
@@ -143,11 +141,11 @@ const CompanyDashboard: React.FC = () => {
                   <Settings className="w-5 h-5 text-purple-600" />
                 </div>
                 <h3 className="text-h3-mobile font-semibold text-neutral-gray">
-                  Settings
+                  {hasAdminAccess ? 'Company Settings' : 'Profile Settings'}
                 </h3>
               </div>
               <p className="text-body-mobile text-neutral-gray/70 mb-4">
-                Configure your company profile and account preferences.
+                {hasAdminAccess ? 'Configure your company profile and account preferences.' : 'Update your profile and account preferences.'}
               </p>
               <button className="btn-secondary w-full">
                 Manage Settings
@@ -165,7 +163,7 @@ const CompanyDashboard: React.FC = () => {
                 <Briefcase className="w-8 h-8 text-neutral-gray/50" />
               </div>
               <p className="text-body-mobile text-neutral-gray/70">
-                No recent activity. Start by posting your first job!
+                {hasAdminAccess ? 'No recent activity. Start by posting your first job!' : 'No recent activity. Check back later for updates.'}
               </p>
             </div>
           </div>
