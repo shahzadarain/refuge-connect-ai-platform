@@ -13,6 +13,9 @@ const CompanyDashboard: React.FC = () => {
   };
 
   const displayName = currentUser?.first_name || currentUser?.email?.split('@')[0] || 'User';
+  
+  // Check if user has admin privileges for user management
+  const hasAdminAccess = currentUser?.role === 'company_admin' || currentUser?.user_type === 'employer_admin';
 
   return (
     <div className="min-h-screen bg-light-gray">
@@ -76,7 +79,7 @@ const CompanyDashboard: React.FC = () => {
           </div>
 
           {/* Quick Actions Grid */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+          <div className={`grid gap-6 mb-8 ${hasAdminAccess ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2'}`}>
             {/* Post a Job */}
             <div className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3 mb-4">
@@ -112,6 +115,26 @@ const CompanyDashboard: React.FC = () => {
                 View Applications
               </button>
             </div>
+
+            {/* User Management - Only show for admin users */}
+            {hasAdminAccess && (
+              <div className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-h3-mobile font-semibold text-neutral-gray">
+                    User Management
+                  </h3>
+                </div>
+                <p className="text-body-mobile text-neutral-gray/70 mb-4">
+                  Manage company users and their access permissions.
+                </p>
+                <button className="btn-secondary w-full">
+                  Manage Users
+                </button>
+              </div>
+            )}
 
             {/* Company Settings */}
             <div className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
