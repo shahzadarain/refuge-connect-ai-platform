@@ -41,13 +41,22 @@ const handler = async (req: Request): Promise<Response> => {
       })
     });
 
-    const result = await response.json();
-    
     console.log('Backend API response status:', response.status);
-    console.log('Backend API response body:', result);
+    console.log('Backend API response headers:', Object.fromEntries(response.headers.entries()));
+    
+    // Get response text first to handle both JSON and non-JSON responses
+    const responseText = await response.text();
+    console.log('Backend API response body (text):', responseText);
     
     if (response.ok) {
-      console.log('Password reset successful via backend API:', result);
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('Password reset successful via backend API:', result);
+      } catch (parseError) {
+        console.log('Response is not JSON, treating as success message');
+        result = { message: responseText || "Password reset successful" };
+      }
       
       return new Response(JSON.stringify({ 
         success: true, 
@@ -60,13 +69,47 @@ const handler = async (req: Request): Promise<Response> => {
         },
       });
     } else {
-      console.error('Backend API error:', result);
+      console.error('Backend API error status:', response.status);
+      console.error('Backend API error body:', responseText);
+      
+      let errorMessage = "Failed to reset password";
+      
+      // Try to parse as JSON for structured error
+      try {
+        const errorData = JSON.parse(responseText);
+        if (response.status === 422 && errorData.detail) {
+          if (Array.isArray(errorData.detail)) {
+            // FastAPI validation errors
+            const validationErrors = errorData.detail.map((err: any) => {
+              const field = err.loc ? err.loc[err.loc.length - 1] : 'unknown';
+              const message = err.msg || err.message || 'Validation error';
+              return `${field}: ${message}`;
+            }).join(', ');
+            errorMessage = `Validation error: ${validationErrors}`;
+          } else {
+            errorMessage = errorData.detail;
+          }
+        } else {
+          errorMessage = errorData.detail || errorData.message || errorData.error || errorMessage;
+        }
+      } catch (parseError) {
+        // If not JSON, use the raw response text
+        if (responseText.includes("Internal Server Error")) {
+          errorMessage = "Server error occurred. Please try again later.";
+        } else if (responseText.includes("502 Bad Gateway")) {
+          errorMessage = "Service temporarily unavailable. Please try again later.";
+        } else if (responseText.includes("404")) {
+          errorMessage = "Reset service not found. Please contact support.";
+        } else {
+          errorMessage = responseText || errorMessage;
+        }
+      }
       
       return new Response(JSON.stringify({ 
         success: false, 
-        error: result.detail || result.message || result.error || "Failed to reset password" 
+        error: errorMessage
       }), {
-        status: response.status,
+        status: 200, // Return 200 to avoid function error, but indicate failure in body
         headers: {
           "Content-Type": "application/json", 
           ...corsHeaders 
@@ -75,13 +118,26 @@ const handler = async (req: Request): Promise<Response> => {
     }
   } catch (error: any) {
     console.error("Error in reset-password function:", error);
+    
+    let errorMessage = "Failed to reset password";
+    
+    if (error.message) {
+      if (error.message.includes("Failed to fetch")) {
+        errorMessage = "Unable to connect to the reset service. Please check your connection and try again.";
+      } else if (error.message.includes("NetworkError")) {
+        errorMessage = "Network error occurred. Please try again later.";
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || "Failed to reset password" 
+        error: errorMessage
       }),
       {
-        status: 500,
+        status: 200, // Return 200 to avoid function error
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
