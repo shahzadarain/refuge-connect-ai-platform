@@ -17,7 +17,7 @@ const CompanyDashboard: React.FC = () => {
 
   const displayName = currentUser?.first_name || currentUser?.email?.split('@')[0] || 'User';
   
-  // Use the new permission function
+  // Use the new permission function with detailed logging
   const hasUserManagementAccess = canManageUsers(currentUser);
 
   console.log('CompanyDashboard - Current user:', currentUser);
@@ -31,6 +31,11 @@ const CompanyDashboard: React.FC = () => {
       setActiveTab('dashboard');
     }
   }, [hasUserManagementAccess, activeTab]);
+
+  // Force redirect if no access but somehow on user management tab
+  if (!hasUserManagementAccess && activeTab === 'user-management') {
+    setActiveTab('dashboard');
+  }
 
   return (
     <div className="min-h-screen bg-light-gray">
