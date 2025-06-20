@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FormData {
   email: string;
@@ -107,74 +107,32 @@ const ResetPassword = () => {
       console.log('Verification code:', formData.verification_code);
       console.log('Form data being sent:', {
         email: formData.email.trim(),
-        verification_code: formData.verification_code.trim(),
+        token: formData.verification_code.trim(),
         new_password: formData.new_password
       });
       
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify({
+      // Use Supabase Edge Function instead of direct API call
+      const { data, error } = await supabase.functions.invoke('reset-password', {
+        body: {
           email: formData.email.trim(),
-          verification_code: formData.verification_code.trim(),
+          token: formData.verification_code.trim(),
           new_password: formData.new_password
-        })
+        }
       });
 
-      console.log('Backend API response status:', response.status);
+      console.log('Supabase Edge Function response:', { data, error });
       
-      if (!response.ok) {
-        let errorMessage = 'Failed to reset password';
-        
-        try {
-          const errorData = await response.json();
-          console.log('Error response data:', errorData);
-          
-          // Handle 422 validation errors specifically
-          if (response.status === 422) {
-            if (errorData.detail && Array.isArray(errorData.detail)) {
-              // FastAPI validation errors format
-              const validationErrors = errorData.detail.map((err: any) => {
-                const field = err.loc ? err.loc[err.loc.length - 1] : 'unknown';
-                const message = err.msg || err.message || 'Validation error';
-                return `${field}: ${message}`;
-              }).join(', ');
-              errorMessage = `Validation error: ${validationErrors}`;
-            } else if (errorData.detail) {
-              errorMessage = errorData.detail;
-            } else {
-              errorMessage = 'Validation failed. Please check your input.';
-            }
-          } else {
-            // Handle other error formats
-            if (typeof errorData === 'string') {
-              errorMessage = errorData;
-            } else if (errorData.detail) {
-              errorMessage = errorData.detail;
-            } else if (errorData.message) {
-              errorMessage = errorData.message;
-            } else if (errorData.error) {
-              errorMessage = errorData.error;
-            } else {
-              errorMessage = JSON.stringify(errorData);
-            }
-          }
-        } catch (parseError) {
-          console.log('Could not parse error response as JSON');
-          const errorText = await response.text();
-          console.log('Error response text:', errorText);
-          errorMessage = errorText || errorMessage;
-        }
-        
-        throw new Error(errorMessage);
+      if (error) {
+        console.error('Supabase Edge Function error:', error);
+        throw new Error(error.message || 'Failed to reset password');
       }
 
-      const result = await response.json();
-      console.log('Password reset successful:', result);
+      if (data && !data.success) {
+        console.error('Password reset failed:', data.error);
+        throw new Error(data.error || 'Failed to reset password');
+      }
+
+      console.log('Password reset successful:', data);
       
       // Clear stored email
       localStorage.removeItem('resetEmail');
@@ -184,17 +142,9 @@ const ResetPassword = () => {
         description: "Your password has been updated successfully. You can now log in with your new password.",
       });
 
-      // Redirect based on user type or default to login
-      const redirectPath = {
-        'employer_admin': '/?action=login',
-        'company_user': '/?action=login',
-        'refugee': '/?action=login',
-        'admin': '/?action=login',
-        'super_admin': '/?action=login'
-      }[result.user_type] || '/?action=login';
-      
+      // Redirect to login
       setTimeout(() => {
-        navigate(redirectPath);
+        navigate('/?action=login');
       }, 2000);
     } catch (error) {
       console.error('Password reset error:', error);
