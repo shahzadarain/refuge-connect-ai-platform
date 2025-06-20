@@ -23,6 +23,8 @@ const handler = async (req: Request): Promise<Response> => {
     const { email, token, new_password }: PasswordResetRequest = await req.json();
 
     console.log('Processing password reset for email:', email);
+    console.log('Token received:', token);
+    console.log('Password length:', new_password?.length);
 
     // Call your backend API to reset the password
     const response = await fetch('https://ab93e9536acd.ngrok.app/api/reset-password', {
@@ -40,6 +42,9 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     const result = await response.json();
+    
+    console.log('Backend API response status:', response.status);
+    console.log('Backend API response body:', result);
     
     if (response.ok) {
       console.log('Password reset successful via backend API:', result);
@@ -59,7 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
       
       return new Response(JSON.stringify({ 
         success: false, 
-        error: result.message || result.error || "Failed to reset password" 
+        error: result.detail || result.message || result.error || "Failed to reset password" 
       }), {
         status: response.status,
         headers: {
