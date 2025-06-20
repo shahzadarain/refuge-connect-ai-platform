@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSession } from '@/hooks/useSession';
@@ -36,7 +37,8 @@ const Index = () => {
           setCurrentView('super-admin-dashboard');
           break;
         case 'employer_admin':
-          console.log('Routing employer admin to dashboard');
+        case 'company_user': // Both employer_admin and company_user go to the same dashboard
+          console.log('Routing company user to dashboard');
           setCurrentView('employer-admin-dashboard');
           break;
         case 'refugee':
@@ -107,6 +109,7 @@ const Index = () => {
         setCurrentView('super-admin-dashboard');
         break;
       case 'employer_admin':
+      case 'company_user': // Both employer_admin and company_user go to the same dashboard
         console.log('Setting view to employer-admin-dashboard');
         setCurrentView('employer-admin-dashboard');
         break;
