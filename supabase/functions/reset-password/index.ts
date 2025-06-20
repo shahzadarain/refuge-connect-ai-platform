@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,32 +24,50 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Processing password reset for email:', email);
 
-    // Create Supabase admin client
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
-    // In a real implementation, you would:
-    // 1. Validate the token from your database
-    // 2. Check if the token is not expired
-    // 3. Update the user's password
-    
-    // For now, we'll simulate a successful password reset
-    // You would need to implement proper token validation logic here
-    
-    console.log('Password reset processed successfully for:', email);
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      message: "Password reset successful" 
-    }), {
-      status: 200,
+    // Call your backend API to reset the password
+    const response = await fetch('https://ab93e9536acd.ngrok.app/api/reset-password', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
       },
+      body: JSON.stringify({
+        email: email,
+        verification_code: token,
+        new_password: new_password
+      })
     });
+
+    const result = await response.json();
+    
+    if (response.ok) {
+      console.log('Password reset successful via backend API:', result);
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: result.message || "Password reset successful" 
+      }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      });
+    } else {
+      console.error('Backend API error:', result);
+      
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: result.message || result.error || "Failed to reset password" 
+      }), {
+        status: response.status,
+        headers: {
+          "Content-Type": "application/json", 
+          ...corsHeaders 
+        },
+      });
+    }
   } catch (error: any) {
     console.error("Error in reset-password function:", error);
     return new Response(
