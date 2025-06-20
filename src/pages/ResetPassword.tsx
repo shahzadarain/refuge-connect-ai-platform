@@ -13,77 +13,87 @@ const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  const [email, setEmail] = useState<string>('');
-  const [token, setToken] = useState<string>('');
-  const [newPassword, setNewPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [formData, setFormData] = useState({
+    email: '',
+    verification_code: '',
+    new_password: '',
+    confirm_password: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const [isValidResetLink, setIsValidResetLink] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
-    console.log('Current URL search params:', window.location.search);
-    console.log('Search params:', searchParams.toString());
+    console.log('ResetPassword useEffect - checking for stored email or URL params');
     
+    // Try to get email from localStorage (from forgot password flow)
+    const storedEmail = localStorage.getItem('resetEmail');
+    
+    // Also check URL params (from email links)
     const emailParam = searchParams.get('email');
     const tokenParam = searchParams.get('token');
     
+    console.log('Stored email:', storedEmail);
     console.log('Email param:', emailParam);
     console.log('Token param:', tokenParam);
     
     if (emailParam) {
-      setEmail(decodeURIComponent(emailParam));
+      setFormData(prev => ({
+        ...prev,
+        email: decodeURIComponent(emailParam),
+        verification_code: tokenParam || ''
+      }));
+    } else if (storedEmail) {
+      setFormData(prev => ({
+        ...prev,
+        email: storedEmail
+      }));
+    }
+  }, [searchParams]);
+
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.email) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Please enter a valid email address';
     }
     
-    if (tokenParam) {
-      setToken(tokenParam);
+    if (!formData.verification_code) {
+      errors.verification_code = 'Verification code is required';
+    } else if (formData.verification_code.length !== 6) {
+      errors.verification_code = 'Code must be 6 digits';
     }
     
-    // Check if we have valid reset parameters
-    if (emailParam && tokenParam && tokenParam !== 'SECURE_TOKEN_HERE') {
-      setIsValidResetLink(true);
-      console.log('Valid reset link detected');
-    } else {
-      console.log('Invalid reset link detected, redirecting to home');
-      toast({
-        title: "Invalid Reset Link",
-        description: "This password reset link is invalid or has expired. Please request a new one.",
-        variant: "destructive",
-      });
-      navigate('/');
+    if (!formData.new_password) {
+      errors.new_password = 'Password is required';
+    } else if (formData.new_password.length < 6) {
+      errors.new_password = 'Password must be at least 6 characters';
     }
-  }, [searchParams, navigate, toast]);
+    
+    if (formData.new_password !== formData.confirm_password) {
+      errors.confirm_password = 'Passwords do not match';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: "Passwords Don't Match",
-        description: "Please make sure both password fields match.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (newPassword.length < 6) {
-      toast({
-        title: "Password Too Short",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive",
-      });
+    if (!validateForm()) {
       return;
     }
 
     setIsResetting(true);
 
     try {
-      console.log('Processing password reset for:', email);
-      console.log('Token being sent:', token);
-      console.log('Password length:', newPassword.length);
+      console.log('Processing password reset for:', formData.email);
+      console.log('Verification code length:', formData.verification_code.length);
       
-      // Call your backend API directly
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/reset-password', {
         method: 'POST',
         headers: {
@@ -92,9 +102,9 @@ const ResetPassword = () => {
           'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify({
-          email: email,
-          verification_code: token,
-          new_password: newPassword
+          email: formData.email.trim(),
+          verification_code: formData.verification_code.trim(),
+          new_password: formData.new_password
         })
       });
 
@@ -118,16 +128,28 @@ const ResetPassword = () => {
       }
 
       const result = await response.json();
-      console.log('Backend API response body:', result);
       console.log('Password reset successful:', result);
+      
+      // Clear stored email
+      localStorage.removeItem('resetEmail');
       
       toast({
         title: "Password Reset Successful",
         description: "Your password has been updated successfully. You can now log in with your new password.",
       });
 
-      // Redirect to login page
-      navigate('/?action=login');
+      // Redirect based on user type or default to login
+      const redirectPath = {
+        'employer_admin': '/?action=login',
+        'company_user': '/?action=login',
+        'refugee': '/?action=login',
+        'admin': '/?action=login',
+        'super_admin': '/?action=login'
+      }[result.user_type] || '/?action=login';
+      
+      setTimeout(() => {
+        navigate(redirectPath);
+      }, 2000);
     } catch (error) {
       console.error('Password reset error:', error);
       
@@ -140,8 +162,14 @@ const ResetPassword = () => {
           errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
         } else if (error.message.toLowerCase().includes('cors')) {
           errorMessage = 'CORS error: The server is not configured to allow requests from this domain. Please contact support.';
-        } else if (error.message.includes('token')) {
-          errorMessage = 'This reset link has expired or is invalid. Please request a new password reset.';
+        } else if (error.message.toLowerCase().includes('expired')) {
+          errorMessage = 'This reset code has expired. Please request a new password reset.';
+        } else if (error.message.toLowerCase().includes('invalid reset code')) {
+          errorMessage = 'Invalid reset code. Please check the code and try again.';
+        } else if (error.message.toLowerCase().includes('already been used')) {
+          errorMessage = 'This reset code has already been used. Please request a new password reset.';
+        } else if (error.message.toLowerCase().includes('deactivated')) {
+          errorMessage = 'This account is deactivated. Please contact support.';
         } else {
           errorMessage = error.message;
         }
@@ -161,34 +189,30 @@ const ResetPassword = () => {
     navigate('/');
   };
 
-  // Don't render the form if the reset link is invalid
-  if (!isValidResetLink) {
-    return (
-      <div className="min-h-screen bg-light-gray">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-md mx-auto">
-            <button
-              onClick={handleBackToHome}
-              className="flex items-center gap-2 text-neutral-gray hover:text-un-blue transition-colors mb-6"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Home
-            </button>
-            <div className="form-card">
-              <div className="text-center">
-                <h1 className="text-h2-mobile font-bold text-neutral-gray mb-2">
-                  Invalid Reset Link
-                </h1>
-                <p className="text-body-mobile text-neutral-gray/70">
-                  This password reset link is invalid or has expired.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleRequestNewCode = () => {
+    navigate('/?action=forgot-password');
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear validation error when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
+  };
+
+  const handleVerificationCodeChange = (value: string) => {
+    // Only allow digits and limit to 6 characters
+    const cleanValue = value.replace(/\D/g, '').slice(0, 6);
+    handleInputChange('verification_code', cleanValue);
+  };
 
   return (
     <div className="min-h-screen bg-light-gray">
@@ -211,16 +235,56 @@ const ResetPassword = () => {
                 Reset Your Password
               </h1>
               <p className="text-body-mobile text-neutral-gray/70 mb-2">
-                Enter your new password below
+                Enter the verification code sent to your email and your new password
               </p>
-              {email && (
+              {formData.email && (
                 <p className="text-body-mobile font-medium text-un-blue bg-blue-50 px-4 py-2 rounded-lg">
-                  {email}
+                  {formData.email}
                 </p>
               )}
             </div>
 
             <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-small-mobile font-medium text-neutral-gray mb-2">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className={`form-input ${validationErrors.email ? 'border-red-500' : ''}`}
+                  placeholder="Enter your email"
+                  required
+                />
+                {validationErrors.email && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.email}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="verificationCode" className="block text-small-mobile font-medium text-neutral-gray mb-2">
+                  Verification Code *
+                </label>
+                <input
+                  type="text"
+                  id="verificationCode"
+                  value={formData.verification_code}
+                  onChange={(e) => handleVerificationCodeChange(e.target.value)}
+                  className={`form-input text-center text-lg font-mono ${validationErrors.verification_code ? 'border-red-500' : ''}`}
+                  placeholder="123456"
+                  maxLength={6}
+                  required
+                />
+                <p className="text-small-mobile text-neutral-gray/70 mt-1">
+                  Enter the 6-digit code from your email
+                </p>
+                {validationErrors.verification_code && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.verification_code}</p>
+                )}
+              </div>
+
               <div>
                 <label htmlFor="newPassword" className="block text-small-mobile font-medium text-neutral-gray mb-2">
                   New Password *
@@ -229,9 +293,9 @@ const ResetPassword = () => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="newPassword"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="form-input pr-10"
+                    value={formData.new_password}
+                    onChange={(e) => handleInputChange('new_password', e.target.value)}
+                    className={`form-input pr-10 ${validationErrors.new_password ? 'border-red-500' : ''}`}
                     placeholder="Enter new password"
                     required
                     minLength={6}
@@ -244,6 +308,9 @@ const ResetPassword = () => {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {validationErrors.new_password && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.new_password}</p>
+                )}
               </div>
 
               <div>
@@ -254,9 +321,9 @@ const ResetPassword = () => {
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="form-input pr-10"
+                    value={formData.confirm_password}
+                    onChange={(e) => handleInputChange('confirm_password', e.target.value)}
+                    className={`form-input pr-10 ${validationErrors.confirm_password ? 'border-red-500' : ''}`}
                     placeholder="Confirm new password"
                     required
                     minLength={6}
@@ -269,16 +336,31 @@ const ResetPassword = () => {
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {validationErrors.confirm_password && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.confirm_password}</p>
+                )}
               </div>
 
               <button
                 type="submit"
-                disabled={isResetting || !newPassword || !confirmPassword}
+                disabled={isResetting}
                 className="btn-primary w-full disabled:opacity-50"
               >
                 {isResetting ? 'Resetting Password...' : 'Reset Password'}
               </button>
             </form>
+
+            <div className="text-center mt-6">
+              <p className="text-small-mobile text-neutral-gray/70 mb-3">
+                Didn't receive the code or code expired?
+              </p>
+              <button
+                onClick={handleRequestNewCode}
+                className="btn-secondary w-full text-small-mobile font-medium"
+              >
+                Request New Code
+              </button>
+            </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
               <div className="flex items-start gap-3">
