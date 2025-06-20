@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, User, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
 import { sendForgotPasswordEmail } from '@/utils/emailApi';
+import { useLocation } from 'react-router-dom';
 
 interface UnifiedLoginProps {
   onBack: () => void;
@@ -14,6 +15,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
   const { t } = useLanguage();
   const { toast } = useToast();
   const { login } = useSession();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -21,6 +23,19 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Check for password reset success message
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const resetSuccess = urlParams.get('reset');
+    
+    if (resetSuccess === 'success') {
+      toast({
+        title: "Password Reset Complete",
+        description: "Your password has been successfully reset. Please login with your new password.",
+      });
+    }
+  }, [location, toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

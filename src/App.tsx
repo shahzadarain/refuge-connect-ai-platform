@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CompanyActivation from "./pages/CompanyActivation";
 import EmployerAdminDashboard from "./components/EmployerAdminDashboard";
+import ResetPassword from "./components/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/company-setup" element={<CompanyActivation />} />
             <Route path="/company-dashboard" element={<EmployerAdminDashboard />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
