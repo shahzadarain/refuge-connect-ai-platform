@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 const ResetPassword = () => {
   console.log('ResetPassword component mounted');
@@ -80,33 +80,54 @@ const ResetPassword = () => {
 
     try {
       console.log('Processing password reset for:', email);
+      console.log('Token being sent:', token);
+      console.log('Password length:', newPassword.length);
       
-      // Call our Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('reset-password', {
-        body: {
+      // Call your backend API directly
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({
           email: email,
-          token: token,
+          verification_code: token,
           new_password: newPassword
-        }
+        })
       });
 
-      if (error) {
-        throw new Error(error.message || 'Failed to reset password');
-      }
-
-      if (data?.success) {
-        console.log('Password reset successful:', data);
+      console.log('Backend API response status:', response.status);
+      
+      if (!response.ok) {
+        let errorMessage = 'Failed to reset password';
         
-        toast({
-          title: "Password Reset Successful",
-          description: "Your password has been updated successfully. You can now log in with your new password.",
-        });
-
-        // Redirect to login page
-        navigate('/?action=login');
-      } else {
-        throw new Error(data?.error || 'Failed to reset password');
+        try {
+          const errorData = await response.json();
+          console.log('Error response data:', errorData);
+          errorMessage = errorData.detail || errorData.message || errorData.error || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
+
+      const result = await response.json();
+      console.log('Backend API response body:', result);
+      console.log('Password reset successful:', result);
+      
+      toast({
+        title: "Password Reset Successful",
+        description: "Your password has been updated successfully. You can now log in with your new password.",
+      });
+
+      // Redirect to login page
+      navigate('/?action=login');
     } catch (error) {
       console.error('Password reset error:', error);
       
@@ -117,6 +138,8 @@ const ResetPassword = () => {
           errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
         } else if (error.message.includes('NetworkError')) {
           errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+        } else if (error.message.toLowerCase().includes('cors')) {
+          errorMessage = 'CORS error: The server is not configured to allow requests from this domain. Please contact support.';
         } else if (error.message.includes('token')) {
           errorMessage = 'This reset link has expired or is invalid. Please request a new password reset.';
         } else {
