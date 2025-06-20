@@ -4,7 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Building, CheckCircle, Mail, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { sessionStore } from '@/stores/sessionStore';
-import { supabase } from '@/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 const CompanyActivation = () => {
   const { t } = useLanguage();
