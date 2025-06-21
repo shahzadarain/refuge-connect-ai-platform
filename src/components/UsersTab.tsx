@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
-import { Users, CheckCircle, XCircle, Eye, Key } from 'lucide-react';
-import { User, activateUser, deactivateUser, setUserPassword } from '@/utils/adminApi';
+import { Users, CheckCircle, XCircle } from 'lucide-react';
+import { User, activateUser, deactivateUser } from '@/utils/adminApi';
 import { useToast } from '@/hooks/use-toast';
 import SearchAndFilters from './SearchAndFilters';
 import UserActionsDialog from './UserActionsDialog';
@@ -21,7 +21,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, onActivate, onRefresh }) => 
   const [actionDialog, setActionDialog] = useState<{
     isOpen: boolean;
     user: User | null;
-    action: 'activate' | 'deactivate' | 'set-password' | null;
+    action: 'activate' | 'deactivate' | null;
   }>({
     isOpen: false,
     user: null,
@@ -52,7 +52,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, onActivate, onRefresh }) => 
     });
   }, [users, searchTerm, statusFilter, verifiedFilter, companyFilter]);
 
-  const handleUserAction = async (userId: string, password?: string) => {
+  const handleUserAction = async (userId: string) => {
     try {
       switch (actionDialog.action) {
         case 'activate':
@@ -69,15 +69,6 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, onActivate, onRefresh }) => 
             description: "User deactivated successfully",
           });
           break;
-        case 'set-password':
-          if (password) {
-            await setUserPassword(userId, password);
-            toast({
-              title: "Success",
-              description: "Password set successfully",
-            });
-          }
-          break;
       }
       onRefresh();
     } catch (error) {
@@ -90,7 +81,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, onActivate, onRefresh }) => 
     }
   };
 
-  const openActionDialog = (user: User, action: 'activate' | 'deactivate' | 'set-password') => {
+  const openActionDialog = (user: User, action: 'activate' | 'deactivate') => {
     setActionDialog({
       isOpen: true,
       user,
@@ -217,19 +208,6 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, onActivate, onRefresh }) => 
                   Activate
                 </button>
               )}
-              
-              <button
-                onClick={() => openActionDialog(user, 'set-password')}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-              >
-                <Key className="w-4 h-4" />
-                Set Password
-              </button>
-              
-              <button className="flex items-center gap-2 px-4 py-2 border border-border text-neutral-gray rounded-md hover:bg-light-gray transition-colors">
-                <Eye className="w-4 h-4" />
-                View Profile
-              </button>
             </div>
           </div>
         ))

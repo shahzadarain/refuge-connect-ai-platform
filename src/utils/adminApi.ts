@@ -1,4 +1,3 @@
-
 export interface Company {
   id: string;
   legal_name: string;
@@ -244,25 +243,4 @@ export const deactivateUser = async (userId: string): Promise<void> => {
 
   const responseData = await response.json();
   console.log('User deactivation response:', responseData);
-};
-
-export const setUserPassword = async (userId: string, password: string): Promise<void> => {
-  console.log('Setting password for user:', userId);
-  const response = await fetch(`${API_BASE_URL}/activate/set-password`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ 
-      user_id: userId, 
-      password: password 
-    })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Error setting user password:', errorText);
-    throw new Error(`Failed to set user password: ${response.status} - ${errorText}`);
-  }
-
-  const responseData = await response.json();
-  console.log('Set password response:', responseData);
 };
