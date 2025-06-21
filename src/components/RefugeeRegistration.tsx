@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ProgressIndicator from './ProgressIndicator';
 import FormField from './FormField';
 import { Button } from './ui/button';
-import { Shield, UserCheck, Lock, CheckCircle } from 'lucide-react';
+import { Shield, UserCheck, Lock } from 'lucide-react';
 
 interface RefugeeData {
   individual_id: string;
@@ -134,7 +133,13 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
 
       const result = await response.json();
       console.log('Registration successful:', result);
-      setCurrentStep(3); // Success step
+      
+      // Store email for UNHCR validation
+      localStorage.setItem('refugee_validation_email', refugeeData.email);
+      
+      // Redirect to UNHCR validation page
+      window.location.href = `/?email=${encodeURIComponent(refugeeData.email)}&action=unhcr-validate`;
+      
     } catch (error) {
       console.error('Registration error details:', error);
       
@@ -160,8 +165,7 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
 
   const stepLabels = [
     'Identity Verification',
-    'Account Setup',
-    'Complete'
+    'Account Setup'
   ];
 
   const renderStep1 = () => (
@@ -345,47 +349,13 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
     </div>
   );
 
-  const renderStep3 = () => (
-    <div className="max-w-2xl mx-auto text-center">
-      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <CheckCircle className="w-12 h-12 text-green-600" />
-      </div>
-
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">
-        Registration Complete!
-      </h1>
-
-      <p className="text-lg text-gray-600 mb-8 max-w-lg mx-auto">
-        Welcome to Refugee Connect! Your account has been successfully created. 
-        You can now start exploring job opportunities and connecting with employers.
-      </p>
-
-      <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-8">
-        <h3 className="font-semibold text-green-900 mb-2">What's Next?</h3>
-        <ul className="text-green-800 text-sm space-y-1">
-          <li>• Browse available job opportunities</li>
-          <li>• Complete your profile to attract employers</li>
-          <li>• Apply for positions that match your skills</li>
-        </ul>
-      </div>
-
-      <Button onClick={onBack} className="w-full md:w-auto px-8">
-        Get Started
-      </Button>
-
-      <p className="text-sm text-gray-500 mt-6">
-        {t('status.contact_support')}
-      </p>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Progress Indicator */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto">
           <ProgressIndicator 
-            steps={3} 
+            steps={2} 
             currentStep={currentStep}
             stepLabels={stepLabels}
           />
@@ -396,40 +366,37 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
       <div className="py-12 px-4">
         {currentStep === 1 && renderStep1()}
         {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
       </div>
 
       {/* Navigation */}
-      {currentStep < 3 && (
-        <div className="bg-white border-t border-gray-200 p-4">
-          <div className="max-w-2xl mx-auto flex gap-4">
+      <div className="bg-white border-t border-gray-200 p-4">
+        <div className="max-w-2xl mx-auto flex gap-4">
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            className="flex-1 md:flex-none md:px-8"
+          >
+            {t('button.back')}
+          </Button>
+          
+          {currentStep === 1 ? (
             <Button
-              variant="outline"
-              onClick={handleBack}
+              onClick={handleNext}
               className="flex-1 md:flex-none md:px-8"
             >
-              {t('button.back')}
+              Continue to Account Setup
             </Button>
-            
-            {currentStep === 1 ? (
-              <Button
-                onClick={handleNext}
-                className="flex-1 md:flex-none md:px-8"
-              >
-                Continue to Account Setup
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex-1 md:flex-none md:px-8"
-              >
-                {isSubmitting ? 'Creating Account...' : 'Create Account'}
-              </Button>
-            )}
-          </div>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex-1 md:flex-none md:px-8"
+            >
+              {isSubmitting ? 'Creating Account...' : 'Create Account'}
+            </Button>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

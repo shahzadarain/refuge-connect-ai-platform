@@ -1,14 +1,17 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSession } from '@/hooks/useSession';
 import { useToast } from '@/hooks/use-toast';
+import { useValidationStatus } from '@/hooks/useValidationStatus';
+import ValidationStatusCard from '@/components/ValidationStatusCard';
 import { User, Search, FileText, Heart, LogOut, Briefcase } from 'lucide-react';
 
 const RefugeeDashboard: React.FC = () => {
   const { t } = useLanguage();
   const { currentUser, logout } = useSession();
   const { toast } = useToast();
+  const { validationStatus, isLoading, refetch } = useValidationStatus(currentUser?.email);
 
   const handleLogout = () => {
     logout();
@@ -16,6 +19,13 @@ const RefugeeDashboard: React.FC = () => {
       title: "Logged Out",
       description: "You have been successfully logged out",
     });
+  };
+
+  const handleValidateClick = () => {
+    if (currentUser?.email) {
+      localStorage.setItem('refugee_validation_email', currentUser.email);
+      window.location.href = `/?email=${encodeURIComponent(currentUser.email)}&action=unhcr-validate`;
+    }
   };
 
   const displayName = currentUser?.first_name || currentUser?.email?.split('@')[0] || 'User';
@@ -56,6 +66,18 @@ const RefugeeDashboard: React.FC = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
+          {/* Validation Status Card */}
+          {validationStatus && (
+            <div className="mb-8">
+              <ValidationStatusCard
+                isValidated={validationStatus.is_validated}
+                isVerified={validationStatus.is_verified}
+                unhcrId={validationStatus.unhcr_id}
+                onValidateClick={handleValidateClick}
+              />
+            </div>
+          )}
+
           {/* Welcome Section */}
           <div className="bg-white rounded-lg border border-border p-6 mb-8">
             <div className="flex items-start gap-4">
@@ -77,7 +99,10 @@ const RefugeeDashboard: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-xs text-blue-700 mt-1">
-                    Your profile is verified and you can start applying for jobs.
+                    {validationStatus?.is_verified 
+                      ? "Your profile is verified and you can start applying for jobs."
+                      : "Complete UNHCR validation to access all features."
+                    }
                   </p>
                 </div>
               </div>

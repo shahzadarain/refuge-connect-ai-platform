@@ -11,6 +11,7 @@ import RefugeeDashboard from '@/components/RefugeeDashboard';
 import JobBoard from '@/components/JobBoard';
 import UnifiedLogin from '@/components/UnifiedLogin';
 import EmailVerification from '@/components/EmailVerification';
+import UNHCRValidation from '@/components/UNHCRValidation';
 
 const Index = () => {
   const { currentUser, isLoggedIn, needsTokenRefresh, logout } = useSession();
@@ -20,7 +21,9 @@ const Index = () => {
     verificationEmail,
     handleLoginSuccess,
     handleVerificationSuccess,
-    handleBackToLanding
+    handleUNHCRValidationSuccess,
+    handleBackToLanding,
+    handleUNHCRValidationRequest
   } = useViewRouter();
 
   const handleFindJobClick = () => {
@@ -48,7 +51,13 @@ const Index = () => {
   }
 
   if (currentView === 'unified-login') {
-    return <UnifiedLogin onBack={handleBackToLanding} onLoginSuccess={handleLoginSuccess} />;
+    return (
+      <UnifiedLogin 
+        onBack={handleBackToLanding} 
+        onLoginSuccess={handleLoginSuccess}
+        onUNHCRValidationRequest={handleUNHCRValidationRequest}
+      />
+    );
   }
 
   if (currentView === 'super-admin-dashboard') {
@@ -74,6 +83,16 @@ const Index = () => {
         onBack={handleBackToLanding} 
         onVerificationSuccess={handleVerificationSuccess}
         email={verificationEmail}
+      />
+    );
+  }
+
+  if (currentView === 'unhcr-validation') {
+    return (
+      <UNHCRValidation
+        onBack={handleBackToLanding}
+        onValidationSuccess={handleUNHCRValidationSuccess}
+        userEmail={verificationEmail}
       />
     );
   }

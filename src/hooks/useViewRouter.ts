@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from '@/hooks/useSession';
 
-type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'employer-admin-dashboard' | 'refugee-dashboard' | 'job-board' | 'unified-login' | 'email-verification';
+type ViewState = 'landing' | 'employer-registration' | 'refugee-registration' | 'super-admin-dashboard' | 'employer-admin-dashboard' | 'refugee-dashboard' | 'job-board' | 'unified-login' | 'email-verification' | 'unhcr-validation';
 
 export const useViewRouter = () => {
   const { currentUser, isLoggedIn } = useSession();
@@ -61,6 +61,15 @@ export const useViewRouter = () => {
       // Clean up URL
       window.history.replaceState({}, document.title, '/');
     }
+    
+    // Handle UNHCR validation
+    if (email && action === 'unhcr-validate') {
+      console.log('UNHCR validation link detected for:', email);
+      setVerificationEmail(email);
+      setCurrentView('unhcr-validation');
+      // Clean up URL
+      window.history.replaceState({}, document.title, '/');
+    }
   }, []);
 
   const handleLoginSuccess = (userType: string) => {
@@ -91,9 +100,20 @@ export const useViewRouter = () => {
     window.location.href = `/company-setup?email=${verificationEmail}&action=setup`;
   };
 
+  const handleUNHCRValidationSuccess = () => {
+    // After UNHCR validation, redirect to login
+    setCurrentView('unified-login');
+    setVerificationEmail('');
+  };
+
   const handleBackToLanding = () => {
     setCurrentView('landing');
     setVerificationEmail('');
+  };
+
+  const handleUNHCRValidationRequest = (email: string) => {
+    setVerificationEmail(email);
+    setCurrentView('unhcr-validation');
   };
 
   return {
@@ -102,6 +122,8 @@ export const useViewRouter = () => {
     verificationEmail,
     handleLoginSuccess,
     handleVerificationSuccess,
-    handleBackToLanding
+    handleUNHCRValidationSuccess,
+    handleBackToLanding,
+    handleUNHCRValidationRequest
   };
 };
