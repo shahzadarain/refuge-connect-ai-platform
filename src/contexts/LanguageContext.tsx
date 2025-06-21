@@ -21,26 +21,21 @@ const translations = {
     'language.english': 'English',
     'language.arabic': 'العربية',
     
-    // Landing page - New simplified copy
-    'landing.hero.title': 'Find Your Next Opportunity in Jordan',
-    'landing.hero.description': 'Connecting you with jobs from trusted companies using AI-powered matching.',
-    'landing.cta.find_job': 'Find a Job',
+    // Landing page - Updated copy
+    'landing.hero.title': 'Find Your Next',
+    'landing.hero.subtitle': 'Opportunity',
+    'landing.hero.description': 'Connecting you with trusted employers in Jordan using smart AI matching',
+    'landing.cta.refugee': 'I am a Refugee',
     'landing.cta.employer': 'I am an Employer',
-    'landing.login_prompt': 'Already have an account?',
     'landing.login_link': 'Log In',
-    
-    // Trust indicators
-    'landing.trust.ai_matching': 'AI-Powered Matching',
-    'landing.trust.ai_description': 'Smart algorithms connect you with the right opportunities',
-    'landing.trust.trusted_companies': 'Trusted Companies',
-    'landing.trust.companies_description': 'Work with verified employers committed to inclusion',
-    'landing.trust.local_support': 'Local Support',
-    'landing.trust.support_description': 'Dedicated support for refugees in Jordan',
+    'landing.first_time': 'First time here?',
+    'landing.select_role': 'Choose your registration type',
+    'landing.trust.indicator': 'Trusted by humanitarian organizations',
+    'landing.powered_by': 'Powered by DAG - UNHCR Jordan',
     
     // Legacy keys for backward compatibility
     'landing.welcome': 'Welcome to Refugee Connect',
     'landing.description': 'Connecting Syrian refugees in Jordan with employment opportunities through AI-powered matching.',
-    'landing.select_role': 'Select Your Role',
     'landing.continue': 'Continue',
     
     // User roles
@@ -111,26 +106,21 @@ const translations = {
     'language.english': 'English',
     'language.arabic': 'العربية',
     
-    // Landing page - New simplified copy
-    'landing.hero.title': 'ابحث عن فرصتك القادمة في الأردن',
-    'landing.hero.description': 'نربطك بالوظائف من الشركات الموثوقة باستخدام التطابق المدعوم بالذكاء الاصطناعي.',
-    'landing.cta.find_job': 'ابحث عن وظيفة',
+    // Landing page - Updated copy
+    'landing.hero.title': 'ابحث عن',
+    'landing.hero.subtitle': 'فرصتك القادمة',
+    'landing.hero.description': 'نربطك بأصحاب العمل الموثوقين في الأردن باستخدام التطابق الذكي',
+    'landing.cta.refugee': 'أنا لاجئ',
     'landing.cta.employer': 'أنا صاحب عمل',
-    'landing.login_prompt': 'لديك حساب بالفعل؟',
     'landing.login_link': 'تسجيل الدخول',
-    
-    // Trust indicators
-    'landing.trust.ai_matching': 'تطابق مدعوم بالذكاء الاصطناعي',
-    'landing.trust.ai_description': 'خوارزميات ذكية تربطك بالفرص المناسبة',
-    'landing.trust.trusted_companies': 'شركات موثوقة',
-    'landing.trust.companies_description': 'اعمل مع أصحاب عمل معتمدين ملتزمين بالشمولية',
-    'landing.trust.local_support': 'دعم محلي',
-    'landing.trust.support_description': 'دعم مخصص للاجئين في الأردن',
+    'landing.first_time': 'أول مرة هنا؟',
+    'landing.select_role': 'اختر نوع التسجيل',
+    'landing.trust.indicator': 'موثوق من قبل المنظمات الإنسانية',
+    'landing.powered_by': 'مدعوم من DAG - مفوضية الأمم المتحدة الأردن',
     
     // Legacy keys for backward compatibility
     'landing.welcome': 'مرحباً بك في منصة ربط اللاجئين',
     'landing.description': 'ربط اللاجئين السوريين في الأردن بفرص العمل من خلال المطابقة المدعومة بالذكاء الاصطناعي.',
-    'landing.select_role': 'اختر دورك',
     'landing.continue': 'متابعة',
     
     // User roles

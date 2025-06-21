@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import LanguageToggle from '@/components/LanguageToggle';
 
 interface LandingHeroProps {
   onFindJobClick: () => void;
@@ -18,14 +19,9 @@ const LandingHero: React.FC<LandingHeroProps> = ({
   return (
     <main className="min-h-screen bg-white">
       <div className="container-mobile py-8 min-h-screen flex flex-col">
-        {/* Header with Login */}
+        {/* Header with Language Toggle */}
         <div className="flex justify-end mb-8">
-          <button
-            onClick={onLoginClick}
-            className="btn-ghost"
-          >
-            Log In
-          </button>
+          <LanguageToggle />
         </div>
 
         {/* Hero Content */}
@@ -42,34 +38,51 @@ const LandingHero: React.FC<LandingHeroProps> = ({
           {/* Main Heading */}
           <div className="text-center space-y-4">
             <h1 className="text-display text-gray-900">
-              Find Your Next
+              {t('landing.hero.title')}
               <br />
-              <span className="text-blue-500">Opportunity</span>
+              <span className="text-blue-500">{t('landing.hero.subtitle')}</span>
             </h1>
             <p className="text-body text-gray-500 max-w-sm mx-auto">
-              Connecting you with trusted employers in Jordan using smart AI matching
+              {t('landing.hero.description')}
             </p>
           </div>
           
-          {/* Primary Actions */}
-          <div className="space-y-4">
+          {/* Primary Login Action */}
+          <div className="space-y-6">
             <button
-              onClick={onFindJobClick}
-              className="btn-primary w-full"
+              onClick={onLoginClick}
+              className="btn-primary w-full text-lg py-4"
             >
-              Find a Job
+              {t('landing.login_link')}
             </button>
             
-            <div className="divider">
-              <span>or</span>
+            {/* First Time Users Section */}
+            <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+              <div className="text-center">
+                <h3 className="text-heading text-gray-900 mb-2">
+                  {t('landing.first_time')}
+                </h3>
+                <p className="text-body-sm text-gray-600">
+                  {t('landing.select_role')}
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={onFindJobClick}
+                  className="btn-secondary w-full"
+                >
+                  {t('landing.cta.refugee')}
+                </button>
+                
+                <button
+                  onClick={onEmployerClick}
+                  className="btn-secondary w-full"
+                >
+                  {t('landing.cta.employer')}
+                </button>
+              </div>
             </div>
-            
-            <button
-              onClick={onEmployerClick}
-              className="btn-secondary w-full"
-            >
-              I'm an Employer
-            </button>
           </div>
         </div>
 
@@ -78,11 +91,11 @@ const LandingHero: React.FC<LandingHeroProps> = ({
           <div className="flex items-center justify-center space-x-2">
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
             <span className="text-caption text-gray-400">
-              Trusted by humanitarian organizations
+              {t('landing.trust.indicator')}
             </span>
           </div>
           <p className="text-caption text-gray-400">
-            Powered by UN Refugee Connect Platform
+            {t('landing.powered_by')}
           </p>
         </div>
       </div>
