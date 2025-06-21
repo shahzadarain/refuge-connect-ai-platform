@@ -17,66 +17,74 @@ const LandingHero: React.FC<LandingHeroProps> = ({
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="container mx-auto px-6 py-12 max-w-md">
-        {/* Hero Section */}
-        <div className="text-center space-y-8">
+      <div className="container-mobile py-8 min-h-screen flex flex-col">
+        {/* Header with Login */}
+        <div className="flex justify-end mb-8">
+          <button
+            onClick={onLoginClick}
+            className="btn-ghost"
+          >
+            Log In
+          </button>
+        </div>
+
+        {/* Hero Content */}
+        <div className="flex-1 flex flex-col justify-center space-y-8">
+          {/* Icon/Logo Area */}
+          <div className="text-center">
+            <div className="w-20 h-20 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
+              </svg>
+            </div>
+          </div>
+
           {/* Main Heading */}
-          <div className="space-y-4">
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-              Find Your Next Opportunity in Jordan
+          <div className="text-center space-y-4">
+            <h1 className="text-display text-gray-900">
+              Find Your Next
+              <br />
+              <span className="text-blue-500">Opportunity</span>
             </h1>
-            <p className="text-base text-gray-600 leading-relaxed">
-              Connecting you with jobs from trusted companies using AI-powered matching.
+            <p className="text-body text-gray-500 max-w-sm mx-auto">
+              Connecting you with trusted employers in Jordan using smart AI matching
             </p>
           </div>
           
-          {/* Primary CTA Button */}
-          <button
-            onClick={onFindJobClick}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg text-base transition-colors duration-200 shadow-sm"
-          >
-            Find a Job
-          </button>
-          
-          {/* Secondary Actions */}
-          <div className="space-y-6">
-            {/* Employer Link */}
+          {/* Primary Actions */}
+          <div className="space-y-4">
             <button
-              onClick={onEmployerClick}
-              className="text-blue-600 hover:text-blue-700 font-medium text-base transition-colors duration-200"
+              onClick={onFindJobClick}
+              className="btn-primary w-full"
             >
-              I am an Employer
+              Find a Job
             </button>
             
-            {/* Login Link */}
-            <div className="pt-4 border-t border-gray-100">
-              <p className="text-gray-600 text-sm">
-                Already have an account?{' '}
-                <button
-                  onClick={onLoginClick}
-                  className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
-                >
-                  Log In
-                </button>
-              </p>
+            <div className="divider">
+              <span>or</span>
             </div>
+            
+            <button
+              onClick={onEmployerClick}
+              className="btn-secondary w-full"
+            >
+              I'm an Employer
+            </button>
           </div>
         </div>
 
         {/* Footer */}
-        <footer className="mt-20 pt-8 text-center">
-          <div className="space-y-4">
-            <p className="text-xs text-gray-500">
-              Powered by UN Refugee Connect Platform
-            </p>
-            <div className="flex justify-center items-center space-x-2">
-              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-              <span className="text-xs text-gray-500">
-                Trusted by humanitarian organizations worldwide
-              </span>
-            </div>
+        <div className="text-center space-y-4 pt-8">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span className="text-caption text-gray-400">
+              Trusted by humanitarian organizations
+            </span>
           </div>
-        </footer>
+          <p className="text-caption text-gray-400">
+            Powered by UN Refugee Connect Platform
+          </p>
+        </div>
       </div>
     </main>
   );

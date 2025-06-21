@@ -321,34 +321,41 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
   };
 
   return (
-    <div className="min-h-screen bg-light-gray">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto">
+    <main className="min-h-screen bg-white">
+      <div className="container-mobile py-6 min-h-screen flex flex-col">
+        {/* Header */}
+        <div className="flex items-center mb-8">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-neutral-gray hover:text-un-blue transition-colors mb-6"
+            className="btn-ghost p-2 -ml-2"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
+            <ArrowLeft className="w-5 h-5" />
           </button>
+        </div>
 
-          <div className="form-card">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-un-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <User className="w-8 h-8 text-un-blue" />
-              </div>
-              <h1 className="text-h2-mobile font-bold text-neutral-gray mb-2">
-                Login to Your Account
+        {/* Login Form */}
+        <div className="flex-1 flex flex-col justify-center space-y-8">
+          {/* Header */}
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto">
+              <User className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-title text-gray-900 mb-2">
+                Welcome back
               </h1>
-              <p className="text-body-mobile text-neutral-gray/70">
-                Enter your credentials to access the platform
+              <p className="text-body-sm text-gray-500">
+                Sign in to your account to continue
               </p>
             </div>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-small-mobile font-medium text-neutral-gray mb-2">
-                  Email Address *
+                <label htmlFor="email" className="label-modern">
+                  Email Address
                 </label>
                 <input
                   type="email"
@@ -356,15 +363,15 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="form-input"
+                  className="input-modern"
                   placeholder="Enter your email"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-small-mobile font-medium text-neutral-gray mb-2">
-                  Password *
+                <label htmlFor="password" className="label-modern">
+                  Password
                 </label>
                 <div className="relative">
                   <input
@@ -373,26 +380,35 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="form-input pr-10"
-                    placeholder="Enter password"
+                    className="input-modern pr-12"
+                    placeholder="Enter your password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-gray/50 hover:text-neutral-gray"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
+            </div>
 
+            <div className="space-y-4">
               <button
                 type="submit"
                 disabled={isLoading}
                 className="btn-primary w-full"
               >
-                {isLoading ? 'Logging in...' : 'Login'}
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="spinner"></div>
+                    <span>Signing in...</span>
+                  </div>
+                ) : (
+                  'Sign In'
+                )}
               </button>
 
               <div className="text-center">
@@ -400,16 +416,16 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) =
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={isSendingReset}
-                  className="text-un-blue hover:text-un-blue/80 text-small-mobile font-medium disabled:opacity-50"
+                  className="btn-ghost"
                 >
-                  {isSendingReset ? 'Sending Reset Link...' : 'Forgot Password?'}
+                  {isSendingReset ? 'Sending...' : 'Forgot your password?'}
                 </button>
               </div>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

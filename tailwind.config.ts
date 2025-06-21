@@ -13,8 +13,12 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
+			padding: '1rem',
 			screens: {
+				'sm': '640px',
+				'md': '768px',
+				'lg': '1024px',
+				'xl': '1280px',
 				'2xl': '1400px'
 			}
 		},
@@ -53,24 +57,32 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+				// Modern Blue Palette
+				blue: {
+					50: 'hsl(214, 100%, 97%)',
+					100: 'hsl(214, 95%, 93%)',
+					200: 'hsl(213, 97%, 87%)',
+					300: 'hsl(212, 96%, 78%)',
+					400: 'hsl(213, 94%, 68%)',
+					500: 'hsl(216, 100%, 50%)', // Primary vibrant blue
+					600: 'hsl(216, 100%, 47%)',
+					700: 'hsl(216, 100%, 44%)',
+					800: 'hsl(216, 100%, 39%)',
+					900: 'hsl(216, 100%, 31%)',
 				},
-				// UN Color Palette
-				'un-blue': '#0072BC',
-				'un-light-blue': '#00A6D9',
-				'success-green': '#00B140',
-				'warning-orange': '#F89406',
-				'error-red': '#DC3545',
-				'neutral-gray': '#4D4D4D',
-				'light-gray': '#F5F5F5'
+				// Modern Gray Palette
+				gray: {
+					50: 'hsl(0, 0%, 98%)',
+					100: 'hsl(0, 0%, 96%)',
+					200: 'hsl(0, 0%, 90%)',
+					300: 'hsl(0, 0%, 83%)',
+					400: 'hsl(0, 0%, 64%)',
+					500: 'hsl(0, 0%, 45%)',
+					600: 'hsl(0, 0%, 32%)',
+					700: 'hsl(0, 0%, 25%)',
+					800: 'hsl(0, 0%, 15%)',
+					900: 'hsl(0, 0%, 9%)',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -78,24 +90,38 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			fontFamily: {
-				'roboto': ['Roboto', 'sans-serif'],
-				'arabic': ['Noto Sans Arabic', 'sans-serif']
+				'inter': ['Inter', 'system-ui', 'sans-serif'],
+				'sans': ['Inter', 'system-ui', 'sans-serif'],
 			},
 			fontSize: {
-				'h1-mobile': ['24px', { lineHeight: '1.2', fontWeight: '600' }],
-				'h2-mobile': ['20px', { lineHeight: '1.3', fontWeight: '600' }],
-				'body-mobile': ['16px', { lineHeight: '1.5', fontWeight: '400' }],
-				'small-mobile': ['14px', { lineHeight: '1.4', fontWeight: '400' }]
+				'xs': ['12px', { lineHeight: '16px' }],
+				'sm': ['14px', { lineHeight: '20px' }],
+				'base': ['16px', { lineHeight: '24px' }],
+				'lg': ['18px', { lineHeight: '28px' }],
+				'xl': ['20px', { lineHeight: '28px' }],
+				'2xl': ['24px', { lineHeight: '32px' }],
+				'3xl': ['30px', { lineHeight: '36px' }],
+				'4xl': ['36px', { lineHeight: '40px' }],
 			},
 			spacing: {
 				'18': '4.5rem',
-				'22': '5.5rem'
+				'22': '5.5rem',
 			},
 			minHeight: {
-				'touch': '48px'
+				'touch': '44px',
+				'button': '52px',
 			},
 			minWidth: {
-				'touch': '48px'
+				'touch': '44px',
+			},
+			maxWidth: {
+				'mobile': '375px',
+				'tablet': '768px',
+			},
+			boxShadow: {
+				'soft': '0 2px 8px 0 rgba(0, 0, 0, 0.05)',
+				'medium': '0 4px 16px 0 rgba(0, 0, 0, 0.08)',
+				'strong': '0 8px 32px 0 rgba(0, 0, 0, 0.12)',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -123,12 +149,34 @@ export default {
 						opacity: '1',
 						transform: 'translateY(0)'
 					}
+				},
+				'slide-up': {
+					from: {
+						opacity: '0',
+						transform: 'translateY(20px)'
+					},
+					to: {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'scale-in': {
+					from: {
+						opacity: '0',
+						transform: 'scale(0.95)'
+					},
+					to: {
+						opacity: '1',
+						transform: 'scale(1)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'fade-in': 'fade-in 0.3s ease-out'
+				'fade-in': 'fade-in 0.3s ease-out',
+				'slide-up': 'slide-up 0.3s ease-out',
+				'scale-in': 'scale-in 0.2s ease-out',
 			}
 		}
 	},

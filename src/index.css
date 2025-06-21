@@ -16,82 +16,65 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 204 100% 37%;  /* UN Blue #0072BC */
-    --primary-foreground: 210 40% 98%;
+    --primary: 216 100% 50%;  /* Vibrant Blue #0080FF */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 201 100% 42%;  /* UN Light Blue #00A6D9 */
+    --secondary: 216 20% 95%;  /* Light Blue Background */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 98%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 216 100% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 354 70% 54.1%;  /* Error Red #DC3545 */
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 204 100% 37%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 216 100% 50%;
 
-    --radius: 0.5rem;
+    --radius: 12px;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-
-    /* Custom UN color variables */
-    --un-blue: 204 100% 37%;
-    --un-light-blue: 201 100% 42%;
-    --success-green: 142 100% 35%;
-    --warning-orange: 33 95% 50%;
-    --error-red: 354 70% 54%;
-    --neutral-gray: 0 0% 30%;
-    --light-gray: 0 0% 96%;
+    /* Custom color variables for modern UI */
+    --vibrant-blue: 216 100% 50%;
+    --blue-50: 214 100% 97%;
+    --blue-100: 214 95% 93%;
+    --blue-500: 216 100% 50%;
+    --blue-600: 216 100% 47%;
+    --gray-50: 0 0% 98%;
+    --gray-100: 0 0% 96%;
+    --gray-200: 0 0% 90%;
+    --gray-300: 0 0% 83%;
+    --gray-400: 0 0% 64%;
+    --gray-500: 0 0% 45%;
+    --gray-600: 0 0% 32%;
+    --gray-700: 0 0% 25%;
+    --gray-800: 0 0% 15%;
+    --gray-900: 0 0% 9%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -101,41 +84,61 @@
   }
 
   body {
-    @apply bg-background text-foreground font-roboto;
+    @apply bg-white text-gray-900 font-inter antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variation-settings: 'opsz' 32;
   }
 
-  /* RTL Support */
-  [dir="rtl"] {
-    @apply font-arabic;
+  /* Typography Scale - Mobile First */
+  .text-display {
+    @apply text-3xl font-bold leading-tight tracking-tight;
   }
 
-  /* Mobile-first typography */
-  h1 {
-    @apply text-h1-mobile;
+  .text-title {
+    @apply text-2xl font-semibold leading-tight;
   }
 
-  h2 {
-    @apply text-h2-mobile;
+  .text-heading {
+    @apply text-xl font-semibold leading-snug;
   }
 
-  p {
-    @apply text-body-mobile;
+  .text-body {
+    @apply text-base leading-relaxed;
   }
 
-  small {
-    @apply text-small-mobile;
+  .text-body-sm {
+    @apply text-sm leading-relaxed;
   }
 
-  /* Focus indicators for accessibility */
-  *:focus {
-    @apply outline-none ring-2 ring-ring ring-offset-2;
+  .text-caption {
+    @apply text-xs leading-normal;
+  }
+
+  /* Tablet and Desktop Typography */
+  @media (min-width: 768px) {
+    .text-display {
+      @apply text-4xl;
+    }
+    
+    .text-title {
+      @apply text-3xl;
+    }
+    
+    .text-heading {
+      @apply text-2xl;
+    }
+  }
+
+  /* Focus states for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
   }
 
   /* High contrast support */
   @media (prefers-contrast: high) {
     :root {
       --border: 0 0% 0%;
-      --ring: 204 100% 20%;
+      --ring: 216 100% 30%;
     }
   }
 
@@ -150,81 +153,104 @@
 }
 
 @layer components {
-  /* Mobile-first form card */
-  .form-card {
-    @apply bg-white rounded-lg shadow-sm border border-border p-6 mx-4 my-4;
+  /* Container for mobile-first layouts */
+  .container-mobile {
+    @apply w-full max-w-sm mx-auto px-6;
   }
 
-  /* Mobile optimized input */
-  .mobile-input {
-    @apply w-full min-h-touch p-3 border border-input rounded-md text-base bg-background focus:border-primary focus:ring-1 focus:ring-primary;
+  /* Modern card component */
+  .card-modern {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden;
   }
 
-  /* Mobile touch button */
-  .touch-button {
-    @apply min-h-touch min-w-touch px-6 py-3 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
-  }
-
-  /* Primary UN button */
+  /* Primary button - vibrant blue */
   .btn-primary {
-    @apply touch-button bg-un-blue text-white hover:bg-un-blue/90 active:bg-un-blue/80;
+    @apply inline-flex items-center justify-center min-h-[52px] px-6 py-3 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
   }
 
-  /* Secondary button */
+  /* Secondary button - outlined */
   .btn-secondary {
-    @apply touch-button bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    @apply inline-flex items-center justify-center min-h-[52px] px-6 py-3 bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 font-medium rounded-xl border border-gray-200 transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2;
   }
 
-  /* Role selection card */
-  .role-card {
-    @apply form-card cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] focus:ring-2 focus:ring-primary;
+  /* Ghost button - text only */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center min-h-[44px] px-4 py-2 bg-transparent hover:bg-gray-50 active:bg-gray-100 text-blue-500 hover:text-blue-600 font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2;
   }
 
-  /* Progress indicator */
-  .progress-step {
-    @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium;
+  /* Modern input field */
+  .input-modern {
+    @apply w-full min-h-[52px] px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 transition-all duration-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:opacity-50 disabled:pointer-events-none;
   }
 
-  .progress-step.active {
-    @apply bg-un-blue text-white;
+  /* Input with error state */
+  .input-error {
+    @apply border-red-300 focus:border-red-500 focus:ring-red-500;
   }
 
-  .progress-step.completed {
-    @apply bg-success-green text-white;
+  /* Label for forms */
+  .label-modern {
+    @apply block text-sm font-medium text-gray-700 mb-2;
   }
 
-  .progress-step.inactive {
-    @apply bg-gray-200 text-gray-500;
+  /* Error message */
+  .error-message {
+    @apply text-sm text-red-600 mt-1;
   }
 
-  /* Language toggle */
-  .lang-toggle {
-    @apply flex bg-gray-100 rounded-md p-1;
+  /* Success message */
+  .success-message {
+    @apply text-sm text-green-600 mt-1;
   }
 
-  .lang-option {
-    @apply px-3 py-1 rounded text-sm font-medium cursor-pointer transition-colors;
+  /* Divider with text */
+  .divider {
+    @apply flex items-center my-6;
   }
 
-  .lang-option.active {
-    @apply bg-white text-un-blue shadow-sm;
+  .divider::before,
+  .divider::after {
+    @apply flex-1 h-px bg-gray-200 content-[''];
   }
 
-  .lang-option.inactive {
-    @apply text-gray-600 hover:text-gray-800;
+  .divider span {
+    @apply px-4 text-sm text-gray-400 font-medium;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    @apply animate-spin rounded-full h-5 w-5 border-2 border-gray-200 border-t-blue-500;
+  }
+
+  /* Toast/notification styles */
+  .toast-success {
+    @apply bg-green-50 border border-green-200 text-green-800;
+  }
+
+  .toast-error {
+    @apply bg-red-50 border border-red-200 text-red-800;
+  }
+
+  .toast-info {
+    @apply bg-blue-50 border border-blue-200 text-blue-800;
+  }
+
+  /* Animation utilities */
+  .fade-in {
+    @apply animate-in fade-in-0 duration-300;
+  }
+
+  .slide-up {
+    @apply animate-in slide-in-from-bottom-4 duration-300;
+  }
+
+  .scale-in {
+    @apply animate-in zoom-in-95 duration-200;
   }
 }
 
-/* RTL-specific styles */
-[dir="rtl"] .form-card {
-  direction: rtl;
-}
-
-[dir="rtl"] input,
-[dir="rtl"] textarea,
-[dir="rtl"] select {
-  text-align: right;
-}
+/* Custom font import for Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* Print styles */
 @media print {
