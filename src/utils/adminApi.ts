@@ -1,3 +1,4 @@
+
 export interface Company {
   id: string;
   legal_name: string;
@@ -18,6 +19,7 @@ export interface User {
   user_type: 'employer_admin' | 'refugee';
   email: string;
   phone?: string;
+  company_name?: string;
   is_active: boolean;
   is_verified: boolean;
   created_at: string;

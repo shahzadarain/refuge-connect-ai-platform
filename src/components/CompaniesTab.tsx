@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { Building2, CheckCircle, XCircle, Eye, History } from 'lucide-react';
 import { Company } from '@/utils/adminApi';
 import CompanyActionDialog from './CompanyActionDialog';
 import CompanyAuditLogs from './CompanyAuditLogs';
+import SearchAndFilters from './SearchAndFilters';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +27,24 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
   onReject
 }) => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [verifiedFilter, setVerifiedFilter] = useState('all');
+
+  const filteredCompanies = useMemo(() => {
+    return companies.filter(company => {
+      const matchesSearch = 
+        company.legal_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.country_of_registration.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.registration_number.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' || 
+        (statusFilter === 'approved' && company.is_approved) ||
+        (statusFilter === 'pending' && !company.is_approved);
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [companies, searchTerm, statusFilter]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -60,16 +80,28 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
         </div>
       </div>
 
+      <SearchAndFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        verifiedFilter={verifiedFilter}
+        onVerifiedFilterChange={setVerifiedFilter}
+        type="companies"
+      />
+
       {isLoading ? (
         <div className="text-center py-8">
           <p className="text-neutral-gray">Loading companies...</p>
         </div>
-      ) : companies.length === 0 ? (
+      ) : filteredCompanies.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-neutral-gray">No companies found</p>
+          <p className="text-neutral-gray">
+            {companies.length === 0 ? 'No companies found' : 'No matching companies found'}
+          </p>
         </div>
       ) : (
-        companies.map((company) => (
+        filteredCompanies.map((company) => (
           <div key={company.id} className="form-card">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
