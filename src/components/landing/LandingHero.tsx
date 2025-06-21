@@ -16,62 +16,68 @@ const LandingHero: React.FC<LandingHeroProps> = ({
   const { t } = useLanguage();
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      {/* Hero Section - Mobile First */}
-      <div className="text-center mb-12 animate-fade-in">
-        <div className="max-w-lg mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold text-neutral-gray mb-4">
-            Find Your Next Opportunity in Jordan
-          </h1>
-          <p className="text-lg text-neutral-gray/80 leading-relaxed mb-8">
-            Connecting you with jobs from trusted companies using AI-powered matching.
-          </p>
+    <main className="min-h-screen bg-white">
+      <div className="container mx-auto px-6 py-12 max-w-md">
+        {/* Hero Section */}
+        <div className="text-center space-y-8">
+          {/* Main Heading */}
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold text-gray-900 leading-tight">
+              Find Your Next Opportunity in Jordan
+            </h1>
+            <p className="text-base text-gray-600 leading-relaxed">
+              Connecting you with jobs from trusted companies using AI-powered matching.
+            </p>
+          </div>
           
-          {/* Primary CTA - Find a Job */}
+          {/* Primary CTA Button */}
           <button
             onClick={onFindJobClick}
-            className="w-full sm:w-auto bg-un-blue hover:bg-un-blue/90 text-white px-8 py-4 rounded-lg text-lg font-semibold mb-6 transition-colors shadow-lg hover:shadow-xl"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg text-base transition-colors duration-200 shadow-sm"
           >
             Find a Job
           </button>
           
-          {/* Secondary CTA - Employer */}
-          <div className="mb-6">
+          {/* Secondary Actions */}
+          <div className="space-y-6">
+            {/* Employer Link */}
             <button
               onClick={onEmployerClick}
-              className="text-un-blue hover:text-un-blue/80 font-medium border-b border-un-blue/30 hover:border-un-blue transition-colors"
+              className="text-blue-600 hover:text-blue-700 font-medium text-base transition-colors duration-200"
             >
               I am an Employer
             </button>
+            
+            {/* Login Link */}
+            <div className="pt-4 border-t border-gray-100">
+              <p className="text-gray-600 text-sm">
+                Already have an account?{' '}
+                <button
+                  onClick={onLoginClick}
+                  className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                >
+                  Log In
+                </button>
+              </p>
+            </div>
           </div>
-          
-          {/* Login Link */}
-          <p className="text-neutral-gray/70">
-            Already have an account?{' '}
-            <button
-              onClick={onLoginClick}
-              className="text-un-blue hover:text-un-blue/80 font-medium underline"
-            >
-              Log In
-            </button>
-          </p>
         </div>
-      </div>
 
-      {/* Footer Info */}
-      <footer className="mt-16 pt-8 border-t border-border">
-        <div className="text-center">
-          <p className="text-small-mobile text-neutral-gray/70">
-            Powered by UN Refugee Connect Platform
-          </p>
-          <div className="flex justify-center items-center space-x-4 mt-4">
-            <div className="w-6 h-6 bg-un-blue rounded-full"></div>
-            <span className="text-small-mobile text-neutral-gray/70">
-              Trusted by humanitarian organizations worldwide
-            </span>
+        {/* Footer */}
+        <footer className="mt-20 pt-8 text-center">
+          <div className="space-y-4">
+            <p className="text-xs text-gray-500">
+              Powered by UN Refugee Connect Platform
+            </p>
+            <div className="flex justify-center items-center space-x-2">
+              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+              <span className="text-xs text-gray-500">
+                Trusted by humanitarian organizations worldwide
+              </span>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </main>
   );
 };

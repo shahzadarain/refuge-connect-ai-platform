@@ -2,8 +2,6 @@
 import React from 'react';
 import { useSession } from '@/hooks/useSession';
 import { useViewRouter } from '@/hooks/useViewRouter';
-import Header from '@/components/Header';
-import TokenRefreshBanner from '@/components/landing/TokenRefreshBanner';
 import LandingHero from '@/components/landing/LandingHero';
 import EmployerRegistration from '@/components/EmployerRegistration';
 import RefugeeRegistration from '@/components/RefugeeRegistration';
@@ -35,10 +33,6 @@ const Index = () => {
 
   const handleLoginClick = () => {
     setCurrentView('unified-login');
-  };
-
-  const handleNavigateToJobBoard = () => {
-    setCurrentView('job-board');
   };
 
   // Add debug logging for current view
@@ -85,23 +79,11 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-light-gray">
-      <Header />
-      
-      {/* Token Refresh Warning Banner */}
-      {needsTokenRefresh && currentUser && (
-        <TokenRefreshBanner 
-          currentUser={currentUser} 
-          onLogout={logout} 
-        />
-      )}
-      
-      <LandingHero 
-        onFindJobClick={handleFindJobClick}
-        onEmployerClick={handleEmployerClick}
-        onLoginClick={handleLoginClick}
-      />
-    </div>
+    <LandingHero 
+      onFindJobClick={handleFindJobClick}
+      onEmployerClick={handleEmployerClick}
+      onLoginClick={handleLoginClick}
+    />
   );
 };
 
