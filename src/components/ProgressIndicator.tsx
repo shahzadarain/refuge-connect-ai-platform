@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Check } from 'lucide-react';
 
 interface ProgressIndicatorProps {
   steps: number;
@@ -17,7 +18,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
 
   return (
     <div className="w-full py-6">
-      <div className={`flex items-center justify-center space-x-4 ${isRTL ? 'space-x-reverse' : ''}`}>
+      <div className={`flex items-center justify-center ${isRTL ? 'space-x-reverse' : ''}`}>
         {Array.from({ length: steps }, (_, index) => {
           const stepNumber = index + 1;
           const isActive = stepNumber === currentStep;
@@ -28,21 +29,25 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
             <React.Fragment key={stepNumber}>
               <div className="flex flex-col items-center">
                 <div
-                  className={`progress-step ${
-                    isActive ? 'active' : isCompleted ? 'completed' : 'inactive'
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-medium text-sm transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-blue-500 text-white shadow-lg' 
+                      : isCompleted 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-gray-100 text-gray-400'
                   }`}
                   aria-current={isActive ? 'step' : undefined}
                 >
                   {isCompleted ? (
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+                    <Check className="w-5 h-5" />
                   ) : (
                     stepNumber
                   )}
                 </div>
                 {stepLabels[index] && (
-                  <span className="text-small-mobile text-center mt-2 text-neutral-gray">
+                  <span className={`text-xs text-center mt-2 max-w-20 leading-tight ${
+                    isActive ? 'text-blue-600 font-medium' : 'text-gray-500'
+                  }`}>
                     {stepLabels[index]}
                   </span>
                 )}
@@ -50,10 +55,10 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
               
               {stepNumber < steps && (
                 <div
-                  className={`flex-1 h-0.5 ${
-                    stepNumber < currentStep ? 'bg-success-green' : 'bg-gray-200'
+                  className={`flex-1 h-0.5 mx-4 transition-all duration-200 ${
+                    stepNumber < currentStep ? 'bg-green-500' : 'bg-gray-200'
                   }`}
-                  style={{ minWidth: '24px' }}
+                  style={{ minWidth: '40px' }}
                 />
               )}
             </React.Fragment>

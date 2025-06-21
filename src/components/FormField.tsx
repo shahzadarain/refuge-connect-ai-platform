@@ -35,7 +35,7 @@ const FormField: React.FC<FormFieldProps> = ({
   const errorId = `error-${name}`;
   const helpId = `help-${name}`;
 
-  const baseInputClasses = `mobile-input ${error ? 'border-error-red' : ''} ${isRTL ? 'text-right' : 'text-left'}`;
+  const baseInputClasses = `input-modern ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''} ${isRTL ? 'text-right' : 'text-left'}`;
 
   const renderInput = () => {
     if (type === 'select') {
@@ -95,22 +95,22 @@ const FormField: React.FC<FormFieldProps> = ({
   };
 
   return (
-    <div className="mb-6">
-      <label htmlFor={fieldId} className="block text-body-mobile font-medium text-neutral-gray mb-2">
+    <div className="space-y-2">
+      <label htmlFor={fieldId} className="label-modern">
         {label}
-        {required && <span className="text-error-red ml-1" aria-label="required">*</span>}
+        {required && <span className="text-red-500 ml-1" aria-label="required">*</span>}
       </label>
       
       {renderInput()}
       
       {helpText && (
-        <p id={helpId} className="text-small-mobile text-neutral-gray/70 mt-1">
+        <p id={helpId} className="text-sm text-gray-500">
           {helpText}
         </p>
       )}
       
       {error && (
-        <p id={errorId} className="text-small-mobile text-error-red mt-1" role="alert">
+        <p id={errorId} className="text-sm text-red-600" role="alert">
           {error}
         </p>
       )}

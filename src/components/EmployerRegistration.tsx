@@ -1,7 +1,10 @@
+
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ProgressIndicator from './ProgressIndicator';
 import FormField from './FormField';
+import { ArrowLeft, Building, CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface CompanyData {
   legal_name: string;
@@ -26,6 +29,7 @@ interface EmployerRegistrationProps {
 
 const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -49,11 +53,11 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const employeeOptions = [
-    { value: '1-10', label: t('employees.1-10') },
-    { value: '11-50', label: t('employees.11-50') },
-    { value: '51-200', label: t('employees.51-200') },
-    { value: '201-500', label: t('employees.201-500') },
-    { value: '500+', label: t('employees.500+') }
+    { value: '1-10', label: '1-10 employees' },
+    { value: '11-50', label: '11-50 employees' },
+    { value: '51-200', label: '51-200 employees' },
+    { value: '201-500', label: '201-500 employees' },
+    { value: '500+', label: '500+ employees' }
   ];
 
   const countryOptions = [
@@ -72,27 +76,27 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
     const newErrors: Record<string, string> = {};
 
     if (step === 1) {
-      if (!companyData.legal_name) newErrors.legal_name = t('validation.required');
-      if (!companyData.country_of_registration) newErrors.country_of_registration = t('validation.required');
-      if (!companyData.registration_number) newErrors.registration_number = t('validation.required');
+      if (!companyData.legal_name) newErrors.legal_name = 'Company name is required';
+      if (!companyData.country_of_registration) newErrors.country_of_registration = 'Country is required';
+      if (!companyData.registration_number) newErrors.registration_number = 'Registration number is required';
     }
 
     if (step === 2) {
       if (!adminData.email) {
-        newErrors.email = t('validation.required');
+        newErrors.email = 'Email is required';
       } else if (!/\S+@\S+\.\S+/.test(adminData.email)) {
-        newErrors.email = t('validation.email');
+        newErrors.email = 'Please enter a valid email';
       }
       
-      if (!adminData.phone) newErrors.phone = t('validation.required');
+      if (!adminData.phone) newErrors.phone = 'Phone number is required';
       if (!adminData.password) {
-        newErrors.password = t('validation.required');
+        newErrors.password = 'Password is required';
       } else if (adminData.password.length < 8) {
-        newErrors.password = t('validation.password');
+        newErrors.password = 'Password must be at least 8 characters';
       }
       
       if (adminData.password !== adminData.confirm_password) {
-        newErrors.confirm_password = t('validation.password_match');
+        newErrors.confirm_password = 'Passwords do not match';
       }
     }
 
@@ -121,8 +125,6 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
     
     try {
       console.log('Starting registration request...');
-      console.log('Company data:', companyData);
-      console.log('Admin data:', { ...adminData, password: '[HIDDEN]', confirm_password: '[HIDDEN]' });
 
       const response = await fetch('https://ab93e9536acd.ngrok.app/api/employer/register', {
         method: 'POST',
@@ -137,20 +139,14 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
         })
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-
       if (!response.ok) {
         let errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
         
         try {
           const errorData = await response.json();
-          console.log('Error response data:', errorData);
           errorMessage = errorData.detail || errorData.message || errorMessage;
         } catch (parseError) {
-          console.log('Could not parse error response as JSON');
           const errorText = await response.text();
-          console.log('Error response text:', errorText);
           errorMessage = errorText || errorMessage;
         }
         
@@ -159,54 +155,66 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
 
       const result = await response.json();
       console.log('Registration successful:', result);
-      setCurrentStep(3); // Success step
+      
+      toast({
+        title: "Registration Successful!",
+        description: "Your application has been submitted for review.",
+      });
+      
+      setCurrentStep(3);
     } catch (error) {
-      console.error('Registration error details:', error);
+      console.error('Registration error:', error);
       
       let errorMessage = 'Registration failed';
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
-          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+          errorMessage = 'Unable to connect to the server. Please check your connection and try again.';
         } else if (error.message.includes('NetworkError')) {
-          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
-        } else if (error.message.includes('CORS')) {
-          errorMessage = 'Server configuration error: Cross-origin request blocked. Please contact support.';
+          errorMessage = 'Network error. Please try again later.';
         } else {
           errorMessage = error.message;
         }
       }
       
-      setErrors({ submit: errorMessage });
+      toast({
+        title: "Registration Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const stepLabels = [
-    t('register.company_info'),
-    t('register.personal_info'),
-    t('register.verification')
+    'Company Information',
+    'Administrator Details',
+    'Review & Submit'
   ];
 
   const renderStep1 = () => (
-    <div className="form-card">
-      <h2 className="text-h1-mobile font-semibold text-neutral-gray mb-6">
-        {t('register.company_info')}
-      </h2>
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Building className="w-8 h-8 text-blue-500" />
+        </div>
+        <h1 className="text-display text-gray-900 mb-2">Company Information</h1>
+        <p className="text-body text-gray-500">Tell us about your organization</p>
+      </div>
 
       <FormField
-        label={t('form.company_name')}
+        label="Company Name"
         name="legal_name"
         value={companyData.legal_name}
         onChange={(value) => setCompanyData({ ...companyData, legal_name: value })}
-        placeholder={t('form.company_name.placeholder')}
+        placeholder="Enter your company name"
         required
         error={errors.legal_name}
       />
 
       <FormField
-        label={t('form.country')}
+        label="Country of Registration"
         name="country_of_registration"
         type="select"
         value={companyData.country_of_registration}
@@ -217,25 +225,26 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
       />
 
       <FormField
-        label={t('form.registration_number')}
+        label="Registration Number"
         name="registration_number"
         value={companyData.registration_number}
         onChange={(value) => setCompanyData({ ...companyData, registration_number: value })}
+        placeholder="Enter registration number"
         required
         error={errors.registration_number}
       />
 
       <FormField
-        label={t('form.website')}
+        label="Website (Optional)"
         name="website"
         type="url"
         value={companyData.website}
         onChange={(value) => setCompanyData({ ...companyData, website: value })}
-        placeholder={t('form.website.placeholder')}
+        placeholder="https://www.example.com"
       />
 
       <FormField
-        label={t('form.employees')}
+        label="Number of Employees"
         name="number_of_employees"
         type="select"
         value={companyData.number_of_employees}
@@ -244,35 +253,40 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
       />
 
       <FormField
-        label={t('form.about_company')}
+        label="About Your Company (Optional)"
         name="about_company"
         type="textarea"
         value={companyData.about_company}
         onChange={(value) => setCompanyData({ ...companyData, about_company: value })}
-        placeholder={t('form.about_company.placeholder')}
+        placeholder="Brief description of your company and mission"
         rows={4}
       />
     </div>
   );
 
   const renderStep2 = () => (
-    <div className="form-card">
-      <h2 className="text-h1-mobile font-semibold text-neutral-gray mb-6">
-        {t('register.personal_info')}
-      </h2>
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Building className="w-8 h-8 text-blue-500" />
+        </div>
+        <h1 className="text-display text-gray-900 mb-2">Administrator Details</h1>
+        <p className="text-body text-gray-500">Create your admin account</p>
+      </div>
 
       <FormField
-        label={t('form.email')}
+        label="Email Address"
         name="email"
         type="email"
         value={adminData.email}
         onChange={(value) => setAdminData({ ...adminData, email: value })}
+        placeholder="admin@company.com"
         required
         error={errors.email}
       />
 
       <FormField
-        label={t('form.phone')}
+        label="Phone Number"
         name="phone"
         type="tel"
         value={adminData.phone}
@@ -283,7 +297,7 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
       />
 
       <FormField
-        label={t('form.preferred_language')}
+        label="Preferred Language"
         name="preferred_language"
         type="select"
         value={adminData.preferred_language}
@@ -293,106 +307,115 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
       />
 
       <FormField
-        label={t('form.password')}
+        label="Password"
         name="password"
         type="password"
         value={adminData.password}
         onChange={(value) => setAdminData({ ...adminData, password: value })}
+        placeholder="Create a secure password"
         required
         error={errors.password}
       />
 
       <FormField
-        label={t('form.confirm_password')}
+        label="Confirm Password"
         name="confirm_password"
         type="password"
         value={adminData.confirm_password}
         onChange={(value) => setAdminData({ ...adminData, confirm_password: value })}
+        placeholder="Confirm your password"
         required
         error={errors.confirm_password}
       />
-
-      {errors.submit && (
-        <div className="bg-error-red/10 border border-error-red rounded-md p-4 mb-4">
-          <p className="text-error-red text-body-mobile font-medium mb-2">Registration Error:</p>
-          <p className="text-error-red text-small-mobile">{errors.submit}</p>
-          <details className="mt-2">
-            <summary className="text-error-red text-small-mobile cursor-pointer">Show technical details</summary>
-            <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-600 font-mono overflow-auto">
-              <p>Timestamp: {new Date().toISOString()}</p>
-              <p>Endpoint: POST https://ab93e9536acd.ngrok.app/api/employer/register</p>
-              <p>Check browser console for more details</p>
-            </div>
-          </details>
-        </div>
-      )}
     </div>
   );
 
   const renderStep3 = () => (
-    <div className="form-card text-center">
-      <div className="w-16 h-16 bg-success-green rounded-full flex items-center justify-center mx-auto mb-6">
-        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-        </svg>
+    <div className="text-center space-y-6">
+      <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto">
+        <CheckCircle className="w-10 h-10 text-green-500" />
       </div>
 
-      <h2 className="text-h1-mobile font-semibold text-neutral-gray mb-4">
-        {t('status.pending_approval')}
-      </h2>
-
-      <p className="text-body-mobile text-neutral-gray/80 mb-6">
-        We will review your application and contact you within 2-3 business days.
-      </p>
+      <div>
+        <h1 className="text-display text-gray-900 mb-4">Application Submitted!</h1>
+        <p className="text-body text-gray-500 mb-6">
+          Thank you for your application. We'll review your information and contact you within 2-3 business days.
+        </p>
+        <div className="bg-blue-50 rounded-xl p-4">
+          <p className="text-sm text-blue-800">
+            You'll receive an email confirmation shortly with next steps.
+          </p>
+        </div>
+      </div>
 
       <button
         onClick={onBack}
         className="btn-primary w-full"
       >
-        {t('button.continue')}
+        Return to Home
       </button>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-light-gray">
-      <ProgressIndicator 
-        steps={3} 
-        currentStep={currentStep}
-        stepLabels={stepLabels}
-      />
-
-      {currentStep === 1 && renderStep1()}
-      {currentStep === 2 && renderStep2()}
-      {currentStep === 3 && renderStep3()}
-
-      {currentStep < 3 && (
-        <div className="flex gap-4 p-4">
+    <div className="min-h-screen bg-white">
+      <div className="container-mobile py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
           <button
             onClick={handleBack}
-            className="btn-secondary flex-1"
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors"
           >
-            {t('button.back')}
+            <ArrowLeft className="w-5 h-5" />
+            Back
           </button>
-          
-          {currentStep === 1 ? (
-            <button
-              onClick={handleNext}
-              className="btn-primary flex-1"
-            >
-              {t('button.next')}
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="btn-primary flex-1 disabled:opacity-50"
-            >
-              {isSubmitting ? 'Submitting...' : t('button.submit')}
-            </button>
-          )}
         </div>
-      )}
+
+        {/* Progress Indicator */}
+        {currentStep < 3 && (
+          <ProgressIndicator 
+            steps={2} 
+            currentStep={currentStep}
+            stepLabels={stepLabels.slice(0, 2)}
+          />
+        )}
+
+        {/* Content */}
+        <div className="space-y-8">
+          {currentStep === 1 && renderStep1()}
+          {currentStep === 2 && renderStep2()}
+          {currentStep === 3 && renderStep3()}
+        </div>
+
+        {/* Navigation */}
+        {currentStep < 3 && (
+          <div className="flex gap-4 mt-8">
+            <button
+              onClick={handleBack}
+              className="btn-secondary flex-1"
+            >
+              Back
+            </button>
+            
+            {currentStep === 1 ? (
+              <button
+                onClick={handleNext}
+                className="btn-primary flex-1"
+              >
+                Continue
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="btn-primary flex-1 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

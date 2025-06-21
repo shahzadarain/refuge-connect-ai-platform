@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, Building, User } from 'lucide-react';
+import { ArrowLeft, Building, User, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CompanyAdminSetupProps {
@@ -127,122 +128,123 @@ const CompanyAdminSetup: React.FC<CompanyAdminSetupProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-light-gray">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto">
+    <div className="min-h-screen bg-white">
+      <div className="container-mobile py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-neutral-gray hover:text-un-blue transition-colors mb-6"
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5" />
             Back
           </button>
+        </div>
 
-          <div className="form-card">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-un-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Building className="w-8 h-8 text-un-blue" />
+        {/* Content */}
+        <div className="space-y-8">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Building className="w-8 h-8 text-blue-500" />
+            </div>
+            <h1 className="text-display text-gray-900 mb-2">Setup Admin Account</h1>
+            <p className="text-body text-gray-500 mb-4">
+              Complete your company administrator account setup
+            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
+              <User className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-800">{email}</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="firstName" className="label-modern">
+                  First Name *
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  required
+                  className="input-modern"
+                  placeholder="Enter your first name"
+                />
               </div>
-              <h1 className="text-h2-mobile font-bold text-neutral-gray mb-2">
-                Setup Admin Account
-              </h1>
-              <p className="text-body-mobile text-neutral-gray/70 mb-2">
-                Complete your company administrator account setup
-              </p>
-              <p className="text-body-mobile font-medium text-un-blue">
-                {email}
-              </p>
+
+              <div>
+                <label htmlFor="lastName" className="label-modern">
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  required
+                  className="input-modern"
+                  placeholder="Enter your last name"
+                />
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label htmlFor="firstName" className="block text-small-mobile font-medium text-neutral-gray mb-2">
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-un-blue/20 focus:border-un-blue"
-                    placeholder="Enter your first name"
-                  />
-                </div>
+            <div>
+              <label htmlFor="password" className="label-modern">
+                Password *
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                minLength={6}
+                className="input-modern"
+                placeholder="Create a secure password (min 6 characters)"
+              />
+            </div>
 
-                <div>
-                  <label htmlFor="lastName" className="block text-small-mobile font-medium text-neutral-gray mb-2">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-un-blue/20 focus:border-un-blue"
-                    placeholder="Enter your last name"
-                  />
-                </div>
-              </div>
+            <div>
+              <label htmlFor="confirmPassword" className="label-modern">
+                Confirm Password *
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                required
+                minLength={6}
+                className="input-modern"
+                placeholder="Confirm your password"
+              />
+            </div>
 
+            <button
+              type="submit"
+              disabled={isSubmitting || !formData.firstName || !formData.lastName || !formData.password || !formData.confirmPassword}
+              className="btn-primary w-full disabled:opacity-50"
+            >
+              {isSubmitting ? 'Setting up Account...' : 'Complete Setup'}
+            </button>
+          </form>
+
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
-                <label htmlFor="password" className="block text-small-mobile font-medium text-neutral-gray mb-2">
-                  Password *
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  minLength={6}
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-un-blue/20 focus:border-un-blue"
-                  placeholder="Enter your password (min 6 characters)"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="block text-small-mobile font-medium text-neutral-gray mb-2">
-                  Confirm Password *
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                  minLength={6}
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-un-blue/20 focus:border-un-blue"
-                  placeholder="Confirm your password"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting || !formData.firstName || !formData.lastName || !formData.password || !formData.confirmPassword}
-                className="btn-primary w-full disabled:opacity-50"
-              >
-                {isSubmitting ? 'Setting up Account...' : 'Complete Setup'}
-              </button>
-            </form>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-              <div className="flex items-start gap-3">
-                <User className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-small-mobile font-medium text-blue-800 mb-1">
-                    Admin Account
-                  </p>
-                  <p className="text-xs text-blue-700">
-                    You are setting up an administrator account for your company. This will give you access to manage jobs, users, and company settings.
-                  </p>
-                </div>
+                <p className="text-sm font-medium text-blue-800 mb-1">
+                  Admin Account Setup
+                </p>
+                <p className="text-xs text-blue-700">
+                  You are setting up an administrator account for your company. This will give you access to manage jobs, users, and company settings.
+                </p>
               </div>
             </div>
           </div>
