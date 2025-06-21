@@ -9,9 +9,10 @@ import { useLocation } from 'react-router-dom';
 interface UnifiedLoginProps {
   onBack: () => void;
   onLoginSuccess: (userType: string) => void;
+  onUNHCRValidationRequest?: (email: string) => void;
 }
 
-const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess }) => {
+const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onUNHCRValidationRequest }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const { login } = useSession();
