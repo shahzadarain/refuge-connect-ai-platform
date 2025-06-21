@@ -274,6 +274,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
             <UsersTab
               users={users}
               onActivate={handleActivateUser}
+              onRefresh={loadUsers}
             />
           </TabsContent>
         </Tabs>

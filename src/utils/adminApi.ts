@@ -58,7 +58,7 @@ export const fetchCompanies = async (): Promise<Company[]> => {
   console.log('Fetching companies from API...');
   const response = await fetch(`${API_BASE_URL}/companies`, {
     method: 'GET',
-    headers: getAuthHeaders() // Use auth headers instead of API_HEADERS
+    headers: getAuthHeaders()
   });
 
   if (!response.ok) {
@@ -74,7 +74,7 @@ export const fetchUsers = async (): Promise<User[]> => {
   console.log('Fetching users from API...');
   
   try {
-    const response = await fetch(`${API_BASE_URL}/users`, {
+    const response = await fetch(`${API_BASE_URL}/admin/users`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
@@ -121,9 +121,9 @@ export const fetchCompanyAdmin = async (companyId: string): Promise<User | null>
   
   try {
     // First try to get all users and filter
-    const response = await fetch(`${API_BASE_URL}/users`, {
+    const response = await fetch(`${API_BASE_URL}/admin/users`, {
       method: 'GET',
-      headers: getAuthHeaders() // Use auth headers instead of API_HEADERS
+      headers: getAuthHeaders()
     });
 
     if (!response.ok) {
@@ -212,12 +212,57 @@ export const rejectCompany = async (companyId: string, adminId: string, adminCom
 
 export const activateUser = async (userId: string): Promise<void> => {
   console.log('Activating user:', userId);
-  const response = await fetch(`${API_BASE_URL}/users/${userId}/activate`, {
-    method: 'PUT',
-    headers: getAuthHeaders()
+  const response = await fetch(`${API_BASE_URL}/activate`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ user_id: userId })
   });
 
   if (!response.ok) {
-    throw new Error('Failed to activate user');
+    const errorText = await response.text();
+    console.error('Error activating user:', errorText);
+    throw new Error(`Failed to activate user: ${response.status} - ${errorText}`);
   }
+
+  const responseData = await response.json();
+  console.log('User activation response:', responseData);
+};
+
+export const deactivateUser = async (userId: string): Promise<void> => {
+  console.log('Deactivating user:', userId);
+  const response = await fetch(`${API_BASE_URL}/deactivate`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ user_id: userId })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Error deactivating user:', errorText);
+    throw new Error(`Failed to deactivate user: ${response.status} - ${errorText}`);
+  }
+
+  const responseData = await response.json();
+  console.log('User deactivation response:', responseData);
+};
+
+export const setUserPassword = async (userId: string, password: string): Promise<void> => {
+  console.log('Setting password for user:', userId);
+  const response = await fetch(`${API_BASE_URL}/activate/set-password`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ 
+      user_id: userId, 
+      password: password 
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Error setting user password:', errorText);
+    throw new Error(`Failed to set user password: ${response.status} - ${errorText}`);
+  }
+
+  const responseData = await response.json();
+  console.log('Set password response:', responseData);
 };
