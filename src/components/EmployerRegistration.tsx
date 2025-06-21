@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import FormField from './FormField';
-import { ArrowLeft, Building, CheckCircle, Shield, User, Building2 } from 'lucide-react';
+import ProgressIndicator from './ProgressIndicator';
+import { ArrowLeft, Building, CheckCircle, Shield, User, Building2, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from './ui/checkbox';
 
@@ -31,6 +32,7 @@ interface EmployerRegistrationProps {
 const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -55,6 +57,9 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const stepLabels = ['Company Info', 'Contact Details', 'Security'];
+  const totalSteps = 3;
+
   const employeeOptions = [
     { value: '1-10', label: '1-10 employees' },
     { value: '11-50', label: '11-50 employees' },
@@ -75,40 +80,52 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
     { value: 'ar', label: 'العربية' }
   ];
 
-  const validateForm = (): boolean => {
+  const validateCurrentStep = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Company validation
-    if (!companyData.legal_name) newErrors.legal_name = 'Company name is required';
-    if (!companyData.country_of_registration) newErrors.country_of_registration = 'Country is required';
-    if (!companyData.registration_number) newErrors.registration_number = 'Registration number is required';
-    if (!companyData.number_of_employees) newErrors.number_of_employees = 'Number of employees is required';
-
-    // Admin validation
-    if (!adminData.full_name) newErrors.full_name = 'Full name is required';
-    if (!adminData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(adminData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-    
-    if (!adminData.phone) newErrors.phone = 'Phone number is required';
-    if (!adminData.password) {
-      newErrors.password = 'Password is required';
-    } else if (adminData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    
-    if (adminData.password !== adminData.confirm_password) {
-      newErrors.confirm_password = 'Passwords do not match';
-    }
-
-    if (!agreeToTerms) {
-      newErrors.terms = 'You must agree to the Terms of Service and Privacy Policy';
+    if (currentStep === 1) {
+      // Company validation
+      if (!companyData.legal_name) newErrors.legal_name = 'Company name is required';
+      if (!companyData.country_of_registration) newErrors.country_of_registration = 'Country is required';
+      if (!companyData.registration_number) newErrors.registration_number = 'Registration number is required';
+      if (!companyData.number_of_employees) newErrors.number_of_employees = 'Number of employees is required';
+    } else if (currentStep === 2) {
+      // Admin validation
+      if (!adminData.full_name) newErrors.full_name = 'Full name is required';
+      if (!adminData.email) {
+        newErrors.email = 'Email is required';
+      } else if (!/\S+@\S+\.\S+/.test(adminData.email)) {
+        newErrors.email = 'Please enter a valid email';
+      }
+      if (!adminData.phone) newErrors.phone = 'Phone number is required';
+    } else if (currentStep === 3) {
+      // Security validation
+      if (!adminData.password) {
+        newErrors.password = 'Password is required';
+      } else if (adminData.password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters';
+      }
+      if (adminData.password !== adminData.confirm_password) {
+        newErrors.confirm_password = 'Passwords do not match';
+      }
+      if (!agreeToTerms) {
+        newErrors.terms = 'You must agree to the Terms of Service and Privacy Policy';
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateCurrentStep()) {
+      setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+    }
+  };
+
+  const handlePrevious = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setErrors({});
   };
 
   const getPasswordStrength = (password: string): { strength: number; text: string; color: string } => {
@@ -135,7 +152,7 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateCurrentStep()) return;
 
     setIsSubmitting(true);
     
@@ -261,219 +278,256 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
           </p>
         </div>
 
+        {/* Progress Indicator */}
+        <ProgressIndicator 
+          steps={totalSteps} 
+          currentStep={currentStep} 
+          stepLabels={stepLabels}
+        />
+
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Section 1: About Your Organization */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-blue-600" />
-              </div>
-              <h2 className="text-heading text-gray-900">About Your Organization</h2>
-            </div>
-
-            <FormField
-              label="Company Name"
-              name="legal_name"
-              value={companyData.legal_name}
-              onChange={(value) => setCompanyData({ ...companyData, legal_name: value })}
-              placeholder="Enter your company name"
-              required
-              error={errors.legal_name}
-            />
-
-            <FormField
-              label="Country of Registration"
-              name="country_of_registration"
-              type="select"
-              value={companyData.country_of_registration}
-              onChange={(value) => setCompanyData({ ...companyData, country_of_registration: value })}
-              options={countryOptions}
-              required
-              error={errors.country_of_registration}
-            />
-
-            <FormField
-              label="Company Registration Number"
-              name="registration_number"
-              value={companyData.registration_number}
-              onChange={(value) => setCompanyData({ ...companyData, registration_number: value })}
-              placeholder="Enter registration number"
-              required
-              error={errors.registration_number}
-              helpText="This is used to verify your company's legitimacy and ensure a safe platform for all users. It will not be displayed publicly."
-            />
-
-            <FormField
-              label="Website (Optional)"
-              name="website"
-              type="url"
-              value={companyData.website}
-              onChange={(value) => setCompanyData({ ...companyData, website: value })}
-              placeholder="https://www.example.com"
-            />
-
-            <FormField
-              label="Number of Employees"
-              name="number_of_employees"
-              type="select"
-              value={companyData.number_of_employees}
-              onChange={(value) => setCompanyData({ ...companyData, number_of_employees: value })}
-              options={employeeOptions}
-              required
-              error={errors.number_of_employees}
-            />
-
-            <FormField
-              label="About Your Company (Optional)"
-              name="about_company"
-              type="textarea"
-              value={companyData.about_company}
-              onChange={(value) => setCompanyData({ ...companyData, about_company: value })}
-              placeholder="Brief description of your company and mission"
-              rows={4}
-            />
-          </div>
-
-          {/* Section 2: Primary Contact Details */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <User className="w-4 h-4 text-blue-600" />
-              </div>
-              <div>
-                <h2 className="text-heading text-gray-900">Your Primary Contact Details</h2>
-                <p className="text-sm text-gray-500">This is the person who will manage the account.</p>
-              </div>
-            </div>
-
-            <FormField
-              label="Full Name"
-              name="full_name"
-              value={adminData.full_name}
-              onChange={(value) => setAdminData({ ...adminData, full_name: value })}
-              placeholder="Enter your full name"
-              required
-              error={errors.full_name}
-            />
-
-            <FormField
-              label="Email Address"
-              name="email"
-              type="email"
-              value={adminData.email}
-              onChange={(value) => setAdminData({ ...adminData, email: value })}
-              placeholder="admin@company.com"
-              required
-              error={errors.email}
-            />
-
-            <FormField
-              label="Phone Number"
-              name="phone"
-              type="tel"
-              value={adminData.phone}
-              onChange={(value) => setAdminData({ ...adminData, phone: value })}
-              placeholder="+962791234567"
-              required
-              error={errors.phone}
-            />
-
-            <FormField
-              label="Preferred Language"
-              name="preferred_language"
-              type="select"
-              value={adminData.preferred_language}
-              onChange={(value) => setAdminData({ ...adminData, preferred_language: value })}
-              options={languageOptions}
-              required
-            />
-          </div>
-
-          {/* Section 3: Account Security */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Shield className="w-4 h-4 text-blue-600" />
-              </div>
-              <h2 className="text-heading text-gray-900">Account Security</h2>
-            </div>
-
-            <div className="space-y-2">
-              <FormField
-                label="Password"
-                name="password"
-                type="password"
-                value={adminData.password}
-                onChange={(value) => setAdminData({ ...adminData, password: value })}
-                placeholder="Create a secure password"
-                required
-                error={errors.password}
-              />
-              {adminData.password && (
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        passwordStrength.strength <= 1 ? 'bg-red-500' :
-                        passwordStrength.strength <= 2 ? 'bg-yellow-500' :
-                        passwordStrength.strength <= 3 ? 'bg-blue-500' : 'bg-green-500'
-                      }`}
-                      style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
-                    />
-                  </div>
-                  <span className={`text-sm font-medium ${passwordStrength.color}`}>
-                    {passwordStrength.text}
-                  </span>
+          {/* Step 1: About Your Organization */}
+          {currentStep === 1 && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-blue-600" />
                 </div>
-              )}
-            </div>
+                <h2 className="text-heading text-gray-900">About Your Organization</h2>
+              </div>
 
-            <FormField
-              label="Confirm Password"
-              name="confirm_password"
-              type="password"
-              value={adminData.confirm_password}
-              onChange={(value) => setAdminData({ ...adminData, confirm_password: value })}
-              placeholder="Confirm your password"
-              required
-              error={errors.confirm_password}
-            />
-          </div>
-
-          {/* Terms Agreement */}
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <Checkbox
-                id="terms"
-                checked={agreeToTerms}
-                onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
-                className="mt-1"
+              <FormField
+                label="Company Name"
+                name="legal_name"
+                value={companyData.legal_name}
+                onChange={(value) => setCompanyData({ ...companyData, legal_name: value })}
+                placeholder="Enter your company name"
+                required
+                error={errors.legal_name}
               />
-              <label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed">
-                By creating an account, I agree to the{' '}
-                <button type="button" className="text-blue-500 hover:text-blue-600 underline">
-                  Terms of Service
-                </button>{' '}
-                and{' '}
-                <button type="button" className="text-blue-500 hover:text-blue-600 underline">
-                  Privacy Policy
-                </button>
-                .
-              </label>
+
+              <FormField
+                label="Country of Registration"
+                name="country_of_registration"
+                type="select"
+                value={companyData.country_of_registration}
+                onChange={(value) => setCompanyData({ ...companyData, country_of_registration: value })}
+                options={countryOptions}
+                required
+                error={errors.country_of_registration}
+              />
+
+              <FormField
+                label="Company Registration Number"
+                name="registration_number"
+                value={companyData.registration_number}
+                onChange={(value) => setCompanyData({ ...companyData, registration_number: value })}
+                placeholder="Enter registration number"
+                required
+                error={errors.registration_number}
+                helpText="This is used to verify your company's legitimacy and ensure a safe platform for all users. It will not be displayed publicly."
+              />
+
+              <FormField
+                label="Website (Optional)"
+                name="website"
+                type="url"
+                value={companyData.website}
+                onChange={(value) => setCompanyData({ ...companyData, website: value })}
+                placeholder="https://www.example.com"
+              />
+
+              <FormField
+                label="Number of Employees"
+                name="number_of_employees"
+                type="select"
+                value={companyData.number_of_employees}
+                onChange={(value) => setCompanyData({ ...companyData, number_of_employees: value })}
+                options={employeeOptions}
+                required
+                error={errors.number_of_employees}
+              />
+
+              <FormField
+                label="About Your Company (Optional)"
+                name="about_company"
+                type="textarea"
+                value={companyData.about_company}
+                onChange={(value) => setCompanyData({ ...companyData, about_company: value })}
+                placeholder="Brief description of your company and mission"
+                rows={4}
+              />
             </div>
-            {errors.terms && (
-              <p className="text-sm text-red-600">{errors.terms}</p>
+          )}
+
+          {/* Step 2: Primary Contact Details */}
+          {currentStep === 2 && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <User className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-heading text-gray-900">Your Primary Contact Details</h2>
+                  <p className="text-sm text-gray-500">This is the person who will manage the account.</p>
+                </div>
+              </div>
+
+              <FormField
+                label="Full Name"
+                name="full_name"
+                value={adminData.full_name}
+                onChange={(value) => setAdminData({ ...adminData, full_name: value })}
+                placeholder="Enter your full name"
+                required
+                error={errors.full_name}
+              />
+
+              <FormField
+                label="Email Address"
+                name="email"
+                type="email"
+                value={adminData.email}
+                onChange={(value) => setAdminData({ ...adminData, email: value })}
+                placeholder="admin@company.com"
+                required
+                error={errors.email}
+              />
+
+              <FormField
+                label="Phone Number"
+                name="phone"
+                type="tel"
+                value={adminData.phone}
+                onChange={(value) => setAdminData({ ...adminData, phone: value })}
+                placeholder="+962791234567"
+                required
+                error={errors.phone}
+              />
+
+              <FormField
+                label="Preferred Language"
+                name="preferred_language"
+                type="select"
+                value={adminData.preferred_language}
+                onChange={(value) => setAdminData({ ...adminData, preferred_language: value })}
+                options={languageOptions}
+                required
+              />
+            </div>
+          )}
+
+          {/* Step 3: Account Security */}
+          {currentStep === 3 && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-blue-600" />
+                </div>
+                <h2 className="text-heading text-gray-900">Account Security</h2>
+              </div>
+
+              <div className="space-y-2">
+                <FormField
+                  label="Password"
+                  name="password"
+                  type="password"
+                  value={adminData.password}
+                  onChange={(value) => setAdminData({ ...adminData, password: value })}
+                  placeholder="Create a secure password"
+                  required
+                  error={errors.password}
+                />
+                {adminData.password && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          passwordStrength.strength <= 1 ? 'bg-red-500' :
+                          passwordStrength.strength <= 2 ? 'bg-yellow-500' :
+                          passwordStrength.strength <= 3 ? 'bg-blue-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
+                      />
+                    </div>
+                    <span className={`text-sm font-medium ${passwordStrength.color}`}>
+                      {passwordStrength.text}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <FormField
+                label="Confirm Password"
+                name="confirm_password"
+                type="password"
+                value={adminData.confirm_password}
+                onChange={(value) => setAdminData({ ...adminData, confirm_password: value })}
+                placeholder="Confirm your password"
+                required
+                error={errors.confirm_password}
+              />
+
+              {/* Terms Agreement */}
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="terms"
+                    checked={agreeToTerms}
+                    onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
+                    className="mt-1"
+                  />
+                  <label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed">
+                    By creating an account, I agree to the{' '}
+                    <button type="button" className="text-blue-500 hover:text-blue-600 underline">
+                      Terms of Service
+                    </button>{' '}
+                    and{' '}
+                    <button type="button" className="text-blue-500 hover:text-blue-600 underline">
+                      Privacy Policy
+                    </button>
+                    .
+                  </label>
+                </div>
+                {errors.terms && (
+                  <p className="text-sm text-red-600">{errors.terms}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Navigation Buttons */}
+          <div className="flex gap-4 pt-6">
+            {currentStep > 1 && (
+              <button
+                type="button"
+                onClick={handlePrevious}
+                className="btn-secondary flex-1 flex items-center justify-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+            )}
+            
+            {currentStep < totalSteps ? (
+              <button
+                type="button"
+                onClick={handleNext}
+                className="btn-primary flex-1 flex items-center justify-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="btn-primary flex-1 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Submitting Application...' : 'Submit Application for Review'}
+              </button>
             )}
           </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn-primary w-full disabled:opacity-50"
-          >
-            {isSubmitting ? 'Submitting Application...' : 'Submit Application for Review'}
-          </button>
         </form>
       </div>
     </div>
