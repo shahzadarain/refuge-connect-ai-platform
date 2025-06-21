@@ -1,12 +1,19 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, ArrowRight, User, FileText, MapPin, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+import ProgressIndicator from './ProgressIndicator';
+import FormField from './FormField';
+
+interface RefugeeData {
+  individual_id: string;
+  date_of_birth: string;
+  date_of_arrival: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirm_password: string;
+  preferred_language: string;
+}
 
 interface RefugeeRegistrationProps {
   onBack: () => void;
@@ -15,511 +22,349 @@ interface RefugeeRegistrationProps {
 const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => {
   const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
-
-  // Form state
-  const [formData, setFormData] = useState({
-    // Personal Information
-    firstName: '',
-    lastName: '',
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [refugeeData, setRefugeeData] = useState<RefugeeData>({
+    individual_id: '',
+    date_of_birth: '',
+    date_of_arrival: '',
+    full_name: '',
     email: '',
-    phoneNumber: '',
-    dateOfBirth: '',
-    gender: '',
-    nationality: '',
-    
-    // Professional Information
-    education: '',
-    workExperience: '',
-    skills: '',
-    languages: '',
-    professionalSummary: '',
-    
-    // Location & Preferences
-    currentLocation: '',
-    preferredWorkLocation: '',
-    jobType: '',
-    salaryExpectation: '',
-    canRelocate: false,
-    
-    // Account Security
+    phone: '',
     password: '',
-    confirmPassword: '',
-    agreeToTerms: false
+    confirm_password: '',
+    preferred_language: 'ar'
   });
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const languageOptions = [
+    { value: 'en', label: 'English' },
+    { value: 'ar', label: 'العربية' }
+  ];
+
+  const validateStep = (step: number): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (step === 1) {
+      if (!refugeeData.individual_id) newErrors.individual_id = t('validation.required');
+      if (!refugeeData.date_of_birth) newErrors.date_of_birth = t('validation.required');
+      if (!refugeeData.date_of_arrival) newErrors.date_of_arrival = t('validation.required');
+      if (!refugeeData.full_name) newErrors.full_name = t('validation.required');
+    }
+
+    if (step === 2) {
+      if (!refugeeData.email) {
+        newErrors.email = t('validation.required');
+      } else if (!/\S+@\S+\.\S+/.test(refugeeData.email)) {
+        newErrors.email = t('validation.email');
+      }
+      
+      if (!refugeeData.phone) newErrors.phone = t('validation.required');
+      if (!refugeeData.password) {
+        newErrors.password = t('validation.required');
+      } else if (refugeeData.password.length < 8) {
+        newErrors.password = t('validation.password');
+      }
+      
+      if (refugeeData.password !== refugeeData.confirm_password) {
+        newErrors.confirm_password = t('validation.password_match');
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleNext = () => {
-    if (currentStep < totalSteps) {
+    if (validateStep(currentStep)) {
       setCurrentStep(currentStep + 1);
     }
   };
 
-  const handlePrevious = () => {
+  const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    } else {
+      onBack();
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData);
-    // Handle form submission logic here
-  };
+  const handleSubmit = async () => {
+    if (!validateStep(2)) return;
 
-  const getStepIcon = (step: number) => {
-    switch (step) {
-      case 1: return User;
-      case 2: return FileText;
-      case 3: return MapPin;
-      default: return User;
-    }
-  };
+    setIsSubmitting(true);
+    
+    try {
+      console.log('Starting refugee registration request...');
+      console.log('Refugee data:', { ...refugeeData, password: '[HIDDEN]', confirm_password: '[HIDDEN]' });
 
-  const getStepTitle = (step: number) => {
-    switch (step) {
-      case 1: return 'Personal Information';
-      case 2: return 'Professional Background';
-      case 3: return 'Preferences & Security';
-      default: return '';
-    }
-  };
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/refugee/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify(refugeeData)
+      });
 
-  const renderProgressIndicator = () => (
-    <div className="mb-8">
-      <div className="flex justify-between items-center mb-4">
-        {[1, 2, 3].map((step) => {
-          const Icon = getStepIcon(step);
-          const isActive = step === currentStep;
-          const isCompleted = step < currentStep;
-          
-          return (
-            <div key={step} className="flex flex-col items-center flex-1">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-all duration-200 ${
-                isCompleted 
-                  ? 'bg-blue-500 text-white' 
-                  : isActive 
-                    ? 'bg-blue-100 text-blue-500 border-2 border-blue-500' 
-                    : 'bg-gray-100 text-gray-400'
-              }`}>
-                {isCompleted ? <Check className="w-6 h-6" /> : <Icon className="w-6 h-6" />}
-              </div>
-              <span className={`text-xs text-center font-medium ${
-                isActive ? 'text-blue-500' : isCompleted ? 'text-blue-500' : 'text-gray-400'
-              }`}>
-                {getStepTitle(step)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      if (!response.ok) {
+        let errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
+        
+        try {
+          const errorData = await response.json();
+          console.log('Error response data:', errorData);
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      console.log('Registration successful:', result);
+      setCurrentStep(3); // Success step
+    } catch (error) {
+      console.error('Registration error details:', error);
       
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-        <div 
-          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-          style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+      let errorMessage = 'Registration failed';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+        } else if (error.message.includes('CORS')) {
+          errorMessage = 'Server configuration error: Cross-origin request blocked. Please contact support.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setErrors({ submit: errorMessage });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const stepLabels = [
+    t('register.verification'),
+    t('register.personal_info'),
+    'Complete'
+  ];
+
+  const renderStep1 = () => (
+    <div className="animate-fade-in">
+      {/* Welcome Card */}
+      <div className="form-card text-center mb-4">
+        <div className="w-16 h-16 bg-un-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-un-blue" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
+        <h2 className="text-h1-mobile font-semibold text-neutral-gray mb-2">
+          {t('landing.welcome')}
+        </h2>
+        <p className="text-body-mobile text-neutral-gray/80">
+          We need to verify your identity to continue
+        </p>
+      </div>
+
+      {/* Form Card */}
+      <div className="form-card">
+        <FormField
+          label={t('form.individual_id')}
+          name="individual_id"
+          value={refugeeData.individual_id}
+          onChange={(value) => setRefugeeData({ ...refugeeData, individual_id: value })}
+          placeholder="REF123456"
+          required
+          error={errors.individual_id}
+          helpText={t('form.individual_id.help')}
+        />
+
+        <FormField
+          label={t('form.date_of_birth')}
+          name="date_of_birth"
+          type="date"
+          value={refugeeData.date_of_birth}
+          onChange={(value) => setRefugeeData({ ...refugeeData, date_of_birth: value })}
+          required
+          error={errors.date_of_birth}
+        />
+
+        <FormField
+          label={t('form.date_of_arrival')}
+          name="date_of_arrival"
+          type="date"
+          value={refugeeData.date_of_arrival}
+          onChange={(value) => setRefugeeData({ ...refugeeData, date_of_arrival: value })}
+          required
+          error={errors.date_of_arrival}
+        />
+
+        <FormField
+          label={t('form.full_name')}
+          name="full_name"
+          value={refugeeData.full_name}
+          onChange={(value) => setRefugeeData({ ...refugeeData, full_name: value })}
+          required
+          error={errors.full_name}
         />
       </div>
-      <p className="text-sm text-gray-500 text-center">
-        Step {currentStep} of {totalSteps}
+    </div>
+  );
+
+  const renderStep2 = () => (
+    <div className="form-card animate-fade-in">
+      <h2 className="text-h1-mobile font-semibold text-neutral-gray mb-6">
+        {t('register.personal_info')}
+      </h2>
+
+      <FormField
+        label={t('form.email')}
+        name="email"
+        type="email"
+        value={refugeeData.email}
+        onChange={(value) => setRefugeeData({ ...refugeeData, email: value })}
+        required
+        error={errors.email}
+      />
+
+      <FormField
+        label={t('form.phone')}
+        name="phone"
+        type="tel"
+        value={refugeeData.phone}
+        onChange={(value) => setRefugeeData({ ...refugeeData, phone: value })}
+        placeholder="+962781234567"
+        required
+        error={errors.phone}
+      />
+
+      <FormField
+        label={t('form.preferred_language')}
+        name="preferred_language"
+        type="select"
+        value={refugeeData.preferred_language}
+        onChange={(value) => setRefugeeData({ ...refugeeData, preferred_language: value })}
+        options={languageOptions}
+        required
+      />
+
+      <FormField
+        label={t('form.password')}
+        name="password"
+        type="password"
+        value={refugeeData.password}
+        onChange={(value) => setRefugeeData({ ...refugeeData, password: value })}
+        required
+        error={errors.password}
+      />
+
+      <FormField
+        label={t('form.confirm_password')}
+        name="confirm_password"
+        type="password"
+        value={refugeeData.confirm_password}
+        onChange={(value) => setRefugeeData({ ...refugeeData, confirm_password: value })}
+        required
+        error={errors.confirm_password}
+      />
+
+      {errors.submit && (
+        <div className="bg-error-red/10 border border-error-red rounded-md p-4 mb-4">
+          <p className="text-error-red text-body-mobile font-medium mb-2">Registration Error:</p>
+          <p className="text-error-red text-small-mobile">{errors.submit}</p>
+          <details className="mt-2">
+            <summary className="text-error-red text-small-mobile cursor-pointer">Show technical details</summary>
+            <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-600 font-mono overflow-auto">
+              <p>Timestamp: {new Date().toISOString()}</p>
+              <p>Endpoint: POST https://ab93e9536acd.ngrog.app/api/refugee/register</p>
+              <p>Check browser console for more details</p>
+            </div>
+          </details>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderStep3 = () => (
+    <div className="form-card text-center animate-fade-in">
+      <div className="w-16 h-16 bg-success-green rounded-full flex items-center justify-center mx-auto mb-6">
+        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+        </svg>
+      </div>
+
+      <h2 className="text-h1-mobile font-semibold text-neutral-gray mb-4">
+        Registration Complete!
+      </h2>
+
+      <p className="text-body-mobile text-neutral-gray/80 mb-6">
+        Welcome to Refugee Connect. You can now start searching for employment opportunities.
+      </p>
+
+      <button
+        onClick={onBack}
+        className="btn-primary w-full"
+      >
+        Get Started
+      </button>
+
+      <p className="text-small-mobile text-neutral-gray/70 mt-4">
+        {t('status.contact_support')}
       </p>
     </div>
   );
 
-  const renderPersonalInformation = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-heading font-semibold text-gray-900 mb-2">
-          Personal Information
-        </h2>
-        <p className="text-body-sm text-gray-500">
-          Let's start with your basic information
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="firstName">First Name*</Label>
-          <Input
-            id="firstName"
-            type="text"
-            value={formData.firstName}
-            onChange={(e) => handleInputChange('firstName', e.target.value)}
-            placeholder="Enter first name"
-          />
-        </div>
-        <div>
-          <Label htmlFor="lastName">Last Name*</Label>
-          <Input
-            id="lastName"
-            type="text"
-            value={formData.lastName}
-            onChange={(e) => handleInputChange('lastName', e.target.value)}
-            placeholder="Enter last name"
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="email">Email Address*</Label>
-        <Input
-          id="email"
-          type="email"
-          value={formData.email}
-          onChange={(e) => handleInputChange('email', e.target.value)}
-          placeholder="your.email@example.com"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="phoneNumber">Phone Number*</Label>
-        <Input
-          id="phoneNumber"
-          type="tel"
-          value={formData.phoneNumber}
-          onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-          placeholder="+962 7X XXX XXXX"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="dateOfBirth">Date of Birth*</Label>
-        <Input
-          id="dateOfBirth"
-          type="date"
-          value={formData.dateOfBirth}
-          onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="gender">Gender*</Label>
-        <select
-          id="gender"
-          value={formData.gender}
-          onChange={(e) => handleInputChange('gender', e.target.value)}
-          className="input-modern"
-        >
-          <option value="">Select gender</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="other">Other</option>
-          <option value="prefer-not-to-say">Prefer not to say</option>
-        </select>
-      </div>
-
-      <div>
-        <Label htmlFor="nationality">Nationality*</Label>
-        <Input
-          id="nationality"
-          type="text"
-          value={formData.nationality}
-          onChange={(e) => handleInputChange('nationality', e.target.value)}
-          placeholder="e.g., Syrian, Iraqi, Palestinian"
-        />
-      </div>
-    </div>
-  );
-
-  const renderProfessionalBackground = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-heading font-semibold text-gray-900 mb-2">
-          Professional Background
-        </h2>
-        <p className="text-body-sm text-gray-500">
-          Tell us about your education and experience
-        </p>
-      </div>
-
-      <div>
-        <Label htmlFor="education">Education Level*</Label>
-        <select
-          id="education"
-          value={formData.education}
-          onChange={(e) => handleInputChange('education', e.target.value)}
-          className="input-modern"
-        >
-          <option value="">Select education level</option>
-          <option value="high-school">High School</option>
-          <option value="diploma">Diploma</option>
-          <option value="bachelor">Bachelor's Degree</option>
-          <option value="master">Master's Degree</option>
-          <option value="phd">PhD</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-
-      <div>
-        <Label htmlFor="workExperience">Work Experience*</Label>
-        <select
-          id="workExperience"
-          value={formData.workExperience}
-          onChange={(e) => handleInputChange('workExperience', e.target.value)}
-          className="input-modern"
-        >
-          <option value="">Select experience level</option>
-          <option value="entry">Entry Level (0-1 years)</option>
-          <option value="junior">Junior (1-3 years)</option>
-          <option value="mid">Mid-level (3-5 years)</option>
-          <option value="senior">Senior (5-10 years)</option>
-          <option value="expert">Expert (10+ years)</option>
-        </select>
-      </div>
-
-      <div>
-        <Label htmlFor="skills">Skills*</Label>
-        <Input
-          id="skills"
-          type="text"
-          value={formData.skills}
-          onChange={(e) => handleInputChange('skills', e.target.value)}
-          placeholder="e.g., Microsoft Office, Customer Service, Arabic, English"
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          Separate skills with commas
-        </p>
-      </div>
-
-      <div>
-        <Label htmlFor="languages">Languages*</Label>
-        <Input
-          id="languages"
-          type="text"
-          value={formData.languages}
-          onChange={(e) => handleInputChange('languages', e.target.value)}
-          placeholder="e.g., Arabic (Native), English (Fluent), French (Basic)"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="professionalSummary">Professional Summary (Optional)</Label>
-        <Textarea
-          id="professionalSummary"
-          value={formData.professionalSummary}
-          onChange={(e) => handleInputChange('professionalSummary', e.target.value)}
-          placeholder="Brief description of your professional background and career goals..."
-          rows={4}
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          This will help employers understand your background better
-        </p>
-      </div>
-    </div>
-  );
-
-  const renderPreferencesAndSecurity = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-heading font-semibold text-gray-900 mb-2">
-          Job Preferences & Account Security
-        </h2>
-        <p className="text-body-sm text-gray-500">
-          Final step to complete your profile
-        </p>
-      </div>
-
-      <div>
-        <Label htmlFor="currentLocation">Current Location*</Label>
-        <Input
-          id="currentLocation"
-          type="text"
-          value={formData.currentLocation}
-          onChange={(e) => handleInputChange('currentLocation', e.target.value)}
-          placeholder="City, Country"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="preferredWorkLocation">Preferred Work Location*</Label>
-        <select
-          id="preferredWorkLocation"
-          value={formData.preferredWorkLocation}
-          onChange={(e) => handleInputChange('preferredWorkLocation', e.target.value)}
-          className="input-modern"
-        >
-          <option value="">Select preferred location</option>
-          <option value="amman">Amman</option>
-          <option value="irbid">Irbid</option>
-          <option value="zarqa">Zarqa</option>
-          <option value="aqaba">Aqaba</option>
-          <option value="remote">Remote Work</option>
-          <option value="flexible">Flexible</option>
-        </select>
-      </div>
-
-      <div>
-        <Label htmlFor="jobType">Preferred Job Type*</Label>
-        <select
-          id="jobType"
-          value={formData.jobType}
-          onChange={(e) => handleInputChange('jobType', e.target.value)}
-          className="input-modern"
-        >
-          <option value="">Select job type</option>
-          <option value="full-time">Full-time</option>
-          <option value="part-time">Part-time</option>
-          <option value="contract">Contract</option>
-          <option value="internship">Internship</option>
-          <option value="flexible">Flexible</option>
-        </select>
-      </div>
-
-      <div>
-        <Label htmlFor="salaryExpectation">Salary Expectation (JOD/month)</Label>
-        <select
-          id="salaryExpectation"
-          value={formData.salaryExpectation}
-          onChange={(e) => handleInputChange('salaryExpectation', e.target.value)}
-          className="input-modern"
-        >
-          <option value="">Select salary range</option>
-          <option value="200-400">200-400 JOD</option>
-          <option value="400-600">400-600 JOD</option>
-          <option value="600-800">600-800 JOD</option>
-          <option value="800-1000">800-1000 JOD</option>
-          <option value="1000-1500">1000-1500 JOD</option>
-          <option value="1500+">1500+ JOD</option>
-        </select>
-      </div>
-
-      <div className="flex items-center space-x-3">
-        <Checkbox
-          id="canRelocate"
-          checked={formData.canRelocate}
-          onCheckedChange={(checked) => handleInputChange('canRelocate', checked)}
-        />
-        <Label htmlFor="canRelocate" className="text-sm">
-          I am willing to relocate for the right opportunity
-        </Label>
-      </div>
-
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Account Security</h3>
-        
-        <div>
-          <Label htmlFor="password">Password*</Label>
-          <Input
-            id="password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => handleInputChange('password', e.target.value)}
-            placeholder="Create a strong password"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="confirmPassword">Confirm Password*</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-            placeholder="Confirm your password"
-          />
-        </div>
-
-        <div className="flex items-start space-x-3 mt-6">
-          <Checkbox
-            id="agreeToTerms"
-            checked={formData.agreeToTerms}
-            onCheckedChange={(checked) => handleInputChange('agreeToTerms', checked)}
-            className="mt-1"
-          />
-          <Label htmlFor="agreeToTerms" className="text-sm leading-relaxed">
-            By creating an account, I agree to the{' '}
-            <a href="#" className="text-blue-500 hover:underline">Terms of Service</a> and{' '}
-            <a href="#" className="text-blue-500 hover:underline">Privacy Policy</a>
-          </Label>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1: return renderPersonalInformation();
-      case 2: return renderProfessionalBackground();
-      case 3: return renderPreferencesAndSecurity();
-      default: return renderPersonalInformation();
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container-mobile py-8">
-        {/* Header */}
-        <div className="mb-8">
+    <div className="min-h-screen bg-light-gray">
+      <ProgressIndicator 
+        steps={3} 
+        currentStep={currentStep}
+        stepLabels={stepLabels}
+      />
+
+      {currentStep === 1 && renderStep1()}
+      {currentStep === 2 && renderStep2()}
+      {currentStep === 3 && renderStep3()}
+
+      {currentStep < 3 && (
+        <div className="flex gap-4 p-4 no-print">
           <button
-            onClick={onBack}
-            className="btn-ghost mb-4 -ml-2"
+            onClick={handleBack}
+            className="btn-secondary flex-1"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back
+            {t('button.back')}
           </button>
           
-          <div className="text-center">
-            <h1 className="text-display font-bold text-gray-900 mb-2">
-              Find Your Next Job
-            </h1>
-            <p className="text-body text-gray-500">
-              Create your profile and get matched with opportunities in Jordan
-            </p>
-          </div>
-        </div>
-
-        {/* Progress Indicator */}
-        {renderProgressIndicator()}
-
-        {/* Form Card */}
-        <div className="card-modern p-6">
-          {renderCurrentStep()}
-        </div>
-
-        {/* Navigation Buttons */}
-        <div className="flex gap-4 mt-6">
-          {currentStep > 1 && (
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              className="flex-1"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-          )}
-          
-          {currentStep < totalSteps ? (
-            <Button
+          {currentStep === 1 ? (
+            <button
               onClick={handleNext}
-              className="flex-1"
+              className="btn-primary flex-1"
             >
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+              {t('button.verify')}
+            </button>
           ) : (
-            <Button
+            <button
               onClick={handleSubmit}
-              disabled={!formData.agreeToTerms}
-              className="flex-1"
+              disabled={isSubmitting}
+              className="btn-primary flex-1 disabled:opacity-50"
             >
-              Create My Profile
-            </Button>
+              {isSubmitting ? 'Creating Account...' : t('button.submit')}
+            </button>
           )}
         </div>
-
-        {/* Help Text */}
-        <div className="text-center mt-6">
-          <p className="text-caption text-gray-400">
-            Need help? Contact our support team
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
