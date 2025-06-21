@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSession } from '@/hooks/useSession';
 import Header from '@/components/Header';
-import RoleCard from '@/components/RoleCard';
 import EmployerRegistration from '@/components/EmployerRegistration';
 import RefugeeRegistration from '@/components/RefugeeRegistration';
 import SuperAdminDashboard from '@/components/SuperAdminDashboard';
@@ -19,7 +17,6 @@ const Index = () => {
   const { t } = useLanguage();
   const { currentUser, isLoggedIn, needsTokenRefresh, logout } = useSession();
   const [currentView, setCurrentView] = useState<ViewState>('landing');
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [verificationEmail, setVerificationEmail] = useState<string>('');
 
   // Check for existing session on mount and when auth state changes
@@ -76,23 +73,20 @@ const Index = () => {
     }
   }, []);
 
-  const handleRoleSelect = (role: string) => {
-    setSelectedRole(role);
+  const handleFindJobClick = () => {
+    setCurrentView('refugee-registration');
   };
 
-  const handleContinue = () => {
-    if (selectedRole === 'employer') {
-      setCurrentView('employer-registration');
-    } else if (selectedRole === 'refugee') {
-      setCurrentView('refugee-registration');
-    } else if (selectedRole === 'login') {
-      setCurrentView('unified-login');
-    }
+  const handleEmployerClick = () => {
+    setCurrentView('employer-registration');
+  };
+
+  const handleLoginClick = () => {
+    setCurrentView('unified-login');
   };
 
   const handleBackToLanding = () => {
     setCurrentView('landing');
-    setSelectedRole(null);
     setVerificationEmail('');
   };
 
@@ -205,73 +199,80 @@ const Index = () => {
       )}
       
       <main className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-h1-mobile font-bold text-neutral-gray mb-4">
-              {t('landing.welcome')}
+        {/* Hero Section - Mobile First */}
+        <div className="text-center mb-12 animate-fade-in">
+          <div className="max-w-lg mx-auto">
+            <h1 className="text-3xl md:text-4xl font-bold text-neutral-gray mb-4">
+              Find Your Next Opportunity in Jordan
             </h1>
-            <p className="text-body-mobile text-neutral-gray/80 leading-relaxed">
-              {t('landing.description')}
+            <p className="text-lg text-neutral-gray/80 leading-relaxed mb-8">
+              Connecting you with jobs from trusted companies using AI-powered matching.
+            </p>
+            
+            {/* Primary CTA - Find a Job */}
+            <button
+              onClick={handleFindJobClick}
+              className="w-full sm:w-auto bg-un-blue hover:bg-un-blue/90 text-white px-8 py-4 rounded-lg text-lg font-semibold mb-6 transition-colors shadow-lg hover:shadow-xl"
+            >
+              Find a Job
+            </button>
+            
+            {/* Secondary CTA - Employer */}
+            <div className="mb-6">
+              <button
+                onClick={handleEmployerClick}
+                className="text-un-blue hover:text-un-blue/80 font-medium border-b border-un-blue/30 hover:border-un-blue transition-colors"
+              >
+                I am an Employer
+              </button>
+            </div>
+            
+            {/* Login Link */}
+            <p className="text-neutral-gray/70">
+              Already have an account?{' '}
+              <button
+                onClick={handleLoginClick}
+                className="text-un-blue hover:text-un-blue/80 font-medium underline"
+              >
+                Log In
+              </button>
             </p>
           </div>
         </div>
 
-        {/* Role Selection */}
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-h2-mobile font-semibold text-neutral-gray text-center mb-6">
-            {t('landing.select_role')}
-          </h2>
-          
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
-            {/* Employer Role */}
-            <RoleCard
-              role="employer"
-              icon={
-                <svg className="w-8 h-8 text-un-blue" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
-                </svg>
-              }
-              onClick={() => handleRoleSelect('employer')}
-              selected={selectedRole === 'employer'}
-            />
-
-            {/* Refugee Role */}
-            <RoleCard
-              role="refugee"
-              icon={
-                <svg className="w-8 h-8 text-un-blue" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                </svg>
-              }
-              onClick={() => handleRoleSelect('refugee')}
-              selected={selectedRole === 'refugee'}
-            />
-
-            {/* Login Option */}
-            <RoleCard
-              role="admin"
-              icon={
-                <svg className="w-8 h-8 text-un-blue" fill="currentColor" viewBox="0 0 24 24">
+        {/* Trust Indicators */}
+        <div className="max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-un-blue/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-un-blue" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L9 7V9C9 10.1 9.9 11 11 11V22H13V11C14.1 11 15 10.1 15 9Z"/>
                 </svg>
-              }
-              onClick={() => handleRoleSelect('login')}
-              selected={selectedRole === 'login'}
-            />
-          </div>
-
-          {/* Continue Button */}
-          {selectedRole && (
-            <div className="text-center animate-fade-in">
-              <button
-                onClick={handleContinue}
-                className="btn-primary w-full max-w-md mx-auto"
-              >
-                {selectedRole === 'login' ? 'Login to Account' : t('landing.continue')}
-              </button>
+              </div>
+              <h3 className="font-semibold text-neutral-gray mb-2">AI-Powered Matching</h3>
+              <p className="text-sm text-neutral-gray/70">Smart algorithms connect you with the right opportunities</p>
             </div>
-          )}
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-success-green/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-success-green" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h3 className="font-semibold text-neutral-gray mb-2">Trusted Companies</h3>
+              <p className="text-sm text-neutral-gray/70">Work with verified employers committed to inclusion</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-warning-orange/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-warning-orange" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
+              </div>
+              <h3 className="font-semibold text-neutral-gray mb-2">Local Support</h3>
+              <p className="text-sm text-neutral-gray/70">Dedicated support for refugees in Jordan</p>
+            </div>
+          </div>
         </div>
 
         {/* Footer Info */}
