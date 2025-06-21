@@ -1,7 +1,10 @@
+
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ProgressIndicator from './ProgressIndicator';
 import FormField from './FormField';
+import { Button } from './ui/button';
+import { Shield, UserCheck, Lock, CheckCircle } from 'lucide-react';
 
 interface RefugeeData {
   individual_id: string;
@@ -156,213 +159,275 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
   };
 
   const stepLabels = [
-    t('register.verification'),
-    t('register.personal_info'),
+    'Identity Verification',
+    'Account Setup',
     'Complete'
   ];
 
   const renderStep1 = () => (
-    <div className="animate-fade-in">
-      {/* Welcome Card */}
-      <div className="form-card text-center mb-4">
-        <div className="w-16 h-16 bg-un-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-un-blue" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-          </svg>
+    <div className="max-w-2xl mx-auto">
+      {/* Header Section */}
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Shield className="w-10 h-10 text-blue-600" />
         </div>
-        <h2 className="text-h1-mobile font-semibold text-neutral-gray mb-2">
-          {t('landing.welcome')}
-        </h2>
-        <p className="text-body-mobile text-neutral-gray/80">
-          We need to verify your identity to continue
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          Register as a Refugee
+        </h1>
+        <p className="text-lg text-gray-600 max-w-lg mx-auto">
+          Welcome to Refugee Connect. We need to verify your identity to ensure you have access to the right opportunities and support.
         </p>
       </div>
 
-      {/* Form Card */}
-      <div className="form-card">
-        <FormField
-          label={t('form.individual_id')}
-          name="individual_id"
-          value={refugeeData.individual_id}
-          onChange={(value) => setRefugeeData({ ...refugeeData, individual_id: value })}
-          placeholder="REF123456"
-          required
-          error={errors.individual_id}
-          helpText={t('form.individual_id.help')}
-        />
+      {/* Info Card */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <UserCheck className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-blue-900 mb-2">Identity Verification Required</h3>
+            <p className="text-blue-800 text-sm leading-relaxed">
+              To ensure the safety and integrity of our platform, we need to verify that you are a registered refugee. 
+              This information is kept confidential and is only used for verification purposes.
+            </p>
+          </div>
+        </div>
+      </div>
 
-        <FormField
-          label={t('form.date_of_birth')}
-          name="date_of_birth"
-          type="date"
-          value={refugeeData.date_of_birth}
-          onChange={(value) => setRefugeeData({ ...refugeeData, date_of_birth: value })}
-          required
-          error={errors.date_of_birth}
-        />
+      {/* Form Section */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          Refugee Verification Details
+        </h2>
 
-        <FormField
-          label={t('form.date_of_arrival')}
-          name="date_of_arrival"
-          type="date"
-          value={refugeeData.date_of_arrival}
-          onChange={(value) => setRefugeeData({ ...refugeeData, date_of_arrival: value })}
-          required
-          error={errors.date_of_arrival}
-        />
+        <div className="space-y-6">
+          <FormField
+            label={t('form.individual_id')}
+            name="individual_id"
+            value={refugeeData.individual_id}
+            onChange={(value) => setRefugeeData({ ...refugeeData, individual_id: value })}
+            placeholder="REF123456"
+            required
+            error={errors.individual_id}
+            helpText={t('form.individual_id.help')}
+          />
 
-        <FormField
-          label={t('form.full_name')}
-          name="full_name"
-          value={refugeeData.full_name}
-          onChange={(value) => setRefugeeData({ ...refugeeData, full_name: value })}
-          required
-          error={errors.full_name}
-        />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              label={t('form.date_of_birth')}
+              name="date_of_birth"
+              type="date"
+              value={refugeeData.date_of_birth}
+              onChange={(value) => setRefugeeData({ ...refugeeData, date_of_birth: value })}
+              required
+              error={errors.date_of_birth}
+            />
+
+            <FormField
+              label={t('form.date_of_arrival')}
+              name="date_of_arrival"
+              type="date"
+              value={refugeeData.date_of_arrival}
+              onChange={(value) => setRefugeeData({ ...refugeeData, date_of_arrival: value })}
+              required
+              error={errors.date_of_arrival}
+            />
+          </div>
+
+          <FormField
+            label={t('form.full_name')}
+            name="full_name"
+            value={refugeeData.full_name}
+            onChange={(value) => setRefugeeData({ ...refugeeData, full_name: value })}
+            required
+            error={errors.full_name}
+          />
+        </div>
       </div>
     </div>
   );
 
   const renderStep2 = () => (
-    <div className="form-card animate-fade-in">
-      <h2 className="text-h1-mobile font-semibold text-neutral-gray mb-6">
-        {t('register.personal_info')}
-      </h2>
-
-      <FormField
-        label={t('form.email')}
-        name="email"
-        type="email"
-        value={refugeeData.email}
-        onChange={(value) => setRefugeeData({ ...refugeeData, email: value })}
-        required
-        error={errors.email}
-      />
-
-      <FormField
-        label={t('form.phone')}
-        name="phone"
-        type="tel"
-        value={refugeeData.phone}
-        onChange={(value) => setRefugeeData({ ...refugeeData, phone: value })}
-        placeholder="+962781234567"
-        required
-        error={errors.phone}
-      />
-
-      <FormField
-        label={t('form.preferred_language')}
-        name="preferred_language"
-        type="select"
-        value={refugeeData.preferred_language}
-        onChange={(value) => setRefugeeData({ ...refugeeData, preferred_language: value })}
-        options={languageOptions}
-        required
-      />
-
-      <FormField
-        label={t('form.password')}
-        name="password"
-        type="password"
-        value={refugeeData.password}
-        onChange={(value) => setRefugeeData({ ...refugeeData, password: value })}
-        required
-        error={errors.password}
-      />
-
-      <FormField
-        label={t('form.confirm_password')}
-        name="confirm_password"
-        type="password"
-        value={refugeeData.confirm_password}
-        onChange={(value) => setRefugeeData({ ...refugeeData, confirm_password: value })}
-        required
-        error={errors.confirm_password}
-      />
-
-      {errors.submit && (
-        <div className="bg-error-red/10 border border-error-red rounded-md p-4 mb-4">
-          <p className="text-error-red text-body-mobile font-medium mb-2">Registration Error:</p>
-          <p className="text-error-red text-small-mobile">{errors.submit}</p>
-          <details className="mt-2">
-            <summary className="text-error-red text-small-mobile cursor-pointer">Show technical details</summary>
-            <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-600 font-mono overflow-auto">
-              <p>Timestamp: {new Date().toISOString()}</p>
-              <p>Endpoint: POST https://ab93e9536acd.ngrog.app/api/refugee/register</p>
-              <p>Check browser console for more details</p>
-            </div>
-          </details>
+    <div className="max-w-2xl mx-auto">
+      {/* Header Section */}
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Lock className="w-10 h-10 text-green-600" />
         </div>
-      )}
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          Create Your Account
+        </h1>
+        <p className="text-lg text-gray-600 max-w-lg mx-auto">
+          Set up your account details to start exploring job opportunities and connecting with employers.
+        </p>
+      </div>
+
+      {/* Form Section */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          Account Information
+        </h2>
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              label={t('form.email')}
+              name="email"
+              type="email"
+              value={refugeeData.email}
+              onChange={(value) => setRefugeeData({ ...refugeeData, email: value })}
+              required
+              error={errors.email}
+            />
+
+            <FormField
+              label={t('form.phone')}
+              name="phone"
+              type="tel"
+              value={refugeeData.phone}
+              onChange={(value) => setRefugeeData({ ...refugeeData, phone: value })}
+              placeholder="+962781234567"
+              required
+              error={errors.phone}
+            />
+          </div>
+
+          <FormField
+            label={t('form.preferred_language')}
+            name="preferred_language"
+            type="select"
+            value={refugeeData.preferred_language}
+            onChange={(value) => setRefugeeData({ ...refugeeData, preferred_language: value })}
+            options={languageOptions}
+            required
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              label={t('form.password')}
+              name="password"
+              type="password"
+              value={refugeeData.password}
+              onChange={(value) => setRefugeeData({ ...refugeeData, password: value })}
+              required
+              error={errors.password}
+            />
+
+            <FormField
+              label={t('form.confirm_password')}
+              name="confirm_password"
+              type="password"
+              value={refugeeData.confirm_password}
+              onChange={(value) => setRefugeeData({ ...refugeeData, confirm_password: value })}
+              required
+              error={errors.confirm_password}
+            />
+          </div>
+        </div>
+
+        {errors.submit && (
+          <div className="mt-6 bg-red-50 border border-red-200 rounded-xl p-6">
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5">
+                <svg fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-medium text-red-800 mb-1">Registration Error</h3>
+                <p className="text-red-700 text-sm">{errors.submit}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 
   const renderStep3 = () => (
-    <div className="form-card text-center animate-fade-in">
-      <div className="w-16 h-16 bg-success-green rounded-full flex items-center justify-center mx-auto mb-6">
-        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-        </svg>
+    <div className="max-w-2xl mx-auto text-center">
+      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <CheckCircle className="w-12 h-12 text-green-600" />
       </div>
 
-      <h2 className="text-h1-mobile font-semibold text-neutral-gray mb-4">
+      <h1 className="text-3xl font-bold text-gray-900 mb-4">
         Registration Complete!
-      </h2>
+      </h1>
 
-      <p className="text-body-mobile text-neutral-gray/80 mb-6">
-        Welcome to Refugee Connect. You can now start searching for employment opportunities.
+      <p className="text-lg text-gray-600 mb-8 max-w-lg mx-auto">
+        Welcome to Refugee Connect! Your account has been successfully created. 
+        You can now start exploring job opportunities and connecting with employers.
       </p>
 
-      <button
-        onClick={onBack}
-        className="btn-primary w-full"
-      >
-        Get Started
-      </button>
+      <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-8">
+        <h3 className="font-semibold text-green-900 mb-2">What's Next?</h3>
+        <ul className="text-green-800 text-sm space-y-1">
+          <li>• Browse available job opportunities</li>
+          <li>• Complete your profile to attract employers</li>
+          <li>• Apply for positions that match your skills</li>
+        </ul>
+      </div>
 
-      <p className="text-small-mobile text-neutral-gray/70 mt-4">
+      <Button onClick={onBack} className="w-full md:w-auto px-8">
+        Get Started
+      </Button>
+
+      <p className="text-sm text-gray-500 mt-6">
         {t('status.contact_support')}
       </p>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-light-gray">
-      <ProgressIndicator 
-        steps={3} 
-        currentStep={currentStep}
-        stepLabels={stepLabels}
-      />
+    <div className="min-h-screen bg-gray-50">
+      {/* Progress Indicator */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto">
+          <ProgressIndicator 
+            steps={3} 
+            currentStep={currentStep}
+            stepLabels={stepLabels}
+          />
+        </div>
+      </div>
 
-      {currentStep === 1 && renderStep1()}
-      {currentStep === 2 && renderStep2()}
-      {currentStep === 3 && renderStep3()}
+      {/* Main Content */}
+      <div className="py-12 px-4">
+        {currentStep === 1 && renderStep1()}
+        {currentStep === 2 && renderStep2()}
+        {currentStep === 3 && renderStep3()}
+      </div>
 
+      {/* Navigation */}
       {currentStep < 3 && (
-        <div className="flex gap-4 p-4 no-print">
-          <button
-            onClick={handleBack}
-            className="btn-secondary flex-1"
-          >
-            {t('button.back')}
-          </button>
-          
-          {currentStep === 1 ? (
-            <button
-              onClick={handleNext}
-              className="btn-primary flex-1"
+        <div className="bg-white border-t border-gray-200 p-4">
+          <div className="max-w-2xl mx-auto flex gap-4">
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              className="flex-1 md:flex-none md:px-8"
             >
-              {t('button.verify')}
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="btn-primary flex-1 disabled:opacity-50"
-            >
-              {isSubmitting ? 'Creating Account...' : t('button.submit')}
-            </button>
-          )}
+              {t('button.back')}
+            </Button>
+            
+            {currentStep === 1 ? (
+              <Button
+                onClick={handleNext}
+                className="flex-1 md:flex-none md:px-8"
+              >
+                Continue to Account Setup
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="flex-1 md:flex-none md:px-8"
+              >
+                {isSubmitting ? 'Creating Account...' : 'Create Account'}
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>
