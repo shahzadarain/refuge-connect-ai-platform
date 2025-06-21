@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, LogOut, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CompaniesTab from './CompaniesTab';
 import UsersTab from './UsersTab';
+import AdminHeader from './AdminHeader';
+import AdminStats from './AdminStats';
 import {
   Company,
   User as UserType,
@@ -52,7 +53,6 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     try {
       const data = await fetchCompanies();
       console.log('Loaded companies:', data);
-      // Ensure we have an array
       if (Array.isArray(data)) {
         setCompanies(data);
       } else {
@@ -61,7 +61,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
       }
     } catch (error) {
       console.error('Error fetching companies:', error);
-      setCompanies([]); // Set to empty array on error
+      setCompanies([]);
       toast({
         title: "Error",
         description: "Failed to fetch companies data",
@@ -81,7 +81,6 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
       console.log('SuperAdminDashboard: Users data type:', typeof data);
       console.log('SuperAdminDashboard: Users data length:', Array.isArray(data) ? data.length : 'not an array');
       
-      // Ensure we have an array
       if (Array.isArray(data)) {
         setUsers(data);
         console.log('SuperAdminDashboard: Set users state with', data.length, 'users');
@@ -91,7 +90,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
       }
     } catch (error) {
       console.error('SuperAdminDashboard: Error fetching users:', error);
-      setUsers([]); // Set to empty array on error
+      setUsers([]);
       toast({
         title: "Error",
         description: "Failed to fetch users data",
@@ -122,7 +121,6 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     try {
       console.log('Starting company approval process...');
       
-      // Get company details from current state
       const currentCompanies = Array.isArray(companies) ? [...companies] : [];
       const company = currentCompanies.find(c => c.id === companyId);
       
@@ -136,11 +134,9 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
         return;
       }
 
-      // Step 1: Approve company via backend API
       const approvalResponse = await approveCompany(companyId, currentUser.id, comment);
       console.log('Backend approval response:', approvalResponse);
       
-      // Step 2: Check if verification details are included in the response
       if (approvalResponse.verification_details && approvalResponse.verification_details.email) {
         console.log('Sending approval email using verification details...');
         
@@ -176,7 +172,6 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
         });
       }
       
-      // Step 3: Reload companies to get the updated state
       await loadCompanies();
     } catch (error) {
       console.error('Error approving company:', error);
@@ -204,7 +199,6 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
         title: "Success",
         description: "Company rejected successfully",
       });
-      // Reload companies to get the updated state
       await loadCompanies();
     } catch (error) {
       console.error('Error rejecting company:', error);
@@ -223,7 +217,6 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
         title: "Success",
         description: "User activated successfully",
       });
-      // Reload users to get the updated state
       await loadUsers();
     } catch (error) {
       console.error('Error activating user:', error);
@@ -251,55 +244,16 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     return null;
   }
 
-  console.log('SuperAdminDashboard: Rendering with', users.length, 'users and loading state:', isLoadingUsers);
-
   return (
     <div className="min-h-screen bg-light-gray">
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              {onBack && (
-                <button
-                  onClick={onBack}
-                  className="flex items-center gap-2 text-neutral-gray hover:text-un-blue transition-colors mb-4"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Home
-                </button>
-              )}
-              <h1 className="text-h1-mobile font-bold text-neutral-gray mb-2">
-                Super Admin Dashboard
-              </h1>
-              <p className="text-body-mobile text-neutral-gray/80">
-                Manage company applications and users
-              </p>
-            </div>
-            
-            {currentUser && (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-border">
-                  <User className="w-4 h-4 text-un-blue" />
-                  <div className="text-right">
-                    <p className="text-small-mobile font-medium text-neutral-gray">
-                      {currentUser.email}
-                    </p>
-                    <p className="text-xs text-neutral-gray/70">
-                      {currentUser.user_type.replace('_', ' ').toUpperCase()}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 text-error-red hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <AdminHeader 
+          currentUser={currentUser} 
+          onBack={onBack} 
+          onLogout={handleLogout} 
+        />
+        
+        <AdminStats companies={companies} users={users} />
 
         <Tabs defaultValue="companies" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
