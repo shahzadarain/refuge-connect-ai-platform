@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, LogOut, User } from 'lucide-react';
@@ -316,7 +317,6 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
           </TabsContent>
           
           <TabsContent value="users" className="mt-6">
-            {console.log('SuperAdminDashboard: Rendering UsersTab with users:', users, 'loading:', isLoadingUsers)}
             <UsersTab
               users={users}
               onActivate={handleActivateUser}
