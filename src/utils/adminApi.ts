@@ -244,3 +244,26 @@ export const deactivateUser = async (userId: string): Promise<void> => {
   const responseData = await response.json();
   console.log('User deactivation response:', responseData);
 };
+
+export const fetchUserLastLogin = async (userId: string): Promise<{ last_login?: string }> => {
+  console.log('Fetching last login for user:', userId);
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/update-last-login`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      console.log('Failed to fetch user last login:', response.status);
+      return {};
+    }
+
+    const data = await response.json();
+    console.log('User last login data received:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching user last login:', error);
+    return {};
+  }
+};

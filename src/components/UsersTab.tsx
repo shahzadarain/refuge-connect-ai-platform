@@ -1,10 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { Users, CheckCircle, XCircle } from 'lucide-react';
 import { User, activateUser, deactivateUser } from '@/utils/adminApi';
 import { useToast } from '@/hooks/use-toast';
 import SearchAndFilters from './SearchAndFilters';
 import UserActionsDialog from './UserActionsDialog';
+import UserLastLoginInfo from './UserLastLoginInfo';
 
 interface UsersTabProps {
   users: User[];
@@ -182,12 +182,10 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, onActivate, onRefresh }) => 
                 <p className="text-small-mobile text-neutral-gray/70">Company</p>
                 <p className="text-body-mobile">{user.company_name || 'Not provided'}</p>
               </div>
-              <div>
-                <p className="text-small-mobile text-neutral-gray/70">Last Login</p>
-                <p className="text-body-mobile">
-                  {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
-                </p>
-              </div>
+              <UserLastLoginInfo 
+                userId={user.id} 
+                initialLastLogin={user.last_login}
+              />
             </div>
 
             <div className="flex gap-3">
