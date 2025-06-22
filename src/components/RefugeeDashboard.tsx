@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useSession } from '@/hooks/useSession';
 import { useToast } from '@/hooks/use-toast';
 import { useValidationStatus } from '@/hooks/useValidationStatus';
+import { sessionStore } from '@/stores/sessionStore';
 import ValidationStatusCard from '@/components/ValidationStatusCard';
 import DataProtectionConsent from '@/components/DataProtectionConsent';
 import { User, Search, FileText, Heart, LogOut, Briefcase } from 'lucide-react';
@@ -62,8 +63,7 @@ const RefugeeDashboard: React.FC = () => {
 
   const handleConsentAccept = () => {
     if (currentUser) {
-      // Update user consent status locally
-      const { sessionStore } = require('@/stores/sessionStore');
+      // Update user consent status locally using proper import
       sessionStore.updateUserConsent(true);
       setShowConsentDialog(false);
       
