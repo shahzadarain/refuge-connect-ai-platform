@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'ar';
@@ -73,6 +72,33 @@ const translations = {
     'form.date_of_arrival': 'Date of Arrival in Jordan',
     'form.full_name': 'Full Name',
     'form.preferred_language': 'Preferred Language',
+    
+    // Login page translations
+    'login.welcome.back': 'Welcome back',
+    'login.welcome.subtitle': 'Sign in to your account to continue',
+    'login.email.placeholder': 'Enter your email',
+    'login.password.placeholder': 'Enter your password',
+    'login.sign.in': 'Sign In',
+    'login.signing.in': 'Signing in...',
+    'login.forgot.password': 'Forgot your password?',
+    'login.forgot.sending': 'Sending...',
+    'login.success.title': 'Login Successful',
+    'login.success.admin.description': 'Welcome Super Admin',
+    'login.success.user.description': 'Welcome {name}',
+    'login.success.user.fallback': 'User',
+    'login.failed.title': 'Login Failed',
+    'login.failed.description': 'Invalid credentials or account not found',
+    'login.error.title': 'Error',
+    'login.error.description': 'Failed to connect to server',
+    'login.error.session.title': 'Session Error',
+    'login.error.session.description': 'Your login token is missing required company information. Please contact support if this persists.',
+    'login.forgot.email.required.title': 'Email Required',
+    'login.forgot.email.required.description': 'Please enter your email address first.',
+    'login.forgot.success.title': 'Reset Link Sent',
+    'login.forgot.success.description': 'Please check your email for password reset instructions. The link will expire in 3 hours.',
+    'login.forgot.error.default': 'Failed to send password reset link',
+    'login.password.reset.success.title': 'Password Reset Complete',
+    'login.password.reset.success.description': 'Your password has been successfully reset. Please login with your new password.',
     
     // Buttons
     'button.next': 'Next',
@@ -192,6 +218,33 @@ const translations = {
     'form.date_of_arrival': 'تاريخ الوصول إلى الأردن',
     'form.full_name': 'الاسم الكامل',
     'form.preferred_language': 'اللغة المفضلة',
+    
+    // Login page translations
+    'login.welcome.back': 'مرحباً بعودتك',
+    'login.welcome.subtitle': 'سجل الدخول إلى حسابك للمتابعة',
+    'login.email.placeholder': 'أدخل بريدك الإلكتروني',
+    'login.password.placeholder': 'أدخل كلمة المرور',
+    'login.sign.in': 'تسجيل الدخول',
+    'login.signing.in': 'جاري تسجيل الدخول...',
+    'login.forgot.password': 'نسيت كلمة المرور؟',
+    'login.forgot.sending': 'جاري الإرسال...',
+    'login.success.title': 'تم تسجيل الدخول بنجاح',
+    'login.success.admin.description': 'مرحباً بك مدير النظام',
+    'login.success.user.description': 'مرحباً {name}',
+    'login.success.user.fallback': 'المستخدم',
+    'login.failed.title': 'فشل تسجيل الدخول',
+    'login.failed.description': 'بيانات اعتماد غير صحيحة أو الحساب غير موجود',
+    'login.error.title': 'خطأ',
+    'login.error.description': 'فشل الاتصال بالخادم',
+    'login.error.session.title': 'خطأ في الجلسة',
+    'login.error.session.description': 'رمز تسجيل الدخول الخاص بك يفتقد معلومات الشركة المطلوبة. يرجى الاتصال بالدعم إذا استمرت هذه المشكلة.',
+    'login.forgot.email.required.title': 'البريد الإلكتروني مطلوب',
+    'login.forgot.email.required.description': 'يرجى إدخال عنوان بريدك الإلكتروني أولاً.',
+    'login.forgot.success.title': 'تم إرسال رابط الاستعادة',
+    'login.forgot.success.description': 'يرجى فحص بريدك الإلكتروني للحصول على تعليمات استعادة كلمة المرور. الرابط سينتهي خلال 3 ساعات.',
+    'login.forgot.error.default': 'فشل في إرسال رابط استعادة كلمة المرور',
+    'login.password.reset.success.title': 'تمت إعادة تعيين كلمة المرور',
+    'login.password.reset.success.description': 'تمت إعادة تعيين كلمة المرور بنجاح. يرجى تسجيل الدخول بكلمة المرور الجديدة.',
     
     // Buttons
     'button.next': 'التالي',

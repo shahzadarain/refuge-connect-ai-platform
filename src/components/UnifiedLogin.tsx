@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, User, Eye, EyeOff } from 'lucide-react';
@@ -5,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
 import { sendForgotPasswordEmail } from '@/utils/emailApi';
 import { useLocation } from 'react-router-dom';
+import LanguageToggle from '@/components/LanguageToggle';
 
 interface UnifiedLoginProps {
   onBack: () => void;
@@ -32,11 +34,11 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
     
     if (resetSuccess === 'success') {
       toast({
-        title: "Password Reset Complete",
-        description: "Your password has been successfully reset. Please login with your new password.",
+        title: t('login.password.reset.success.title'),
+        description: t('login.password.reset.success.description'),
       });
     }
-  }, [location, toast]);
+  }, [location, toast, t]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -67,8 +69,8 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
           });
           
           toast({
-            title: "Session Error",
-            description: "Your login token is missing required company information. Please contact support if this persists.",
+            title: t('login.error.session.title'),
+            description: t('login.error.session.description'),
             variant: "destructive",
           });
           
@@ -125,8 +127,8 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
           localStorage.setItem('access_token', result.access_token);
 
           toast({
-            title: "Login Successful",
-            description: `Welcome Super Admin`,
+            title: t('login.success.title'),
+            description: t('login.success.admin.description'),
           });
           
           onLoginSuccess('super_admin');
@@ -198,8 +200,8 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
           localStorage.setItem('access_token', result.access_token);
 
           toast({
-            title: "Login Successful",
-            description: `Welcome ${result.first_name || 'User'}`,
+            title: t('login.success.title'),
+            description: t('login.success.user.description').replace('{name}', result.first_name || t('login.success.user.fallback')),
           });
           
           onLoginSuccess(userType);
@@ -247,8 +249,8 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
           localStorage.setItem('access_token', result.access_token);
 
           toast({
-            title: "Login Successful",
-            description: `Welcome ${result.first_name || 'User'}`,
+            title: t('login.success.title'),
+            description: t('login.success.user.description').replace('{name}', result.first_name || t('login.success.user.fallback')),
           });
           
           onLoginSuccess('refugee');
@@ -258,16 +260,16 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
 
       // If all login attempts fail
       toast({
-        title: "Login Failed",
-        description: "Invalid credentials or account not found",
+        title: t('login.failed.title'),
+        description: t('login.failed.description'),
         variant: "destructive",
       });
 
     } catch (error) {
       console.error('Login error:', error);
       toast({
-        title: "Error",
-        description: "Failed to connect to server",
+        title: t('login.error.title'),
+        description: t('login.error.description'),
         variant: "destructive",
       });
     } finally {
@@ -278,8 +280,8 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
   const handleForgotPassword = async () => {
     if (!formData.email) {
       toast({
-        title: "Email Required",
-        description: "Please enter your email address first.",
+        title: t('login.forgot.email.required.title'),
+        description: t('login.forgot.email.required.description'),
         variant: "destructive",
       });
       return;
@@ -293,26 +295,26 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
       await sendForgotPasswordEmail({ email: formData.email });
 
       toast({
-        title: "Reset Link Sent",
-        description: "Please check your email for password reset instructions. The link will expire in 3 hours.",
+        title: t('login.forgot.success.title'),
+        description: t('login.forgot.success.description'),
       });
     } catch (error) {
       console.error('Password reset error:', error);
       
-      let errorMessage = 'Failed to send password reset link';
+      let errorMessage = t('login.forgot.error.default');
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
-          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+          errorMessage = t('refugee.error.network');
         } else if (error.message.includes('NetworkError')) {
-          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+          errorMessage = t('refugee.error.server');
         } else {
           errorMessage = error.message;
         }
       }
       
       toast({
-        title: "Error",
+        title: t('login.error.title'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -325,13 +327,14 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
     <main className="min-h-screen bg-white">
       <div className="container-mobile py-6 min-h-screen flex flex-col">
         {/* Header */}
-        <div className="flex items-center mb-8">
+        <div className="flex items-center justify-between mb-8">
           <button
             onClick={onBack}
             className="btn-ghost p-2 -ml-2"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
+          <LanguageToggle />
         </div>
 
         {/* Login Form */}
@@ -343,10 +346,10 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
             </div>
             <div>
               <h1 className="text-title text-gray-900 mb-2">
-                Welcome back
+                {t('login.welcome.back')}
               </h1>
               <p className="text-body-sm text-gray-500">
-                Sign in to your account to continue
+                {t('login.welcome.subtitle')}
               </p>
             </div>
           </div>
@@ -356,7 +359,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="label-modern">
-                  Email Address
+                  {t('form.email')}
                 </label>
                 <input
                   type="email"
@@ -365,14 +368,14 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
                   value={formData.email}
                   onChange={handleInputChange}
                   className="input-modern"
-                  placeholder="Enter your email"
+                  placeholder={t('login.email.placeholder')}
                   required
                 />
               </div>
 
               <div>
                 <label htmlFor="password" className="label-modern">
-                  Password
+                  {t('form.password')}
                 </label>
                 <div className="relative">
                   <input
@@ -382,7 +385,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
                     value={formData.password}
                     onChange={handleInputChange}
                     className="input-modern pr-12"
-                    placeholder="Enter your password"
+                    placeholder={t('login.password.placeholder')}
                     required
                   />
                   <button
@@ -405,10 +408,10 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
                     <div className="spinner"></div>
-                    <span>Signing in...</span>
+                    <span>{t('login.signing.in')}</span>
                   </div>
                 ) : (
-                  'Sign In'
+                  t('login.sign.in')
                 )}
               </button>
 
@@ -419,7 +422,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
                   disabled={isSendingReset}
                   className="btn-ghost"
                 >
-                  {isSendingReset ? 'Sending...' : 'Forgot your password?'}
+                  {isSendingReset ? t('login.forgot.sending') : t('login.forgot.password')}
                 </button>
               </div>
             </div>
