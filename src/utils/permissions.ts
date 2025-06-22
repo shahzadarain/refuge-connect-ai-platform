@@ -28,9 +28,9 @@ export const canManageUsers = (user: CurrentUser | null): boolean => {
     return true;
   }
   
-  // System admins
-  if (user.user_type === 'admin' || user.user_type === 'super_admin') {
-    console.log('canManageUsers: Access granted - system admin');
+  // System super admins
+  if (user.user_type === 'super_admin') {
+    console.log('canManageUsers: Access granted - super_admin');
     return true;
   }
   
