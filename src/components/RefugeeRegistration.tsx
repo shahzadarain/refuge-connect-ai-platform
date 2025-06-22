@@ -56,7 +56,7 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
   };
 
   const isValidRefugeeId = (id: string): boolean => {
-    const regex = /^199-\d{8}$/;
+    const regex = /^\d{3}-\d{8}$/;
     return regex.test(id);
   };
 
@@ -64,27 +64,15 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
     // Remove all non-digits
     const digitsOnly = value.replace(/\D/g, '');
     
-    // If it starts with 199, format it properly
-    if (digitsOnly.startsWith('199')) {
-      const remaining = digitsOnly.slice(3);
-      if (remaining.length <= 8) {
-        return `199-${remaining}`;
-      } else {
-        return `199-${remaining.slice(0, 8)}`;
-      }
+    // If we have at least 3 digits, format with hyphen
+    if (digitsOnly.length >= 3) {
+      const firstThree = digitsOnly.slice(0, 3);
+      const remaining = digitsOnly.slice(3, 11); // Max 8 digits after hyphen
+      return `${firstThree}-${remaining}`;
     }
     
-    // If user is typing 199, allow it
-    if ('199'.startsWith(digitsOnly)) {
-      return digitsOnly;
-    }
-    
-    // If not starting with 199, try to guide them
-    if (digitsOnly.length > 0) {
-      return `199-${digitsOnly.slice(0, 8)}`;
-    }
-    
-    return value;
+    // If less than 3 digits, just return the digits
+    return digitsOnly;
   };
 
   const handleRefugeeIdChange = (value: string) => {
@@ -99,7 +87,7 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
       if (!refugeeData.individual_id) {
         newErrors.individual_id = t('validation.required');
       } else if (!isValidRefugeeId(refugeeData.individual_id)) {
-        newErrors.individual_id = 'UNHCR ID must be in format: 199-######## (199 followed by hyphen and exactly 8 digits)';
+        newErrors.individual_id = 'UNHCR ID must be in format: ###-######## (3 digits followed by hyphen and exactly 8 digits)';
       }
       
       if (!refugeeData.date_of_birth) {
@@ -317,10 +305,10 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
             name="individual_id"
             value={refugeeData.individual_id}
             onChange={handleRefugeeIdChange}
-            placeholder="199-########"
+            placeholder="###-########"
             required
             error={errors.individual_id}
-            helpText="Format: 199-######## (199 followed by hyphen and exactly 8 digits). Example: 199-00165314"
+            helpText="Format: ###-######## (3 digits followed by hyphen and exactly 8 digits). Example: 199-00165314"
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
