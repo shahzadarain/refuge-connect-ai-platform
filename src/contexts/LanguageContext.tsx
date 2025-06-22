@@ -100,6 +100,7 @@ const translations = {
     'employees.500+': '500+ employees',
 
     // Refugee Registration specific translations
+    'refugee.portal.title': 'Refugee Portal',
     'refugee.registration.title': 'Register as a Refugee',
     'refugee.registration.subtitle': 'Welcome to Refugee Connect. We need to verify your UNHCR information to ensure you have access to the right opportunities and support.',
     'refugee.step.unhcr': 'UNHCR Verification',
@@ -218,6 +219,7 @@ const translations = {
     'employees.500+': 'أكثر من 500 موظف',
 
     // Refugee Registration specific translations
+    'refugee.portal.title': 'بوابة اللاجئين',
     'refugee.registration.title': 'تسجيل كلاجئ',
     'refugee.registration.subtitle': 'مرحباً بك في منصة ربط اللاجئين. نحتاج للتحقق من معلومات المفوضية لضمان حصولك على الفرص والدعم المناسب.',
     'refugee.step.unhcr': 'التحقق من المفوضية',
