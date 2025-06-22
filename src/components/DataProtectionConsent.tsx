@@ -185,7 +185,7 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
               </div>
               <div>
                 <DialogTitle className="text-lg font-semibold text-gray-900">
-                  {t('consent.decline.warning.title')}
+                  {language === 'ar' ? 'تأكيد الرفض' : 'Confirm Decline'}
                 </DialogTitle>
               </div>
             </div>
@@ -194,12 +194,18 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
           <div className="space-y-4">
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-sm text-red-800">
-                {t('consent.decline.warning.message')}
+                {language === 'ar' 
+                  ? 'بدون قبول شروط حماية البيانات، لن تتمكن من الوصول إلى خدمات المنصة. سيتم تسجيل خروجك تلقائياً.'
+                  : 'Without accepting the data protection terms, you will not be able to access the platform services. You will be automatically logged out.'
+                }
               </p>
             </div>
             
             <p className="text-sm text-gray-600">
-              {t('consent.decline.warning.contact')}
+              {language === 'ar'
+                ? 'إذا كانت لديك مخاوف، يرجى الاتصال بفريق الدعم للحصول على المساعدة.'
+                : 'If you have concerns, please contact our support team for assistance.'
+              }
             </p>
             
             <div className="flex gap-3 pt-4">
@@ -209,7 +215,7 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
                 className="flex-1"
                 disabled={isSubmitting}
               >
-                {t('consent.decline.cancel')}
+                {language === 'ar' ? 'العودة' : 'Go Back'}
               </Button>
               <Button 
                 variant="destructive" 
@@ -220,10 +226,10 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t('consent.submitting')}
+                    {language === 'ar' ? 'جاري المعالجة...' : 'Processing...'}
                   </>
                 ) : (
-                  t('consent.decline.confirm')
+                  language === 'ar' ? 'تأكيد الرفض' : 'Confirm Decline'
                 )}
               </Button>
             </div>
@@ -243,10 +249,13 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
             </div>
             <div>
               <DialogTitle className="text-xl font-semibold text-gray-900">
-                {t('consent.title')}
+                {language === 'ar' ? 'موافقة حماية البيانات' : 'Data Protection Consent'}
               </DialogTitle>
               <DialogDescription className="text-gray-600">
-                {t('consent.subtitle')}
+                {language === 'ar' 
+                  ? 'يرجى مراجعة وقبول شروط حماية البيانات الخاصة بنا للمتابعة'
+                  : 'Please review and accept our data protection terms to continue'
+                }
               </DialogDescription>
             </div>
           </div>
@@ -257,7 +266,9 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-              <span className="ml-2 text-gray-600">{t('consent.loading')}</span>
+              <span className="ml-2 text-gray-600">
+                {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
+              </span>
             </div>
           ) : (
             <>
@@ -296,7 +307,10 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
                   onCheckedChange={(checked) => setHasRead(checked as boolean)}
                 />
                 <label htmlFor="consent-read" className="text-sm text-gray-700 cursor-pointer">
-                  {t('consent.checkbox.label')}
+                  {language === 'ar' 
+                    ? 'لقد قرأت وفهمت شروط حماية البيانات وأوافق على معالجة بياناتي الشخصية'
+                    : 'I have read and understood the data protection terms and agree to the processing of my personal data'
+                  }
                 </label>
               </div>
               
@@ -308,7 +322,7 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
                   className="flex-1"
                   disabled={isSubmitting}
                 >
-                  {t('consent.button.decline')}
+                  {language === 'ar' ? 'أرفض' : 'Decline'}
                 </Button>
                 <Button 
                   onClick={handleAcceptClick}
@@ -318,10 +332,10 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {t('consent.submitting')}
+                      {language === 'ar' ? 'جاري المعالجة...' : 'Processing...'}
                     </>
                   ) : (
-                    t('consent.button.accept')
+                    language === 'ar' ? 'أوافق والمتابعة' : 'Accept & Continue'
                   )}
                 </Button>
               </div>
