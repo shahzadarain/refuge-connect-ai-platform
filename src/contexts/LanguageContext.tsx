@@ -157,7 +157,55 @@ const translations = {
     'refugee.error.network': 'Network error: Unable to connect to the server. Please check your internet connection and try again.',
     'refugee.error.server': 'Network error: The server may be temporarily unavailable. Please try again later.',
     'refugee.error.cors': 'Server configuration error: Cross-origin request blocked. Please contact support.',
-    'refugee.error.registration': 'Registration Error'
+    'refugee.error.registration': 'Registration Error',
+    
+    // Data Protection Consent
+    consent: {
+      title: "Data Protection Consent",
+      subtitle: "Please read and accept our data protection policy to continue",
+      section: {
+        data: {
+          title: "Data Collection and Use",
+          content: "We collect and process your personal data including your name, email, contact information, and refugee status information to provide you with job placement services and support through the UN Refugee Connect Platform."
+        },
+        purpose: {
+          title: "Purpose of Data Processing",
+          content: "Your data is used to match you with suitable job opportunities, track your application status, communicate with potential employers, and provide you with career support services."
+        },
+        rights: {
+          title: "Your Rights",
+          content: "You have the right to access, correct, or delete your personal data at any time. You can also withdraw your consent, though this may limit your ability to use our services."
+        },
+        contact: {
+          title: "Contact Information",
+          content: "If you have questions about data protection or wish to exercise your rights, please contact UNHCR data protection office at dataprotection@unhcr.org"
+        }
+      },
+      checkbox: {
+        label: "I have read and understood the data protection information and I agree to the processing of my personal data as described above."
+      },
+      button: {
+        accept: "I Agree - Continue",
+        decline: "I Do Not Agree"
+      },
+      decline: {
+        warning: {
+          title: "Cannot Continue Without Consent",
+          message: "Without your consent to data processing, you will not be able to use the UN Refugee Connect Platform services.",
+          contact: "Please contact UNHCR for more information about alternative support options."
+        },
+        cancel: "Go Back",
+        confirm: "Exit System"
+      },
+      success: {
+        title: "Consent Recorded",
+        description: "Thank you for agreeing to our data protection policy. You can now use all platform features."
+      },
+      declined: {
+        title: "Consent Declined",
+        description: "You will be logged out. Please contact UNHCR for alternative support."
+      }
+    }
   },
   ar: {
     // Navigation
@@ -303,7 +351,55 @@ const translations = {
     'refugee.error.network': 'خطأ في الشبكة: تعذر الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.',
     'refugee.error.server': 'خطأ في الشبكة: قد يكون الخادم غير متاح مؤقتاً. يرجى المحاولة لاحقاً.',
     'refugee.error.cors': 'خطأ في إعداد الخادم: تم حظر الطلب. يرجى الاتصال بالدعم.',
-    'refugee.error.registration': 'خطأ في التسجيل'
+    'refugee.error.registration': 'خطأ في التسجيل',
+    
+    // Data Protection Consent - Arabic
+    consent: {
+      title: "موافقة حماية البيانات",
+      subtitle: "يرجى قراءة وقبول سياسة حماية البيانات الخاصة بنا للمتابعة",
+      section: {
+        data: {
+          title: "جمع البيانات واستخدامها",
+          content: "نحن نجمع ونعالج بياناتك الشخصية بما في ذلك اسمك والبريد الإلكتروني ومعلومات الاتصال ومعلومات وضع اللاجئ لتزويدك بخدمات التوظيف والدعم من خلال منصة الأمم المتحدة لربط اللاجئين."
+        },
+        purpose: {
+          title: "الغرض من معالجة البيانات",
+          content: "تُستخدم بياناتك لمطابقتك مع فرص العمل المناسبة وتتبع حالة طلبك والتواصل مع أصحاب العمل المحتملين وتزويدك بخدمات الدعم المهني."
+        },
+        rights: {
+          title: "حقوقك",
+          content: "لديك الحق في الوصول إلى بياناتك الشخصية أو تصحيحها أو حذفها في أي وقت. يمكنك أيضاً سحب موافقتك، رغم أن هذا قد يحد من قدرتك على استخدام خدماتنا."
+        },
+        contact: {
+          title: "معلومات الاتصال",
+          content: "إذا كانت لديك أسئلة حول حماية البيانات أو ترغب في ممارسة حقوقك، يرجى الاتصال بمكتب حماية البيانات في المفوضية على dataprotection@unhcr.org"
+        }
+      },
+      checkbox: {
+        label: "لقد قرأت وفهمت معلومات حماية البيانات وأوافق على معالجة بياناتي الشخصية كما هو موضح أعلاه."
+      },
+      button: {
+        accept: "أوافق - متابعة",
+        decline: "لا أوافق"
+      },
+      decline: {
+        warning: {
+          title: "لا يمكن المتابعة بدون موافقة",
+          message: "بدون موافقتك على معالجة البيانات، لن تتمكن من استخدام خدمات منصة الأمم المتحدة لربط اللاجئين.",
+          contact: "يرجى الاتصال بالمفوضية للحصول على مزيد من المعلومات حول خيارات الدعم البديلة."
+        },
+        cancel: "العودة",
+        confirm: "الخروج من النظام"
+      },
+      success: {
+        title: "تم تسجيل الموافقة",
+        description: "شكراً لك على الموافقة على سياسة حماية البيانات. يمكنك الآن استخدام جميع ميزات المنصة."
+      },
+      declined: {
+        title: "تم رفض الموافقة",
+        description: "سيتم تسجيل خروجك. يرجى الاتصال بالمفوضية للحصول على دعم بديل."
+      }
+    }
   }
 };
 

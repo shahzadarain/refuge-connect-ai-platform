@@ -1,22 +1,22 @@
-
 interface CurrentUser {
   id: string;
   email: string;
-  user_type: 'super_admin' | 'admin' | 'employer_admin' | 'company_user' | 'refugee';
+  user_type: 'super_admin' | 'employer_admin' | 'company_user' | 'refugee';
   first_name?: string;
   last_name?: string;
-  phone?: string;
+  phone: string;
   is_active: boolean;
   is_verified: boolean;
   created_at: string;
   last_login?: string;
   company_id?: string;
   role?: string; // Added role field
+  has_consented_data_protection?: boolean; // Add this field
 }
 
 class SessionStore {
   private currentUser: CurrentUser | null = null;
-  private listeners: Array<(user: CurrentUser | null) => void> = [];
+  private listeners: ((user: CurrentUser | null) => void)[] = [];
 
   constructor() {
     // Load user from localStorage on initialization
@@ -103,6 +103,14 @@ class SessionStore {
     this.saveToStorage();
     this.notifyListeners();
     console.log('User session set:', user);
+  }
+
+  updateUserConsent(hasConsented: boolean) {
+    if (this.currentUser) {
+      this.currentUser.has_consented_data_protection = hasConsented;
+      this.saveToStorage();
+      this.notifyListeners();
+    }
   }
 
   getCurrentUser(): CurrentUser | null {

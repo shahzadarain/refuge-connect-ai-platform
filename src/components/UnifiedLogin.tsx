@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, User, Eye, EyeOff } from 'lucide-react';
@@ -121,7 +120,8 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
             is_active: true,
             is_verified: true,
             created_at: new Date().toISOString(),
-            last_login: new Date().toISOString()
+            last_login: new Date().toISOString(),
+            has_consented_data_protection: true // Super admin doesn't need consent
           });
 
           localStorage.setItem('access_token', result.access_token);
@@ -194,7 +194,8 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
             created_at: new Date().toISOString(),
             last_login: new Date().toISOString(),
             company_id: companyId,
-            role: role
+            role: role,
+            has_consented_data_protection: true // Employers don't need consent
           });
 
           localStorage.setItem('access_token', result.access_token);
@@ -243,7 +244,8 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
             is_active: true,
             is_verified: true,
             created_at: new Date().toISOString(),
-            last_login: new Date().toISOString()
+            last_login: new Date().toISOString(),
+            has_consented_data_protection: false // Refugees need to consent on first login
           });
 
           localStorage.setItem('access_token', result.access_token);
