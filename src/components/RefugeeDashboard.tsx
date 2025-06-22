@@ -13,20 +13,56 @@ const RefugeeDashboard: React.FC = () => {
   const { toast } = useToast();
   const { validationStatus, isLoading, refetch } = useValidationStatus(currentUser?.email);
   const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [isCheckingConsent, setIsCheckingConsent] = useState(true);
 
-  // Check if user needs to see consent dialog
+  // Check consent status from API
   useEffect(() => {
     if (currentUser && currentUser.user_type === 'refugee') {
-      // Show consent dialog if user hasn't consented yet
-      if (!currentUser.has_consented_data_protection) {
-        setShowConsentDialog(true);
-      }
+      checkConsentStatus();
     }
   }, [currentUser]);
 
+  const checkConsentStatus = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/consent/check', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Consent status:', data);
+        
+        // Show consent dialog if user hasn't consented yet
+        if (data.requires_consent || !data.consent_given) {
+          setShowConsentDialog(true);
+        }
+      } else {
+        console.error('Failed to check consent status:', response.status);
+        // Fallback to local user data
+        if (!currentUser.has_consented_data_protection) {
+          setShowConsentDialog(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking consent status:', error);
+      // Fallback to local user data
+      if (!currentUser.has_consented_data_protection) {
+        setShowConsentDialog(true);
+      }
+    } finally {
+      setIsCheckingConsent(false);
+    }
+  };
+
   const handleConsentAccept = () => {
     if (currentUser) {
-      // Update user consent status
+      // Update user consent status locally
       const { sessionStore } = require('@/stores/sessionStore');
       sessionStore.updateUserConsent(true);
       setShowConsentDialog(false);
@@ -70,6 +106,18 @@ const RefugeeDashboard: React.FC = () => {
   const fullName = currentUser?.first_name && currentUser?.last_name 
     ? `${currentUser.first_name} ${currentUser.last_name}` 
     : displayName;
+
+  // Show loading state while checking consent
+  if (isCheckingConsent) {
+    return (
+      <div className="min-h-screen bg-light-gray flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-neutral-gray">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
