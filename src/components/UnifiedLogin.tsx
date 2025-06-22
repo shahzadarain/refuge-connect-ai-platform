@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, User, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
 import { sendForgotPasswordEmail } from '@/utils/emailApi';
@@ -327,9 +327,9 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="container-mobile py-6 min-h-screen flex flex-col">
+      <div className="container-mobile py-4 min-h-screen flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <button
             onClick={onBack}
             className="btn-ghost p-2 -ml-2"
@@ -340,24 +340,21 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
         </div>
 
         {/* Login Form */}
-        <div className="flex-1 flex flex-col justify-center space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto">
-              <User className="w-8 h-8 text-white" />
-            </div>
+        <div className="flex-1 flex flex-col justify-center space-y-6">
+          {/* Header - Simplified without icon */}
+          <div className="text-center space-y-3">
             <div>
-              <h1 className="text-title text-gray-900 mb-2">
+              <h1 className="text-2xl font-semibold text-gray-900 mb-2">
                 {t('login.welcome.back')}
               </h1>
-              <p className="text-body-sm text-gray-500">
+              <p className="text-sm text-gray-500">
                 {t('login.welcome.subtitle')}
               </p>
             </div>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="label-modern">
@@ -401,7 +398,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <button
                 type="submit"
                 disabled={isLoading}
@@ -422,7 +419,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={isSendingReset}
-                  className="btn-ghost"
+                  className="btn-ghost text-sm"
                 >
                   {isSendingReset ? t('login.forgot.sending') : t('login.forgot.password')}
                 </button>
