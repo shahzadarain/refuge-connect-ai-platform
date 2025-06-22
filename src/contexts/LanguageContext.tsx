@@ -97,7 +97,40 @@ const translations = {
     'employees.11-50': '11-50 employees',
     'employees.51-200': '51-200 employees',
     'employees.201-500': '201-500 employees',
-    'employees.500+': '500+ employees'
+    'employees.500+': '500+ employees',
+
+    // Refugee Registration specific translations
+    'refugee.registration.title': 'Register as a Refugee',
+    'refugee.registration.subtitle': 'Welcome to Refugee Connect. We need to verify your UNHCR information to ensure you have access to the right opportunities and support.',
+    'refugee.step.unhcr': 'UNHCR Verification',
+    'refugee.step.account': 'Account Setup',
+    'refugee.unhcr.title': 'UNHCR Verification Details',
+    'refugee.unhcr.validation.title': 'UNHCR Validation Required',
+    'refugee.unhcr.validation.description': 'To ensure the safety and integrity of our platform, we validate your information against UNHCR records during registration. This information is kept confidential and is only used for verification purposes.',
+    'refugee.account.title': 'Create Your Account',
+    'refugee.account.subtitle': 'Set up your account details to start exploring job opportunities and connecting with employers.',
+    'refugee.account.info.title': 'Account Information',
+    'refugee.continue.account': 'Continue to Account Setup',
+    'refugee.create.account': 'Create Account',
+    'refugee.creating.account': 'Creating Account & Validating...',
+    'refugee.form.individual_id': 'UNHCR Individual ID',
+    'refugee.form.individual_id.placeholder': 'REF123456',
+    'refugee.form.individual_id.help': 'Enter your UNHCR registration number exactly as shown on your card',
+    'refugee.form.full_name.placeholder': 'Enter your full name as on UNHCR card',
+    'refugee.form.phone.placeholder': '+962781234567',
+    'refugee.form.password.help': 'Minimum 6 characters',
+    'refugee.registration.success': 'Registration Successful!',
+    'refugee.registration.success.description': 'Your account has been created and validated. Redirecting to login...',
+    'refugee.registration.failed': 'Registration Failed',
+    'refugee.validation.date.format': 'Please enter date in format YYYY-MM-DD',
+    'refugee.validation.password.min': 'Password must be at least 6 characters',
+    'refugee.validation.password.match': 'Passwords do not match',
+    'refugee.error.unhcr.failed': 'UNHCR validation failed. Please check your UNHCR ID and dates.',
+    'refugee.error.email.exists': 'This email is already registered.',
+    'refugee.error.network': 'Network error: Unable to connect to the server. Please check your internet connection and try again.',
+    'refugee.error.server': 'Network error: The server may be temporarily unavailable. Please try again later.',
+    'refugee.error.cors': 'Server configuration error: Cross-origin request blocked. Please contact support.',
+    'refugee.error.registration': 'Registration Error'
   },
   ar: {
     // Navigation
@@ -182,17 +215,57 @@ const translations = {
     'employees.11-50': '11-50 موظف',
     'employees.51-200': '51-200 موظف',
     'employees.201-500': '201-500 موظف',
-    'employees.500+': 'أكثر من 500 موظف'
+    'employees.500+': 'أكثر من 500 موظف',
+
+    // Refugee Registration specific translations
+    'refugee.registration.title': 'تسجيل كلاجئ',
+    'refugee.registration.subtitle': 'مرحباً بك في منصة ربط اللاجئين. نحتاج للتحقق من معلومات المفوضية لضمان حصولك على الفرص والدعم المناسب.',
+    'refugee.step.unhcr': 'التحقق من المفوضية',
+    'refugee.step.account': 'إعداد الحساب',
+    'refugee.unhcr.title': 'تفاصيل التحقق من المفوضية',
+    'refugee.unhcr.validation.title': 'التحقق من المفوضية مطلوب',
+    'refugee.unhcr.validation.description': 'لضمان سلامة وأمان منصتنا، نقوم بالتحقق من معلوماتك مع سجلات المفوضية أثناء التسجيل. هذه المعلومات سرية وتستخدم فقط لأغراض التحقق.',
+    'refugee.account.title': 'إنشاء حسابك',
+    'refugee.account.subtitle': 'قم بإعداد تفاصيل حسابك لبدء استكشاف فرص العمل والتواصل مع أصحاب العمل.',
+    'refugee.account.info.title': 'معلومات الحساب',
+    'refugee.continue.account': 'متابعة إلى إعداد الحساب',
+    'refugee.create.account': 'إنشاء حساب',
+    'refugee.creating.account': 'إنشاء الحساب والتحقق...',
+    'refugee.form.individual_id': 'رقم المفوضية الفردي',
+    'refugee.form.individual_id.placeholder': 'REF123456',
+    'refugee.form.individual_id.help': 'أدخل رقم تسجيل المفوضية كما هو مكتوب على البطاقة تماماً',
+    'refugee.form.full_name.placeholder': 'أدخل اسمك الكامل كما هو على بطاقة المفوضية',
+    'refugee.form.phone.placeholder': '+962781234567',
+    'refugee.form.password.help': 'أقل شيء 6 أحرف',
+    'refugee.registration.success': 'تم التسجيل بنجاح!',
+    'refugee.registration.success.description': 'تم إنشاء حسابك والتحقق منه. سيتم توجيهك لتسجيل الدخول...',
+    'refugee.registration.failed': 'فشل التسجيل',
+    'refugee.validation.date.format': 'يرجى إدخال التاريخ بالصيغة YYYY-MM-DD',
+    'refugee.validation.password.min': 'يجب أن تكون كلمة المرور 6 أحرف على الأقل',
+    'refugee.validation.password.match': 'كلمات المرور غير متطابقة',
+    'refugee.error.unhcr.failed': 'فشل التحقق من بيانات المفوضية. يرجى التحقق من رقم المفوضية والتواريخ.',
+    'refugee.error.email.exists': 'هذا البريد الإلكتروني مسجل بالفعل.',
+    'refugee.error.network': 'خطأ في الشبكة: تعذر الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.',
+    'refugee.error.server': 'خطأ في الشبكة: قد يكون الخادم غير متاح مؤقتاً. يرجى المحاولة لاحقاً.',
+    'refugee.error.cors': 'خطأ في إعداد الخادم: تم حظر الطلب. يرجى الاتصال بالدعم.',
+    'refugee.error.registration': 'خطأ في التسجيل'
   }
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>(() => {
+    // Load saved language from localStorage or default to 'en'
+    const savedLanguage = localStorage.getItem('preferred-language');
+    return (savedLanguage as Language) || 'en';
+  });
 
   useEffect(() => {
     // Set document direction and language
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
+    
+    // Save language preference to localStorage
+    localStorage.setItem('preferred-language', language);
   }, [language]);
 
   const t = (key: string): string => {

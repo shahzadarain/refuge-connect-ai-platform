@@ -64,12 +64,12 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
       if (!refugeeData.date_of_birth) {
         newErrors.date_of_birth = t('validation.required');
       } else if (!isValidDate(refugeeData.date_of_birth)) {
-        newErrors.date_of_birth = 'Please enter date in format YYYY-MM-DD';
+        newErrors.date_of_birth = t('refugee.validation.date.format');
       }
       if (!refugeeData.date_of_arrival) {
         newErrors.date_of_arrival = t('validation.required');
       } else if (!isValidDate(refugeeData.date_of_arrival)) {
-        newErrors.date_of_arrival = 'Please enter date in format YYYY-MM-DD';
+        newErrors.date_of_arrival = t('refugee.validation.date.format');
       }
       if (!refugeeData.full_name) newErrors.full_name = t('validation.required');
     }
@@ -85,11 +85,11 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
       if (!refugeeData.password) {
         newErrors.password = t('validation.required');
       } else if (refugeeData.password.length < 6) {
-        newErrors.password = 'Password must be at least 6 characters';
+        newErrors.password = t('refugee.validation.password.min');
       }
       
       if (refugeeData.password !== refugeeData.confirm_password) {
-        newErrors.confirm_password = 'Passwords do not match';
+        newErrors.confirm_password = t('refugee.validation.password.match');
       }
     }
 
@@ -123,7 +123,7 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
 
     // Frontend validation for password match
     if (refugeeData.password !== refugeeData.confirm_password) {
-      setErrors({ confirm_password: 'Passwords do not match' });
+      setErrors({ confirm_password: t('refugee.validation.password.match') });
       return;
     }
 
@@ -160,13 +160,13 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
           
           if (response.status === 400) {
             // UNHCR validation failed
-            errorMessage = 'UNHCR validation failed. Please check your UNHCR ID and dates.';
+            errorMessage = t('refugee.error.unhcr.failed');
             highlightField('individual_id');
             highlightField('date_of_birth');
             highlightField('date_of_arrival');
           } else if (response.status === 409) {
             // Email already exists
-            errorMessage = 'This email is already registered.';
+            errorMessage = t('refugee.error.email.exists');
             highlightField('email');
           } else {
             errorMessage = errorData.detail || errorData.message || errorMessage;
@@ -187,8 +187,8 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
       if (result.status === "success") {
         // User is already validated and active
         toast({
-          title: "Registration Successful!",
-          description: "Your account has been created and validated. Redirecting to login...",
+          title: t('refugee.registration.success'),
+          description: t('refugee.registration.success.description'),
         });
         
         // Store email for login page (optional)
@@ -203,15 +203,15 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
     } catch (error) {
       console.error('Registration error details:', error);
       
-      let errorMessage = 'Registration failed';
+      let errorMessage = t('refugee.registration.failed');
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
-          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+          errorMessage = t('refugee.error.network');
         } else if (error.message.includes('NetworkError')) {
-          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+          errorMessage = t('refugee.error.server');
         } else if (error.message.includes('CORS')) {
-          errorMessage = 'Server configuration error: Cross-origin request blocked. Please contact support.';
+          errorMessage = t('refugee.error.cors');
         } else {
           errorMessage = error.message;
         }
@@ -220,7 +220,7 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
       setErrors({ submit: errorMessage });
       
       toast({
-        title: "Registration Failed",
+        title: t('refugee.registration.failed'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -230,8 +230,8 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
   };
 
   const stepLabels = [
-    'UNHCR Verification',
-    'Account Setup'
+    t('refugee.step.unhcr'),
+    t('refugee.step.account')
   ];
 
   const renderStep1 = () => (
@@ -242,10 +242,10 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
           <Shield className="w-10 h-10 text-blue-600" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Register as a Refugee
+          {t('refugee.registration.title')}
         </h1>
         <p className="text-lg text-gray-600 max-w-lg mx-auto">
-          Welcome to Refugee Connect. We need to verify your UNHCR information to ensure you have access to the right opportunities and support.
+          {t('refugee.registration.subtitle')}
         </p>
       </div>
 
@@ -256,10 +256,9 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
             <UserCheck className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-blue-900 mb-2">UNHCR Validation Required</h3>
+            <h3 className="font-semibold text-blue-900 mb-2">{t('refugee.unhcr.validation.title')}</h3>
             <p className="text-blue-800 text-sm leading-relaxed">
-              To ensure the safety and integrity of our platform, we validate your information against UNHCR records during registration. 
-              This information is kept confidential and is only used for verification purposes.
+              {t('refugee.unhcr.validation.description')}
             </p>
           </div>
         </div>
@@ -268,24 +267,24 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
       {/* Form Section */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">
-          UNHCR Verification Details
+          {t('refugee.unhcr.title')}
         </h2>
 
         <div className="space-y-6">
           <FormField
-            label="UNHCR Individual ID"
+            label={t('refugee.form.individual_id')}
             name="individual_id"
             value={refugeeData.individual_id}
             onChange={(value) => setRefugeeData({ ...refugeeData, individual_id: value })}
-            placeholder="REF123456"
+            placeholder={t('refugee.form.individual_id.placeholder')}
             required
             error={errors.individual_id}
-            helpText="Enter your UNHCR registration number exactly as shown on your card"
+            helpText={t('refugee.form.individual_id.help')}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
-              label="Date of Birth"
+              label={t('form.date_of_birth')}
               name="date_of_birth"
               type="date"
               value={refugeeData.date_of_birth}
@@ -295,7 +294,7 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
             />
 
             <FormField
-              label="Date of Arrival in Jordan"
+              label={t('form.date_of_arrival')}
               name="date_of_arrival"
               type="date"
               value={refugeeData.date_of_arrival}
@@ -306,11 +305,11 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
           </div>
 
           <FormField
-            label="Full Name"
+            label={t('form.full_name')}
             name="full_name"
             value={refugeeData.full_name}
             onChange={(value) => setRefugeeData({ ...refugeeData, full_name: value })}
-            placeholder="Enter your full name as on UNHCR card"
+            placeholder={t('refugee.form.full_name.placeholder')}
             required
             error={errors.full_name}
           />
@@ -327,23 +326,23 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
           <Lock className="w-10 h-10 text-green-600" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Create Your Account
+          {t('refugee.account.title')}
         </h1>
         <p className="text-lg text-gray-600 max-w-lg mx-auto">
-          Set up your account details to start exploring job opportunities and connecting with employers.
+          {t('refugee.account.subtitle')}
         </p>
       </div>
 
       {/* Form Section */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">
-          Account Information
+          {t('refugee.account.info.title')}
         </h2>
 
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
-              label="Email Address"
+              label={t('form.email')}
               name="email"
               type="email"
               value={refugeeData.email}
@@ -353,19 +352,19 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
             />
 
             <FormField
-              label="Phone Number"
+              label={t('form.phone')}
               name="phone"
               type="tel"
               value={refugeeData.phone}
               onChange={(value) => setRefugeeData({ ...refugeeData, phone: value })}
-              placeholder="+962781234567"
+              placeholder={t('refugee.form.phone.placeholder')}
               required
               error={errors.phone}
             />
           </div>
 
           <FormField
-            label="Preferred Language"
+            label={t('form.preferred_language')}
             name="preferred_language"
             type="select"
             value={refugeeData.preferred_language}
@@ -376,18 +375,18 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
-              label="Password"
+              label={t('form.password')}
               name="password"
               type="password"
               value={refugeeData.password}
               onChange={(value) => setRefugeeData({ ...refugeeData, password: value })}
               required
               error={errors.password}
-              helpText="Minimum 6 characters"
+              helpText={t('refugee.form.password.help')}
             />
 
             <FormField
-              label="Confirm Password"
+              label={t('form.confirm_password')}
               name="confirm_password"
               type="password"
               value={refugeeData.confirm_password}
@@ -407,7 +406,7 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
                 </svg>
               </div>
               <div>
-                <h3 className="font-medium text-red-800 mb-1">Registration Error</h3>
+                <h3 className="font-medium text-red-800 mb-1">{t('refugee.error.registration')}</h3>
                 <p className="text-red-700 text-sm">{errors.submit}</p>
               </div>
             </div>
@@ -452,7 +451,7 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
               onClick={handleNext}
               className="flex-1 md:flex-none md:px-8"
             >
-              Continue to Account Setup
+              {t('refugee.continue.account')}
             </Button>
           ) : (
             <Button
@@ -460,7 +459,7 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
               disabled={isSubmitting}
               className="flex-1 md:flex-none md:px-8"
             >
-              {isSubmitting ? 'Creating Account & Validating...' : 'Create Account'}
+              {isSubmitting ? t('refugee.creating.account') : t('refugee.create.account')}
             </Button>
           )}
         </div>
