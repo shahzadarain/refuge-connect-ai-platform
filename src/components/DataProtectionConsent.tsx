@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, AlertTriangle, Loader2 } from 'lucide-react';

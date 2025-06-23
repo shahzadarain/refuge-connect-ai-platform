@@ -6,7 +6,8 @@ import { useValidationStatus } from '@/hooks/useValidationStatus';
 import { sessionStore } from '@/stores/sessionStore';
 import ValidationStatusCard from '@/components/ValidationStatusCard';
 import DataProtectionConsent from '@/components/DataProtectionConsent';
-import { User, Search, FileText, Heart, LogOut, Briefcase } from 'lucide-react';
+import ConsentRevocationDialog from '@/components/ConsentRevocationDialog';
+import { User, Search, FileText, Heart, LogOut, Briefcase, Shield, AlertTriangle } from 'lucide-react';
 
 const RefugeeDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -14,6 +15,7 @@ const RefugeeDashboard: React.FC = () => {
   const { toast } = useToast();
   const { validationStatus, isLoading, refetch } = useValidationStatus(currentUser?.email);
   const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [showRevocationDialog, setShowRevocationDialog] = useState(false);
   const [isCheckingConsent, setIsCheckingConsent] = useState(true);
 
   // Check consent status from API
@@ -87,6 +89,25 @@ const RefugeeDashboard: React.FC = () => {
     }, 2000);
   };
 
+  const handleConsentRevoke = () => {
+    setShowRevocationDialog(true);
+  };
+
+  const handleRevocationComplete = () => {
+    // Log out the user after successful revocation
+    setShowRevocationDialog(false);
+    
+    toast({
+      title: "Account Deactivated",
+      description: "Your consent has been revoked and your account has been deactivated.",
+      variant: "destructive",
+    });
+    
+    setTimeout(() => {
+      logout();
+    }, 2000);
+  };
+
   const handleLogout = () => {
     logout();
     toast({
@@ -125,6 +146,12 @@ const RefugeeDashboard: React.FC = () => {
         isOpen={showConsentDialog}
         onAccept={handleConsentAccept}
         onDecline={handleConsentDecline}
+      />
+      
+      <ConsentRevocationDialog
+        isOpen={showRevocationDialog}
+        onClose={() => setShowRevocationDialog(false)}
+        onRevocationComplete={handleRevocationComplete}
       />
       
       <div className="min-h-screen bg-light-gray">
@@ -170,6 +197,38 @@ const RefugeeDashboard: React.FC = () => {
                 />
               </div>
             )}
+
+            {/* Data Protection Consent Status */}
+            <div className="bg-white rounded-lg border border-border p-6 mb-8">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-h3-mobile font-semibold text-neutral-gray mb-2">
+                    Data Protection Consent
+                  </h3>
+                  <p className="text-body-mobile text-neutral-gray/70 mb-4">
+                    You have consented to our data protection terms. You can revoke your consent at any time.
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-small-mobile font-medium text-green-800">
+                        Consent Given
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleConsentRevoke}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      <AlertTriangle className="w-4 h-4" />
+                      Revoke Consent
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Welcome Section */}
             <div className="bg-white rounded-lg border border-border p-6 mb-8">
