@@ -1,168 +1,335 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
-import { buildApiUrl, getApiHeaders } from '@/config/api';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Eye, EyeOff, Lock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { sendForgotPasswordEmail } from '@/utils/emailApi';
 
-const ResetPassword = () => {
-  const [token, setToken] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+const ResetPassword: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const [email, setEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [isResendingCode, setIsResendingCode] = useState(false);
 
+  // Extract email from URL parameters
   useEffect(() => {
-    // Extract token from URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenParam = urlParams.get('token');
-    if (tokenParam) {
-      setToken(tokenParam);
+    const urlParams = new URLSearchParams(location.search);
+    const emailParam = urlParams.get('email');
+    if (emailParam) {
+      setEmail(emailParam);
     }
-  }, []);
+  }, [location]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!token) {
+    if (!email) {
       toast({
-        title: "Error",
-        description: "Reset token is missing. Please use the link from your email.",
+        title: "Email Required",
+        description: "Email address is required for password reset.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsLoading(true);
+    if (verificationCode.length !== 6) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter the complete 6-digit verification code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Passwords Don't Match",
+        description: "Please ensure both password fields match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResetting(true);
 
     try {
-      console.log('Attempting password reset with token');
+      console.log('Resetting password for:', email);
       
-      const response = await fetch(buildApiUrl('/api/reset-password'), {
+      const response = await fetch('https://ab93e9536acd.ngrok.app/api/reset-password', {
         method: 'POST',
-        headers: getApiHeaders(),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
         body: JSON.stringify({
-          token: token,
+          email,
+          verification_code: verificationCode,
           new_password: newPassword
         })
       });
 
-      console.log('Password reset response status:', response.status);
-
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Password reset failed' }));
-        console.error('Password reset error:', errorData);
-        throw new Error(errorData.message || 'Password reset failed');
+        let errorMessage = 'Failed to reset password';
+        
+        try {
+          const errorData = await response.json();
+          console.log('Reset password error response:', errorData);
+          
+          if (response.status === 400) {
+            errorMessage = 'Invalid or expired verification code. Please request a new code.';
+          } else if (response.status === 403) {
+            errorMessage = 'Account is deactivated. Please contact support.';
+          } else if (response.status === 404) {
+            errorMessage = 'User not found. Please check your email address.';
+          } else {
+            errorMessage = errorData.detail || errorData.message || errorMessage;
+          }
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      const data = await response.json();
-      console.log('Password reset successful:', data);
+      const result = await response.json();
+      console.log('Password reset successful:', result);
 
-      setIsSuccess(true);
       toast({
         title: "Password Reset Successful",
-        description: "Your password has been updated successfully. You can now log in with your new password.",
+        description: "Your password has been reset successfully. You can now login with your new password.",
       });
+
+      // Redirect to login page with success indication
+      navigate('/?action=login&reset=success');
 
     } catch (error) {
       console.error('Password reset error:', error);
+      
+      let errorMessage = 'Failed to reset password';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
-        title: "Password Reset Failed",
-        description: error instanceof Error ? error.message : 'An error occurred during password reset',
+        title: "Reset Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsResetting(false);
     }
   };
 
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="h-6 w-6 text-green-600" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-green-900">Password Reset Complete</CardTitle>
-            <CardDescription className="text-gray-600">
-              Your password has been successfully updated
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-600 mb-6">
-              You can now log in to your account using your new password.
-            </p>
-            <Button 
-              onClick={() => window.location.href = '/'}
-              className="w-full"
-            >
-              Go to Login
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleResendCode = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Email address is required to resend verification code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResendingCode(true);
+
+    try {
+      console.log('Resending verification code to:', email);
+      
+      await sendForgotPasswordEmail({ email });
+
+      toast({
+        title: "Code Sent",
+        description: "A new verification code has been sent to your email.",
+      });
+    } catch (error) {
+      console.error('Resend code error:', error);
+      
+      let errorMessage = 'Failed to resend verification code';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = 'Network error: The server may be temporarily unavailable. Please try again later.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast({
+        title: "Resend Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsResendingCode(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-900">Reset Password</CardTitle>
-          <CardDescription className="text-gray-600">
-            Enter your new password below
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleResetPassword} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
-              <div className="relative">
-                <Input
-                  id="new-password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter your new password"
-                  required
-                  disabled={isLoading}
-                  minLength={8}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+    <div className="min-h-screen bg-light-gray">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-neutral-gray hover:text-un-blue transition-colors mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </button>
+
+          <div className="form-card">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-un-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-8 h-8 text-un-blue" />
               </div>
-              <p className="text-sm text-gray-500">
-                Password must be at least 8 characters long
+              <h1 className="text-h2-mobile font-bold text-neutral-gray mb-2">
+                Reset Your Password
+              </h1>
+              <p className="text-body-mobile text-neutral-gray/70">
+                Enter the verification code sent to your email and create a new password
               </p>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isLoading || !newPassword || newPassword.length < 8}
-            >
-              {isLoading ? 'Updating Password...' : 'Update Password'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-small-mobile font-medium text-neutral-gray mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="form-input bg-gray-50"
+                  placeholder="Enter your email"
+                  required
+                  readOnly={!!new URLSearchParams(location.search).get('email')}
+                />
+              </div>
+
+              <div>
+                <label className="block text-small-mobile font-medium text-neutral-gray mb-2">
+                  Verification Code *
+                </label>
+                <div className="flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={verificationCode}
+                    onChange={setVerificationCode}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <div className="text-center mt-2">
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={isResendingCode}
+                    className="text-un-blue hover:text-un-blue/80 text-small-mobile font-medium disabled:opacity-50"
+                  >
+                    {isResendingCode ? 'Sending...' : 'Resend Code'}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="newPassword" className="block text-small-mobile font-medium text-neutral-gray mb-2">
+                  New Password *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="newPassword"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="form-input pr-10"
+                    placeholder="Enter new password (min 6 characters)"
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-gray/50 hover:text-neutral-gray"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-small-mobile font-medium text-neutral-gray mb-2">
+                  Confirm New Password *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    id="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="form-input pr-10"
+                    placeholder="Confirm new password"
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-gray/50 hover:text-neutral-gray"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isResetting}
+                className="btn-primary w-full"
+              >
+                {isResetting ? 'Resetting Password...' : 'Reset Password'}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
