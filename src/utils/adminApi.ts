@@ -45,7 +45,7 @@ export const fetchCompanies = async (): Promise<Company[]> => {
   console.log('Fetching companies from API...');
   const response = await fetch(buildApiUrl('/api/companies'), {
     method: 'GET',
-    headers: getApiHeaders()
+    headers: getApiHeaders(true) // ✅ Added includeAuth: true
   });
 
   if (!response.ok) {
@@ -63,7 +63,7 @@ export const fetchUsers = async (): Promise<User[]> => {
   try {
     const response = await fetch(buildApiUrl('/api/admin/users'), {
       method: 'GET',
-      headers: getApiHeaders()
+      headers: getApiHeaders(true) // ✅ Added includeAuth: true
     });
 
     console.log('Users API response status:', response.status);
@@ -152,7 +152,7 @@ export const approveCompany = async (companyId: string, adminId: string, adminCo
   
   const response = await fetch(buildApiUrl(`/api/companies/${companyId}/approve`), {
     method: 'PUT',
-    headers: getApiHeaders(),
+    headers: getApiHeaders(true), // ✅ Added includeAuth: true
     body: JSON.stringify(requestBody)
   });
 
@@ -181,7 +181,7 @@ export const rejectCompany = async (companyId: string, adminId: string, adminCom
   
   const response = await fetch(buildApiUrl(`/api/companies/${companyId}/approve`), {
     method: 'PUT',
-    headers: getApiHeaders(),
+    headers: getApiHeaders(true), // ✅ Added includeAuth: true
     body: JSON.stringify(requestBody)
   });
 
@@ -201,7 +201,7 @@ export const activateUser = async (userId: string): Promise<void> => {
   console.log('Activating user:', userId);
   const response = await fetch(buildApiUrl('/api/activate'), {
     method: 'POST',
-    headers: getApiHeaders(),
+    headers: getApiHeaders(true), // ✅ Added includeAuth: true
     body: JSON.stringify({ user_id: userId })
   });
 
@@ -219,7 +219,7 @@ export const deactivateUser = async (userId: string): Promise<void> => {
   console.log('Deactivating user:', userId);
   const response = await fetch(buildApiUrl('/api/deactivate'), {
     method: 'POST',
-    headers: getApiHeaders(),
+    headers: getApiHeaders(true), // ✅ Added includeAuth: true
     body: JSON.stringify({ user_id: userId })
   });
 
@@ -239,7 +239,7 @@ export const fetchUserLastLogin = async (userId: string): Promise<{ last_login?:
   try {
     const response = await fetch(buildApiUrl(`/api/admin/users/${userId}/update-last-login`), {
       method: 'GET',
-      headers: getApiHeaders()
+      headers: getApiHeaders(true) // ✅ Added includeAuth: true
     });
 
     if (!response.ok) {
