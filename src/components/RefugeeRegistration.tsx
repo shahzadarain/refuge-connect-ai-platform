@@ -5,7 +5,7 @@ import FormField from './FormField';
 import { Button } from './ui/button';
 import { Shield, UserCheck, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { buildApiUrl } from '@/config/apiConfig'; // Top of file
+import { API_CONFIG, buildApiUrl } from '../config/api'; // ✅ fixed import
 
 interface RefugeeData {
   individual_id: string;
