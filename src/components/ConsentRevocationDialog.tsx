@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { AlertTriangle, Loader2, Shield } from 'lucide-react';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { buildApiUrl, getApiHeaders } from '@/config/api';
 
 interface ConsentRevocationDialogProps {
   isOpen: boolean;
@@ -30,16 +30,9 @@ const ConsentRevocationDialog: React.FC<ConsentRevocationDialogProps> = ({
     
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('access_token');
-      
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/consent/revoke', {
+      const response = await fetch(buildApiUrl('/api/consent/revoke'), {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
+        headers: getApiHeaders(true),
         body: JSON.stringify({
           reason: reason.trim() || undefined,
           confirm_revocation: true

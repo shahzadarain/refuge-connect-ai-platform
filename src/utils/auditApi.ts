@@ -1,4 +1,6 @@
 
+import { buildApiUrl, getApiHeaders } from '@/config/api';
+
 export interface AuditLog {
   id: string;
   table_name: string;
@@ -21,22 +23,6 @@ export interface AuditLogFilters {
   search?: string;
 }
 
-const API_BASE_URL = 'https://ab93e9536acd.ngrok.app/api';
-const API_HEADERS = {
-  'Accept': 'application/json',
-  'ngrok-skip-browser-warning': 'true'
-};
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('access_token');
-  console.log('Getting auth headers, token exists:', !!token);
-  return {
-    ...API_HEADERS,
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
-  };
-};
-
 export const fetchAuditLogs = async (filters?: AuditLogFilters): Promise<AuditLog[]> => {
   console.log('Fetching audit logs from API...');
   
@@ -49,11 +35,11 @@ export const fetchAuditLogs = async (filters?: AuditLogFilters): Promise<AuditLo
     });
   }
   
-  const url = `${API_BASE_URL}/audit-logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const url = buildApiUrl(`/api/audit-logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
   
   const response = await fetch(url, {
     method: 'GET',
-    headers: getAuthHeaders()
+    headers: getApiHeaders()
   });
 
   if (!response.ok) {
@@ -68,11 +54,11 @@ export const fetchAuditLogs = async (filters?: AuditLogFilters): Promise<AuditLo
 export const fetchCompanyAuditLogs = async (companyId: string): Promise<AuditLog[]> => {
   console.log('Fetching company audit logs for:', companyId);
   
-  const url = `${API_BASE_URL}/audit-logs/companies/${companyId}`;
+  const url = buildApiUrl(`/api/audit-logs/companies/${companyId}`);
   
   const response = await fetch(url, {
     method: 'GET',
-    headers: getAuthHeaders()
+    headers: getApiHeaders()
   });
 
   if (!response.ok) {

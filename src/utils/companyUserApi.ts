@@ -1,23 +1,12 @@
 
 import { CompanyUser } from '@/components/types/companyUser';
-
-const API_BASE_URL = 'https://ab93e9536acd.ngrok.app/api';
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('access_token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'ngrok-skip-browser-warning': 'true'
-  };
-};
+import { buildApiUrl, getApiHeaders } from '@/config/api';
 
 export const fetchCompanyUsers = async (): Promise<CompanyUser[]> => {
   console.log('Fetching company users...');
   
-  const response = await fetch(`${API_BASE_URL}/company/users`, {
-    headers: getAuthHeaders()
+  const response = await fetch(buildApiUrl('/api/company/users'), {
+    headers: getApiHeaders()
   });
 
   console.log('Company users API response status:', response.status);
@@ -36,9 +25,9 @@ export const fetchCompanyUsers = async (): Promise<CompanyUser[]> => {
 export const toggleUserStatus = async (userId: string, currentStatus: boolean): Promise<void> => {
   console.log('Toggling user status for:', userId, 'current status:', currentStatus);
   
-  const response = await fetch(`${API_BASE_URL}/company/users/${userId}/status`, {
+  const response = await fetch(buildApiUrl(`/api/company/users/${userId}/status`), {
     method: 'PUT',
-    headers: getAuthHeaders(),
+    headers: getApiHeaders(),
     body: JSON.stringify({
       is_active: !currentStatus
     })
@@ -64,9 +53,9 @@ export const toggleUserStatus = async (userId: string, currentStatus: boolean): 
 export const deleteUser = async (userId: string): Promise<void> => {
   console.log('Deleting user:', userId);
   
-  const response = await fetch(`${API_BASE_URL}/company/users/${userId}`, {
+  const response = await fetch(buildApiUrl(`/api/company/users/${userId}`), {
     method: 'DELETE',
-    headers: getAuthHeaders()
+    headers: getApiHeaders()
   });
 
   console.log('Delete user response:', response.status);

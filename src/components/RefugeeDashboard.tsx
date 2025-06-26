@@ -7,6 +7,7 @@ import { sessionStore } from '@/stores/sessionStore';
 import ValidationStatusCard from '@/components/ValidationStatusCard';
 import DataProtectionConsent from '@/components/DataProtectionConsent';
 import ConsentRevocationDialog from '@/components/ConsentRevocationDialog';
+import { buildApiUrl, getApiHeaders } from '@/config/api';
 import { User, Search, FileText, Heart, LogOut, Briefcase, Shield, AlertTriangle } from 'lucide-react';
 
 const RefugeeDashboard: React.FC = () => {
@@ -27,14 +28,8 @@ const RefugeeDashboard: React.FC = () => {
 
   const checkConsentStatus = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/consent/check', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        }
+      const response = await fetch(buildApiUrl('/api/consent/check'), {
+        headers: getApiHeaders(true)
       });
 
       if (response.ok) {

@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { buildApiUrl } from '@/config/api';
 
 interface ValidationStatus {
   email: string;
@@ -26,7 +27,7 @@ export const useValidationStatus = (email?: string) => {
       console.log('Checking validation status for:', userEmail);
       
       const response = await fetch(
-        `https://ab93e9536acd.ngrok.app/api/refugee/check-validation-status?email=${encodeURIComponent(userEmail)}`,
+        buildApiUrl(`/api/refugee/check-validation-status?email=${encodeURIComponent(userEmail)}`),
         {
           method: 'GET',
           headers: {

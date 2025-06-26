@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { buildApiUrl, getApiHeaders } from '@/config/api';
 
 interface DataProtectionConsentProps {
   isOpen: boolean;
@@ -43,15 +44,10 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
   const fetchConsentText = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
       const apiLanguage = language === 'ar' ? 'ar' : 'en';
       
-      const response = await fetch(`https://ab93e9536acd.ngrok.app/api/consent/current?language=${apiLanguage}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        }
+      const response = await fetch(buildApiUrl(`/api/consent/current?language=${apiLanguage}`), {
+        headers: getApiHeaders(true)
       });
 
       if (response.ok) {
@@ -82,16 +78,9 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
   const handleAcceptClick = async () => {
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('access_token');
-      
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/consent/accept', {
+      const response = await fetch(buildApiUrl('/api/consent/accept'), {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
+        headers: getApiHeaders(true),
         body: JSON.stringify({
           consent_given: true
         })
@@ -128,16 +117,9 @@ const DataProtectionConsent: React.FC<DataProtectionConsentProps> = ({
   const handleConfirmDecline = async () => {
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('access_token');
-      
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/consent/accept', {
+      const response = await fetch(buildApiUrl('/api/consent/accept'), {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
+        headers: getApiHeaders(true),
         body: JSON.stringify({
           consent_given: false
         })

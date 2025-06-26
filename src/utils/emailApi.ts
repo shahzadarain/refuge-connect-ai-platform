@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { buildApiUrl } from '@/config/api';
 
 export interface CompanyApprovalEmailData {
   to: string;
@@ -24,7 +24,7 @@ export interface ForgotPasswordEmailData {
 export const sendCompanyApprovalEmail = async (data: CompanyApprovalEmailData) => {
   console.log('Sending company approval email via backend API');
   
-  const response = await fetch('https://ab93e9536acd.ngrok.app/api/send-company-approval-email', {
+  const response = await fetch(buildApiUrl('/api/send-company-approval-email'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export const sendCompanyApprovalEmail = async (data: CompanyApprovalEmailData) =
 export const sendUserInvitationEmail = async (data: UserInvitationEmailData) => {
   console.log('Sending user invitation email via backend API');
   
-  const response = await fetch('https://ab93e9536acd.ngrok.app/api/send-user-invitation-email', {
+  const response = await fetch(buildApiUrl('/api/send-user-invitation-email'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ export const sendUserInvitationEmail = async (data: UserInvitationEmailData) => 
 export const sendForgotPasswordEmail = async (data: ForgotPasswordEmailData) => {
   console.log('Sending forgot password email via backend API');
   
-  const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
+  const response = await fetch(buildApiUrl('/api/forgot-password'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

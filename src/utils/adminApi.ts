@@ -1,3 +1,6 @@
+
+import { buildApiUrl, getApiHeaders } from '@/config/api';
+
 export interface Company {
   id: string;
   legal_name: string;
@@ -38,26 +41,11 @@ export interface ApprovalResponse {
   };
 }
 
-const API_BASE_URL = 'https://ab93e9536acd.ngrok.app/api';
-const API_HEADERS = {
-  'Accept': 'application/json',
-  'ngrok-skip-browser-warning': 'true'
-};
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('access_token');
-  return {
-    ...API_HEADERS,
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
-  };
-};
-
 export const fetchCompanies = async (): Promise<Company[]> => {
   console.log('Fetching companies from API...');
-  const response = await fetch(`${API_BASE_URL}/companies`, {
+  const response = await fetch(buildApiUrl('/api/companies'), {
     method: 'GET',
-    headers: getAuthHeaders()
+    headers: getApiHeaders()
   });
 
   if (!response.ok) {
@@ -73,9 +61,9 @@ export const fetchUsers = async (): Promise<User[]> => {
   console.log('Fetching users from API...');
   
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+    const response = await fetch(buildApiUrl('/api/admin/users'), {
       method: 'GET',
-      headers: getAuthHeaders()
+      headers: getApiHeaders()
     });
 
     console.log('Users API response status:', response.status);
@@ -120,9 +108,9 @@ export const fetchCompanyAdmin = async (companyId: string): Promise<User | null>
   
   try {
     // First try to get all users and filter
-    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+    const response = await fetch(buildApiUrl('/api/admin/users'), {
       method: 'GET',
-      headers: getAuthHeaders()
+      headers: getApiHeaders()
     });
 
     if (!response.ok) {
@@ -162,9 +150,9 @@ export const approveCompany = async (companyId: string, adminId: string, adminCo
   
   console.log('Request body being sent:', requestBody);
   
-  const response = await fetch(`${API_BASE_URL}/companies/${companyId}/approve`, {
+  const response = await fetch(buildApiUrl(`/api/companies/${companyId}/approve`), {
     method: 'PUT',
-    headers: getAuthHeaders(),
+    headers: getApiHeaders(),
     body: JSON.stringify(requestBody)
   });
 
@@ -191,9 +179,9 @@ export const rejectCompany = async (companyId: string, adminId: string, adminCom
   
   console.log('Request body being sent:', requestBody);
   
-  const response = await fetch(`${API_BASE_URL}/companies/${companyId}/approve`, {
+  const response = await fetch(buildApiUrl(`/api/companies/${companyId}/approve`), {
     method: 'PUT',
-    headers: getAuthHeaders(),
+    headers: getApiHeaders(),
     body: JSON.stringify(requestBody)
   });
 
@@ -211,9 +199,9 @@ export const rejectCompany = async (companyId: string, adminId: string, adminCom
 
 export const activateUser = async (userId: string): Promise<void> => {
   console.log('Activating user:', userId);
-  const response = await fetch(`${API_BASE_URL}/activate`, {
+  const response = await fetch(buildApiUrl('/api/activate'), {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: getApiHeaders(),
     body: JSON.stringify({ user_id: userId })
   });
 
@@ -229,9 +217,9 @@ export const activateUser = async (userId: string): Promise<void> => {
 
 export const deactivateUser = async (userId: string): Promise<void> => {
   console.log('Deactivating user:', userId);
-  const response = await fetch(`${API_BASE_URL}/deactivate`, {
+  const response = await fetch(buildApiUrl('/api/deactivate'), {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: getApiHeaders(),
     body: JSON.stringify({ user_id: userId })
   });
 
@@ -249,9 +237,9 @@ export const fetchUserLastLogin = async (userId: string): Promise<{ last_login?:
   console.log('Fetching last login for user:', userId);
   
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/update-last-login`, {
+    const response = await fetch(buildApiUrl(`/api/admin/users/${userId}/update-last-login`), {
       method: 'GET',
-      headers: getAuthHeaders()
+      headers: getApiHeaders()
     });
 
     if (!response.ok) {
