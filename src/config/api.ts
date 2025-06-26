@@ -1,3 +1,4 @@
+
 // Centralized API configuration
 // Update this URL when your backend endpoint changes
 export const API_CONFIG = {
@@ -38,6 +39,7 @@ export const buildApiUrl = (endpoint: string): string => {
 export const getApiHeaders = (includeAuth: boolean = false) => {
   const headers: Record<string, string> = {
     'Accept': 'application/json',
+    'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true'
   };
 
@@ -46,7 +48,6 @@ export const getApiHeaders = (includeAuth: boolean = false) => {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    headers['Content-Type'] = 'application/json';
   }
 
   return headers;
