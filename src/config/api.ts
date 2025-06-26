@@ -1,7 +1,7 @@
 // Centralized API configuration
 // Update this URL when your backend endpoint changes
 export const API_CONFIG = {
-  BASE_URL: 'https://b98e3a6b657a.ngrok.app',
+  BASE_URL: 'https://77cac04c3be3.ngrok.app/',
   ENDPOINTS: {
     // Auth endpoints
     CONSENT_CHECK: '/api/consent/check',
