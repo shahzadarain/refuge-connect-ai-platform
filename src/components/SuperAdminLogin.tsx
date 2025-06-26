@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Shield, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
+import { API_CONFIG, buildApiUrl } from '../config/api'; // ✅ Updated import
 
 interface SuperAdminLoginProps {
   onBack: () => void;
@@ -36,9 +36,7 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
     setIsLoading(true);
 
     try {
-      console.log('Attempting super admin login with:', formData);
-
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/admin/login', {
+      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.LOGIN_ADMIN), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,22 +47,19 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
       });
 
       const result = await response.json();
-      console.log('Super admin login response:', result);
 
       if (response.ok && result.access_token) {
-        // Store user session based on actual API response structure
         login({
           id: result.user_id,
-          email: formData.email, // Use email from form since API doesn't return it
+          email: formData.email,
           user_type: result.user_type,
-          phone: formData.phone, // Use phone from form since API doesn't return it
-          is_active: true, // Assume active if login successful
-          is_verified: true, // Assume verified if login successful
+          phone: formData.phone,
+          is_active: true,
+          is_verified: true,
           created_at: new Date().toISOString(),
           last_login: new Date().toISOString()
         });
 
-        // Store access token for future API calls
         localStorage.setItem('access_token', result.access_token);
 
         toast({
@@ -104,9 +99,7 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
     setIsSendingReset(true);
 
     try {
-      console.log('Sending password reset for super admin:', formData.email);
-      
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
+      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.FORGOT_PASSWORD), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,37 +112,29 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
         })
       });
 
-      console.log('Password reset response status:', response.status);
-
       if (!response.ok) {
         let errorMessage = 'Failed to send reset link';
         
         try {
           const errorData = await response.json();
-          console.log('Error response data:', errorData);
           errorMessage = errorData.detail || errorData.message || errorMessage;
-        } catch (parseError) {
-          console.log('Could not parse error response as JSON');
+        } catch {
           const errorText = await response.text();
-          console.log('Error response text:', errorText);
           errorMessage = errorText || errorMessage;
         }
-        
+
         throw new Error(errorMessage);
       }
 
-      const result = await response.json();
-      console.log('Password reset successful:', result);
+      await response.json();
 
       toast({
         title: "Reset Link Sent",
-        description: "Please check your email for password reset instructions. The link will expire in 3 hours.",
+        description: "Please check your email. The link will expire in 3 hours.",
       });
     } catch (error) {
-      console.error('Password reset error:', error);
-      
       let errorMessage = 'Failed to send password reset link';
-      
+
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
           errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
@@ -159,7 +144,7 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
           errorMessage = error.message;
         }
       }
-      
+
       toast({
         title: "Error",
         description: errorMessage,
