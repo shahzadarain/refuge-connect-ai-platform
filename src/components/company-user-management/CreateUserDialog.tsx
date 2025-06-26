@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { API_CONFIG, buildApiUrl } from '../config/api'; // ✅ fixed import
+import { API_CONFIG, buildApiUrl } from '.../config/api'; // ✅ fixed import
 
 import { Label } from '@/components/ui/label';
 import {
