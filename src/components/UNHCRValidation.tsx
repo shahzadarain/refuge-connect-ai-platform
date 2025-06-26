@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import FormField from './FormField';
 import { Shield, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
+import { API_CONFIG, buildApiUrl } from '../config/api';
 interface UNHCRValidationProps {
   onBack: () => void;
   onValidationSuccess: () => void;
@@ -86,7 +86,7 @@ const UNHCRValidation: React.FC<UNHCRValidationProps> = ({
       console.log('Starting UNHCR validation request...');
       console.log('Validation data:', validationData);
 
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/refugee/validate-unhcr', {
+const response = await fetch(buildApiUrl('/refugee/validate-unhcr'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
