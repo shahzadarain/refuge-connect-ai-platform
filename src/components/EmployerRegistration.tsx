@@ -6,6 +6,7 @@ import ProgressIndicator from './ProgressIndicator';
 import { ArrowLeft, Building, CheckCircle, Shield, User, Building2, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from './ui/checkbox';
+import { API_CONFIG, buildApiUrl } from '../config/api'; // ✅ fixed import
 
 interface CompanyData {
   legal_name: string;
@@ -159,7 +160,7 @@ const EmployerRegistration: React.FC<EmployerRegistrationProps> = ({ onBack }) =
     try {
       console.log('Starting registration request...');
 
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/employer/register', {
+const response = await fetch(buildApiUrl('/employer/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
