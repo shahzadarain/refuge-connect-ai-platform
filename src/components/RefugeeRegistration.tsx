@@ -168,7 +168,8 @@ const RefugeeRegistration: React.FC<RefugeeRegistrationProps> = ({ onBack }) => 
       
       console.log('Registration data:', { ...registrationData, password: '[HIDDEN]' });
 
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/refugee/register-with-validation', {
+      const response = await fetch(buildApiUrl('/refugee/register-with-validation'), {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
