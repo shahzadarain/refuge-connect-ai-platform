@@ -4,7 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Building, CheckCircle, Mail, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { sessionStore } from '@/stores/sessionStore';
-
+import { API_CONFIG, buildApiUrl } from '../config/api';
 const CompanyActivation = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -75,7 +75,7 @@ const CompanyActivation = () => {
         requestBody.verification_code = verificationCode;
       }
       
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/verify-email', {
+const response = await fetch(buildApiUrl('/verify-email'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -171,7 +171,7 @@ const CompanyActivation = () => {
     try {
       console.log('Logging in company admin:', email);
 
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/login', {
+const response = await fetch(buildApiUrl('/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -259,7 +259,7 @@ const CompanyActivation = () => {
     try {
       console.log('Sending password reset for:', email);
       
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/forgot-password', {
+const response = await fetch(buildApiUrl('/forgot-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
