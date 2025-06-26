@@ -4,6 +4,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { API_CONFIG, buildApiUrl } from '../config/api'; // ✅ fixed import
+
 import { Label } from '@/components/ui/label';
 import {
   Dialog,
@@ -103,8 +105,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         requestBody.phone = form.phone;
       }
 
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/company/users', {
-        method: 'POST',
+const response = await fetch(buildApiUrl('/company/users'), {        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
