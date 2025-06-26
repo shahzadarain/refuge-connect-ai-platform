@@ -1,5 +1,5 @@
-// Centralized API configuration
-// Update this URL when your backend endpoint changes
+// src/config/apiConfig.ts
+
 export const API_CONFIG = {
   BASE_URL: 'https://811d7ad4592d.ngrok.app',
   ENDPOINTS: {
@@ -8,20 +8,25 @@ export const API_CONFIG = {
     CONSENT_CURRENT: '/api/consent/current',
     CONSENT_ACCEPT: '/api/consent/accept',
     CONSENT_REVOKE: '/api/consent/revoke',
-    
+
+    // Login endpoints
+    LOGIN_ADMIN: '/api/admin/login',
+    LOGIN_EMPLOYER: '/api/employer/login',
+    LOGIN_REFUGEE: '/api/refugee/login',
+
     // Admin endpoints
     COMPANIES: '/api/companies',
     ADMIN_USERS: '/api/admin/users',
     AUDIT_LOGS: '/api/audit-logs',
-    
+
     // Company endpoints
     COMPANY_USERS: '/api/company/users',
-    
+
     // Email endpoints
     SEND_COMPANY_APPROVAL: '/api/send-company-approval-email',
     SEND_USER_INVITATION: '/api/send-user-invitation-email',
     FORGOT_PASSWORD: '/api/forgot-password',
-    
+
     // Other endpoints
     REFUGEE_VALIDATION: '/api/refugee/check-validation-status',
     ACTIVATE: '/api/activate',
