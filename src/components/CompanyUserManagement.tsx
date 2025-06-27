@@ -13,6 +13,10 @@ const CompanyUserManagement: React.FC = () => {
   const { currentUser } = useSession();
   const { toast } = useToast();
   
+  const [users, setUsers] = useState<CompanyUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
   // Check if user has proper access using the new permission function
   const hasAccess = canManageUsers(currentUser);
 
@@ -25,16 +29,10 @@ const CompanyUserManagement: React.FC = () => {
     return null;
   }
 
-  const [users, setUsers] = useState<CompanyUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
   useEffect(() => {
-    // Only load data if user has access
-    if (hasAccess) {
-      loadCompanyUsers();
-    }
-  }, [hasAccess]);
+    // Only load data once when component mounts
+    loadCompanyUsers();
+  }, []); // Remove hasAccess from dependency array to prevent infinite loop
 
   const loadCompanyUsers = async () => {
     try {
