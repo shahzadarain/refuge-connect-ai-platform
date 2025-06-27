@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Mail, Shield, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-
+import { buildApiUrl } from '@/config/api';
 interface EmailVerificationProps {
   onBack: () => void;
   onVerificationSuccess: () => void;
@@ -36,7 +36,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
     try {
       console.log('Verifying email with code:', verificationCode);
 
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/verify-email', {
+const response = await fetch(buildApiUrl('/api/verify-email'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
