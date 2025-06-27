@@ -1,3 +1,4 @@
+
 interface CurrentUser {
   id: string;
   email: string;
@@ -10,16 +11,16 @@ interface CurrentUser {
   created_at: string;
   last_login?: string;
   company_id?: string;
-  role?: string; // Added role field
-  has_consented_data_protection?: boolean; // Add this field
+  role?: string;
+  has_consented_data_protection?: boolean;
 }
 
 class SessionStore {
   private currentUser: CurrentUser | null = null;
   private listeners: ((user: CurrentUser | null) => void)[] = [];
+  private isInitialized = false;
 
   constructor() {
-    // Load user from localStorage on initialization
     this.loadFromStorage();
   }
 
@@ -28,58 +29,21 @@ class SessionStore {
       const storedUser = localStorage.getItem('current_log_user');
       const storedToken = localStorage.getItem('access_token');
       
+      console.log('SessionStore - Loading from storage:', { hasUser: !!storedUser, hasToken: !!storedToken });
+      
       if (storedUser && storedToken) {
         const user = JSON.parse(storedUser);
-        
-        // Validate token for employer_admin users
-        if (user.user_type === 'employer_admin') {
-          const isValidToken = this.validateEmployerAdminToken(storedToken);
-          if (!isValidToken) {
-            console.log('Invalid token detected for employer_admin - clearing session');
-            this.clearCurrentUser();
-            return;
-          }
-        }
-        
         this.currentUser = user;
-        console.log('Session restored from storage:', this.currentUser);
+        console.log('SessionStore - Session restored:', this.currentUser);
       } else {
-        console.log('No stored session found');
-        this.clearCurrentUser();
+        console.log('SessionStore - No valid session found');
+        this.clearSession();
       }
     } catch (error) {
-      console.error('Error loading user from storage:', error);
-      this.clearCurrentUser();
-    }
-  }
-
-  private validateEmployerAdminToken(token: string): boolean {
-    try {
-      // Basic JWT decode (without verification - just for checking payload)
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      
-      const decoded = JSON.parse(jsonPayload);
-      console.log('Token payload validation:', decoded);
-      
-      // Check if employer_admin has required fields
-      if (decoded.user_type === 'employer_admin') {
-        if (!decoded.company_id || !decoded.role) {
-          console.warn('Token missing required fields for employer_admin:', {
-            has_company_id: !!decoded.company_id,
-            has_role: !!decoded.role
-          });
-          return false;
-        }
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error validating token:', error);
-      return false;
+      console.error('SessionStore - Error loading from storage:', error);
+      this.clearSession();
+    } finally {
+      this.isInitialized = true;
     }
   }
 
@@ -87,22 +51,27 @@ class SessionStore {
     try {
       if (this.currentUser) {
         localStorage.setItem('current_log_user', JSON.stringify(this.currentUser));
-        console.log('Session saved to storage');
+        console.log('SessionStore - Session saved to storage');
       } else {
-        localStorage.removeItem('current_log_user');
-        localStorage.removeItem('access_token');
-        console.log('Session cleared from storage');
+        this.clearSession();
       }
     } catch (error) {
-      console.error('Error saving session to storage:', error);
+      console.error('SessionStore - Error saving to storage:', error);
     }
   }
 
+  private clearSession() {
+    localStorage.removeItem('current_log_user');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refugee_validation_email'); // Clean up any other session data
+    console.log('SessionStore - All session data cleared');
+  }
+
   setCurrentUser(user: CurrentUser) {
+    console.log('SessionStore - Setting user:', user);
     this.currentUser = user;
     this.saveToStorage();
     this.notifyListeners();
-    console.log('User session set:', user);
   }
 
   updateUserConsent(hasConsented: boolean) {
@@ -110,6 +79,7 @@ class SessionStore {
       this.currentUser.has_consented_data_protection = hasConsented;
       this.saveToStorage();
       this.notifyListeners();
+      console.log('SessionStore - User consent updated:', hasConsented);
     }
   }
 
@@ -118,40 +88,30 @@ class SessionStore {
   }
 
   clearCurrentUser() {
+    console.log('SessionStore - Clearing current user');
     this.currentUser = null;
-    // Clear all auth-related data from localStorage
-    localStorage.removeItem('current_log_user');
-    localStorage.removeItem('access_token');
+    this.clearSession();
     this.notifyListeners();
-    console.log('User session cleared completely');
   }
 
   isLoggedIn(): boolean {
-    // Simplified logic: if we have a valid user with an ID, they're logged in
-    // The token check is secondary since the user object itself indicates authentication
     const hasValidUser = this.currentUser !== null && !!this.currentUser.id;
     const hasToken = localStorage.getItem('access_token') !== null;
     
-    console.log('Login check - hasValidUser:', hasValidUser, 'hasToken:', hasToken, 'currentUser:', this.currentUser);
+    console.log('SessionStore - Login check:', { hasValidUser, hasToken, userId: this.currentUser?.id });
     
-    // Primary check: valid user exists
-    // Secondary check: token exists (but don't fail if temporarily missing during login flow)
-    return hasValidUser;
-  }
-
-  // New method to check if user needs token refresh
-  needsTokenRefresh(): boolean {
-    if (!this.currentUser) return false;
-    
-    if (this.currentUser.user_type === 'employer_admin') {
-      return !this.currentUser.company_id || !this.currentUser.role;
-    }
-    
-    return false;
+    // Both user and token must exist for a valid session
+    return hasValidUser && hasToken;
   }
 
   subscribe(listener: (user: CurrentUser | null) => void) {
     this.listeners.push(listener);
+    
+    // If already initialized, immediately call the listener with current state
+    if (this.isInitialized) {
+      listener(this.currentUser);
+    }
+    
     // Return unsubscribe function
     return () => {
       this.listeners = this.listeners.filter(l => l !== listener);
@@ -159,6 +119,7 @@ class SessionStore {
   }
 
   private notifyListeners() {
+    console.log('SessionStore - Notifying listeners, user:', this.currentUser?.email || 'null');
     this.listeners.forEach(listener => listener(this.currentUser));
   }
 }

@@ -3,57 +3,52 @@ import { useState, useEffect } from 'react';
 import { sessionStore, CurrentUser } from '@/stores/sessionStore';
 
 export const useSession = () => {
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(
-    sessionStore.getCurrentUser()
-  );
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
-    sessionStore.isLoggedIn()
-  );
-  const [needsTokenRefresh, setNeedsTokenRefresh] = useState<boolean>(
-    sessionStore.needsTokenRefresh()
-  );
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    console.log('useSession - Setting up subscription');
+    
     const unsubscribe = sessionStore.subscribe((user) => {
-      console.log('Session state change - user:', user);
+      console.log('useSession - Session change received:', user?.email || 'null');
+      
       setCurrentUser(user);
-      
-      // Immediately update isLoggedIn based on user presence
-      const loggedIn = !!user && !!user.id;
-      console.log('Setting isLoggedIn to:', loggedIn);
-      setIsLoggedIn(loggedIn);
-      
-      // Check if token refresh is needed
-      setNeedsTokenRefresh(sessionStore.needsTokenRefresh());
+      setIsLoggedIn(sessionStore.isLoggedIn());
+      setIsLoading(false);
     });
+
     return unsubscribe;
   }, []);
 
   const login = (user: CurrentUser) => {
-    console.log('Login called with user:', user);
+    console.log('useSession - Login called with user:', user.email);
     sessionStore.setCurrentUser(user);
-    // Force immediate state update
-    setCurrentUser(user);
-    setIsLoggedIn(true);
-    setNeedsTokenRefresh(sessionStore.needsTokenRefresh());
   };
 
   const logout = () => {
-    console.log('Logout called from useSession');
+    console.log('useSession - Logout called');
     sessionStore.clearCurrentUser();
-    // Force immediate state update
-    setCurrentUser(null);
-    setIsLoggedIn(false);
-    setNeedsTokenRefresh(false);
-    // Force a page reload to ensure clean state
-    window.location.href = '/';
+    
+    // Simple redirect without forcing reload
+    setTimeout(() => {
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    }, 100);
+  };
+
+  const updateConsent = (hasConsented: boolean) => {
+    sessionStore.updateUserConsent(hasConsented);
   };
 
   return {
     currentUser,
     login,
     logout,
+    updateConsent,
     isLoggedIn,
-    needsTokenRefresh
+    isLoading,
+    needsTokenRefresh: false // Simplified - remove complex token refresh logic
   };
 };

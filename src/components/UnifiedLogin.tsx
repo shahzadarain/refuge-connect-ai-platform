@@ -6,7 +6,7 @@ import { useSession } from '@/hooks/useSession';
 import { sendForgotPasswordEmail } from '@/utils/emailApi';
 import { useLocation } from 'react-router-dom';
 import LanguageToggle from '@/components/LanguageToggle';
-import { API_CONFIG, buildApiUrl } from '../config/api'; // ✅ fixed import
+import { API_CONFIG, buildApiUrl } from '../config/api';
 
 interface UnifiedLoginProps {
   onBack: () => void;
@@ -40,31 +40,78 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const validateTokenPayload = (token: string, userType: string) => {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      const decoded = JSON.parse(jsonPayload);
+  const createUserFromResponse = (result: any, userType: string) => {
+    return {
+      id: result.user_id,
+      email: formData.email,
+      user_type: userType as 'super_admin' | 'employer_admin' | 'company_user' | 'refugee',
+      first_name: result.first_name,
+      last_name: result.last_name,
+      phone: '',
+      is_active: true,
+      is_verified: true,
+      created_at: new Date().toISOString(),
+      last_login: new Date().toISOString(),
+      company_id: result.company_id,
+      role: result.role,
+      has_consented_data_protection: userType === 'refugee' ? false : true
+    };
+  };
 
-      if (userType === 'employer_admin' && (!decoded.company_id || !decoded.role)) {
+  const attemptLogin = async (endpoint: string, expectedUserType: string) => {
+    const response = await fetch(buildApiUrl(endpoint), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+      },
+      body: JSON.stringify(formData)
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.access_token) {
+        // Store token first
+        localStorage.setItem('access_token', result.access_token);
+        
+        // Extract additional data from token if available
+        let tokenData = {};
+        try {
+          const base64Url = result.access_token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          );
+          tokenData = JSON.parse(jsonPayload);
+        } catch (error) {
+          console.log('Could not decode token data:', error);
+        }
+
+        // Create user object with all available data
+        const userData = createUserFromResponse({
+          ...result,
+          ...tokenData
+        }, expectedUserType);
+
+        // Set user in session
+        login(userData);
+        
         toast({
-          title: t('login.error.session.title'),
-          description: t('login.error.session.description'),
-          variant: 'destructive',
+          title: t('login.success.title'),
+          description: result.first_name 
+            ? t('login.success.user.description').replace('{name}', result.first_name)
+            : t('login.success.admin.description')
         });
-        return false;
+        
+        onLoginSuccess(expectedUserType);
+        return true;
       }
-      return true;
-    } catch (error) {
-      console.error('Error validating token payload:', error);
-      return false;
     }
+    return false;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,134 +119,24 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ onBack, onLoginSuccess, onU
     setIsLoading(true);
 
     try {
-      // Super admin login
-      const adminResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.LOGIN_ADMIN), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify(formData)
-      });
+      // Try each login type in sequence
+      const loginAttempts = [
+        { endpoint: API_CONFIG.ENDPOINTS.LOGIN_ADMIN, type: 'super_admin' },
+        { endpoint: API_CONFIG.ENDPOINTS.LOGIN_EMPLOYER, type: 'employer_admin' },
+        { endpoint: API_CONFIG.ENDPOINTS.LOGIN_REFUGEE, type: 'refugee' }
+      ];
 
-      if (adminResponse.ok) {
-        const result = await adminResponse.json();
-        if (result.access_token && validateTokenPayload(result.access_token, 'super_admin')) {
-          login({
-            id: result.user_id,
-            email: formData.email,
-            user_type: 'super_admin',
-            phone: '',
-            is_active: true,
-            is_verified: true,
-            created_at: new Date().toISOString(),
-            last_login: new Date().toISOString(),
-            has_consented_data_protection: true
-          });
-          localStorage.setItem('access_token', result.access_token);
-          toast({ title: t('login.success.title'), description: t('login.success.admin.description') });
-          onLoginSuccess('super_admin');
-          return;
+      for (const attempt of loginAttempts) {
+        try {
+          const success = await attemptLogin(attempt.endpoint, attempt.type);
+          if (success) return; // Exit if login successful
+        } catch (error) {
+          console.log(`Login attempt failed for ${attempt.type}:`, error);
+          // Continue to next attempt
         }
       }
 
-      // Employer login
-      const employerResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.LOGIN_EMPLOYER), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (employerResponse.ok) {
-        const result = await employerResponse.json();
-        if (result.access_token) {
-          let companyId, role, userType = 'employer_admin';
-          try {
-            const base64Url = result.access_token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(
-              atob(base64)
-                .split('')
-                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                .join('')
-            );
-            const decoded = JSON.parse(jsonPayload);
-            companyId = decoded.company_id;
-            role = decoded.role;
-            userType = decoded.user_type || 'employer_admin';
-          } catch (error) {
-            console.error('Error extracting token data:', error);
-          }
-
-          if (validateTokenPayload(result.access_token, userType)) {
-            login({
-              id: result.user_id,
-              email: formData.email,
-              user_type: userType as 'employer_admin' | 'company_user',
-              first_name: result.first_name,
-              last_name: result.last_name,
-              phone: '',
-              is_active: true,
-              is_verified: true,
-              created_at: new Date().toISOString(),
-              last_login: new Date().toISOString(),
-              company_id: companyId,
-              role: role,
-              has_consented_data_protection: true
-            });
-            localStorage.setItem('access_token', result.access_token);
-            toast({
-              title: t('login.success.title'),
-              description: t('login.success.user.description').replace('{name}', result.first_name || t('login.success.user.fallback')),
-            });
-            onLoginSuccess(userType);
-            return;
-          }
-        }
-      }
-
-      // Refugee login
-      const refugeeResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.LOGIN_REFUGEE), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (refugeeResponse.ok) {
-        const result = await refugeeResponse.json();
-        if (result.access_token && validateTokenPayload(result.access_token, 'refugee')) {
-          login({
-            id: result.user_id,
-            email: formData.email,
-            user_type: 'refugee',
-            first_name: result.first_name,
-            last_name: result.last_name,
-            phone: '',
-            is_active: true,
-            is_verified: true,
-            created_at: new Date().toISOString(),
-            last_login: new Date().toISOString(),
-            has_consented_data_protection: false
-          });
-          localStorage.setItem('access_token', result.access_token);
-          toast({
-            title: t('login.success.title'),
-            description: t('login.success.user.description').replace('{name}', result.first_name || t('login.success.user.fallback')),
-          });
-          onLoginSuccess('refugee');
-          return;
-        }
-      }
-
+      // If we get here, all login attempts failed
       toast({
         title: t('login.failed.title'),
         description: t('login.failed.description'),
