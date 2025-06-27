@@ -26,6 +26,9 @@ export const API_CONFIG = {
     SEND_COMPANY_APPROVAL: '/api/send-company-approval-email',
     SEND_USER_INVITATION: '/api/send-user-invitation-email',
     FORGOT_PASSWORD: '/api/forgot-password',
+    VERIFY_EMAIL: '/api/verify-email',
+    RESEND_VERIFICATION: '/api/resend-verification',
+    RESET_PASSWORD: '/api/reset-password',
 
     // Other endpoints
     REFUGEE_VALIDATION: '/api/refugee/check-validation-status',
