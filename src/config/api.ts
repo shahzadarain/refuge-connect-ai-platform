@@ -1,7 +1,7 @@
 // src/config/apiConfig.ts
 
 export const API_CONFIG = {
-  BASE_URL: 'https://9add91967bbc.ngrok.app',
+  BASE_URL: 'https://9add91967bbc.ngrok.app/api',
   ENDPOINTS: {
     // Auth endpoints
     CONSENT_CHECK: '/api/consent/check',
