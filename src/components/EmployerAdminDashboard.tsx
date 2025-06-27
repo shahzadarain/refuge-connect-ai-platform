@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Building, Users, Briefcase, Settings, LogOut, LayoutDashboard } from 'lucide-react';
 import CompanyUserManagement from './CompanyUserManagement';
 import { canManageUsers } from '@/utils/permissions';
-
+import { buildApiUrl } from '@/config/api';
 const EmployerAdminDashboard: React.FC = () => {
   const { t } = useLanguage();
   const { currentUser, logout } = useSession();
@@ -31,7 +31,7 @@ const EmployerAdminDashboard: React.FC = () => {
         const token = localStorage.getItem('access_token');
         console.log('Fetching user company details...');
         
-        const response = await fetch(`https://ab93e9536acd.ngrok.app/api/user/company`, {
+const response = await fetch(buildApiUrl('/api/user/company'), {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
