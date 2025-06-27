@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Shield, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/useSession';
-import { API_CONFIG, buildApiUrl } from '../config/api'; // ✅ Updated import
+import { API_CONFIG, buildApiUrl } from '../config/api';
 
 interface SuperAdminLoginProps {
   onBack: () => void;
@@ -49,6 +49,10 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
       const result = await response.json();
 
       if (response.ok && result.access_token) {
+        // Store the access token FIRST before calling login
+        localStorage.setItem('access_token', result.access_token);
+
+        // Then call login with the user data
         login({
           id: result.user_id,
           email: formData.email,
@@ -59,8 +63,6 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onBack, onLoginSucces
           created_at: new Date().toISOString(),
           last_login: new Date().toISOString()
         });
-
-        localStorage.setItem('access_token', result.access_token);
 
         toast({
           title: "Login Successful",
