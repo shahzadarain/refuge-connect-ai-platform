@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Building, User, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
+import { buildApiUrl } from '@/config/api';
 interface CompanyAdminSetupProps {
   onBack: () => void;
   onSetupSuccess: () => void;
@@ -59,7 +59,7 @@ const CompanyAdminSetup: React.FC<CompanyAdminSetupProps> = ({
     try {
       console.log('Setting up company admin account for:', email);
 
-      const response = await fetch('https://ab93e9536acd.ngrok.app/api/setup-admin-account', {
+const response = await fetch(buildApiUrl('/api/setup-admin-account'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
