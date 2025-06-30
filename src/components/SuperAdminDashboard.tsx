@@ -14,7 +14,9 @@ import {
   fetchUsers,
   approveCompany,
   rejectCompany,
-  activateUser
+  activateUser,
+  activateCompany,
+  deactivateCompany
 } from '@/utils/adminApi';
 import { sendCompanyApprovalEmail } from '@/utils/emailApi';
 
@@ -209,6 +211,42 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
     }
   };
 
+  const handleActivateCompany = async (companyId: string) => {
+    try {
+      await activateCompany(companyId);
+      toast({
+        title: "Success",
+        description: "Company activated successfully",
+      });
+      await loadCompanies();
+    } catch (error) {
+      console.error('Error activating company:', error);
+      toast({
+        title: "Error",
+        description: "Failed to activate company",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeactivateCompany = async (companyId: string) => {
+    try {
+      await deactivateCompany(companyId);
+      toast({
+        title: "Success",
+        description: "Company deactivated successfully",
+      });
+      await loadCompanies();
+    } catch (error) {
+      console.error('Error deactivating company:', error);
+      toast({
+        title: "Error",
+        description: "Failed to deactivate company",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleActivateUser = async (userId: string) => {
     try {
       await activateUser(userId);
@@ -266,6 +304,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onBack }) => 
               isLoading={isLoadingCompanies}
               onApprove={handleApproveCompany}
               onReject={handleRejectCompany}
+              onActivate={handleActivateCompany}
+              onDeactivate={handleDeactivateCompany}
             />
           </TabsContent>
           

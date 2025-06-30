@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { Building2, CheckCircle, XCircle, Eye, History } from 'lucide-react';
+import { Building2, CheckCircle, XCircle, Eye, History, Power, PowerOff } from 'lucide-react';
 import { Company } from '@/utils/adminApi';
 import CompanyActionDialog from './CompanyActionDialog';
 import CompanyAuditLogs from './CompanyAuditLogs';
@@ -12,19 +11,34 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CompaniesTabProps {
   companies: Company[];
   isLoading: boolean;
   onApprove: (companyId: string, comment: string) => void;
   onReject: (companyId: string, comment: string) => void;
+  onActivate: (companyId: string) => void;
+  onDeactivate: (companyId: string) => void;
 }
 
 const CompaniesTab: React.FC<CompaniesTabProps> = ({
   companies,
   isLoading,
   onApprove,
-  onReject
+  onReject,
+  onActivate,
+  onDeactivate
 }) => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -115,12 +129,23 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
                   </p>
                 </div>
               </div>
-              <div className={`px-3 py-1 rounded-full text-small-mobile ${
-                company.is_approved 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {company.is_approved ? 'Approved' : 'Pending'}
+              <div className="flex flex-col gap-2">
+                <div className={`px-3 py-1 rounded-full text-small-mobile ${
+                  company.is_approved 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {company.is_approved ? 'Approved' : 'Pending'}
+                </div>
+                {company.is_active !== undefined && (
+                  <div className={`px-3 py-1 rounded-full text-small-mobile ${
+                    company.is_active 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {company.is_active ? 'Active' : 'Inactive'}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -149,7 +174,7 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
               <CompanyActionDialog
                 action="approve"
                 companyName={company.legal_name}
@@ -175,6 +200,67 @@ const CompaniesTab: React.FC<CompaniesTabProps> = ({
                   Reject
                 </button>
               </CompanyActionDialog>
+
+              {/* Activate/Deactivate buttons */}
+              {company.is_active !== undefined && (
+                <>
+                  {company.is_active ? (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <button className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors">
+                          <PowerOff className="w-4 h-4" />
+                          Deactivate
+                        </button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Deactivate Company</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to deactivate {company.legal_name}? 
+                            This will prevent them from accessing the system.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => onDeactivate(company.id)}
+                            className="bg-orange-500 hover:bg-orange-600"
+                          >
+                            Deactivate
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  ) : (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <button className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
+                          <Power className="w-4 h-4" />
+                          Activate
+                        </button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Activate Company</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to activate {company.legal_name}? 
+                            This will allow them to access the system.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => onActivate(company.id)}
+                            className="bg-green-500 hover:bg-green-600"
+                          >
+                            Activate
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </>
+              )}
               
               <Dialog>
                 <DialogTrigger asChild>

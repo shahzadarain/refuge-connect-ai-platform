@@ -1,4 +1,3 @@
-
 import { buildApiUrl, getApiHeaders } from '@/config/api';
 
 export interface Company {
@@ -10,6 +9,7 @@ export interface Company {
   number_of_employees?: number;
   about_company?: string;
   is_approved: boolean;
+  is_active?: boolean; // Add is_active field
   approved_by?: string;
   approved_at?: string;
   admin_comment?: string;
@@ -195,6 +195,40 @@ export const rejectCompany = async (companyId: string, adminId: string, adminCom
 
   const responseData = await response.json();
   console.log('Rejection response data:', responseData);
+};
+
+export const activateCompany = async (companyId: string): Promise<void> => {
+  console.log('Activating company:', companyId);
+  const response = await fetch(buildApiUrl(`/api/companies/${companyId}/activate`), {
+    method: 'PUT',
+    headers: getApiHeaders(true)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Error activating company:', errorText);
+    throw new Error(`Failed to activate company: ${response.status} - ${errorText}`);
+  }
+
+  const responseData = await response.json();
+  console.log('Company activation response:', responseData);
+};
+
+export const deactivateCompany = async (companyId: string): Promise<void> => {
+  console.log('Deactivating company:', companyId);
+  const response = await fetch(buildApiUrl(`/api/companies/${companyId}/deactivate`), {
+    method: 'PUT',
+    headers: getApiHeaders(true)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Error deactivating company:', errorText);
+    throw new Error(`Failed to deactivate company: ${response.status} - ${errorText}`);
+  }
+
+  const responseData = await response.json();
+  console.log('Company deactivation response:', responseData);
 };
 
 export const activateUser = async (userId: string): Promise<void> => {
