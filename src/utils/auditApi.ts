@@ -70,7 +70,7 @@ export const fetchAuditLogs = async (filters?: AuditLogFilters): Promise<AuditLo
     });
   }
   
-  const url = buildApiUrl(`/api/audit-logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+  const url = buildApiUrl(`/api/admin/audit-logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
   
   const response = await fetch(url, {
     method: 'GET',
@@ -98,7 +98,7 @@ export const fetchCompanyAuditLogs = async (companyId: string): Promise<AuditLog
   // Validate token before making request
   checkTokenValidity();
   
-  const url = buildApiUrl(`/api/audit-logs/companies/${companyId}`);
+  const url = buildApiUrl(`/api/admin/audit-logs/companies/${companyId}`);
   
   const response = await fetch(url, {
     method: 'GET',
