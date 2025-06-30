@@ -1,4 +1,3 @@
-
 import { buildApiUrl, getApiHeaders } from '@/config/api';
 
 export interface AuditLog {
@@ -98,12 +97,8 @@ export const fetchCompanyAuditLogs = async (companyId: string): Promise<AuditLog
   // Validate token before making request
   checkTokenValidity();
   
-  // Use the general audit logs endpoint with company filtering
-  const queryParams = new URLSearchParams();
-  queryParams.append('record_id', companyId);
-  queryParams.append('table_name', 'companies');
-  
-  const url = buildApiUrl(`/api/admin/audit-logs?${queryParams.toString()}`);
+  // Use the correct endpoint path without /admin/ prefix
+  const url = buildApiUrl(`/api/audit-logs/companies/${companyId}`);
   
   const response = await fetch(url, {
     method: 'GET',
