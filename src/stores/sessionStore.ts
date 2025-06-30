@@ -33,6 +33,31 @@ class SessionStore {
       
       if (storedUser && storedToken) {
         const user = JSON.parse(storedUser);
+        
+        // Validate token expiry
+        try {
+          const base64Url = storedToken.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          );
+          const payload = JSON.parse(jsonPayload);
+          const currentTime = Math.floor(Date.now() / 1000);
+          
+          if (payload.exp && payload.exp < currentTime) {
+            console.log('SessionStore - Token expired, clearing session');
+            this.clearSession();
+            return;
+          }
+        } catch (error) {
+          console.log('SessionStore - Invalid token, clearing session');
+          this.clearSession();
+          return;
+        }
+        
         this.currentUser = user;
         console.log('SessionStore - Session restored:', this.currentUser);
       } else {
@@ -63,7 +88,8 @@ class SessionStore {
   private clearSession() {
     localStorage.removeItem('current_log_user');
     localStorage.removeItem('access_token');
-    localStorage.removeItem('refugee_validation_email'); // Clean up any other session data
+    localStorage.removeItem('refugee_validation_email');
+    localStorage.removeItem('api_cache');
     console.log('SessionStore - All session data cleared');
   }
 

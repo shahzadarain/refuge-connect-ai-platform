@@ -23,8 +23,43 @@ export interface AuditLogFilters {
   search?: string;
 }
 
+const checkTokenValidity = () => {
+  const token = localStorage.getItem('access_token');
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    const currentTime = Math.floor(Date.now() / 1000);
+    
+    if (payload.exp && payload.exp < currentTime) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('current_log_user');
+      throw new Error('Authentication token has expired. Please log in again.');
+    }
+    
+    return token;
+  } catch (error) {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('current_log_user');
+    throw new Error('Invalid authentication token. Please log in again.');
+  }
+};
+
 export const fetchAuditLogs = async (filters?: AuditLogFilters): Promise<AuditLog[]> => {
   console.log('Fetching audit logs from API...');
+  
+  // Validate token before making request
+  checkTokenValidity();
   
   const queryParams = new URLSearchParams();
   if (filters) {
@@ -43,6 +78,12 @@ export const fetchAuditLogs = async (filters?: AuditLogFilters): Promise<AuditLo
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      // Clear invalid session
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('current_log_user');
+      throw new Error('Session expired. Please log in again.');
+    }
     throw new Error(`Failed to fetch audit logs: ${response.status}`);
   }
 
@@ -54,6 +95,9 @@ export const fetchAuditLogs = async (filters?: AuditLogFilters): Promise<AuditLo
 export const fetchCompanyAuditLogs = async (companyId: string): Promise<AuditLog[]> => {
   console.log('Fetching company audit logs for:', companyId);
   
+  // Validate token before making request
+  checkTokenValidity();
+  
   const url = buildApiUrl(`/api/audit-logs/companies/${companyId}`);
   
   const response = await fetch(url, {
@@ -62,6 +106,12 @@ export const fetchCompanyAuditLogs = async (companyId: string): Promise<AuditLog
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      // Clear invalid session
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('current_log_user');
+      throw new Error('Session expired. Please log in again.');
+    }
     throw new Error(`Failed to fetch company audit logs: ${response.status}`);
   }
 
