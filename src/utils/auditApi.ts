@@ -39,7 +39,7 @@ export const fetchAuditLogs = async (filters?: AuditLogFilters): Promise<AuditLo
   
   const response = await fetch(url, {
     method: 'GET',
-    headers: getApiHeaders()
+    headers: getApiHeaders(true) // Include auth headers
   });
 
   if (!response.ok) {
@@ -58,7 +58,7 @@ export const fetchCompanyAuditLogs = async (companyId: string): Promise<AuditLog
   
   const response = await fetch(url, {
     method: 'GET',
-    headers: getApiHeaders()
+    headers: getApiHeaders(true) // Include auth headers
   });
 
   if (!response.ok) {
