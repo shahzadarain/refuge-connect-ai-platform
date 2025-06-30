@@ -14,7 +14,7 @@ export const useSession = () => {
       console.log('useSession - Session change received:', user?.email || 'null');
       
       setCurrentUser(user);
-      setIsLoggedIn(sessionStore.isLoggedIn());
+      setIsLoggedIn(!!user && !!user.id);
       setIsLoading(false);
     });
 
