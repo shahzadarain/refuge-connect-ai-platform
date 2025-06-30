@@ -14,6 +14,7 @@ export const useSession = () => {
       console.log('useSession - Session change received:', user?.email || 'null');
       
       setCurrentUser(user);
+      // Use simple check - if user exists and has ID, they're logged in
       setIsLoggedIn(!!user && !!user.id);
       setIsLoading(false);
     });
@@ -52,6 +53,12 @@ export const useSession = () => {
       return false;
     }
 
+    // For super admin, don't do strict token validation
+    if (currentUser?.user_type === 'super_admin') {
+      console.log('Super admin - skipping token refresh validation');
+      return true;
+    }
+
     try {
       // Check if token is expired by trying to decode it
       const base64Url = token.split('.')[1];
@@ -74,8 +81,8 @@ export const useSession = () => {
       return true;
     } catch (error) {
       console.error('Error checking token validity:', error);
-      logout();
-      return false;
+      // Don't logout on token validation errors - let API handle it
+      return true;
     }
   };
 

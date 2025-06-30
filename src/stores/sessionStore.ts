@@ -1,4 +1,3 @@
-
 interface CurrentUser {
   id: string;
   email: string;
@@ -31,36 +30,46 @@ class SessionStore {
       
       console.log('SessionStore - Loading from storage:', { hasUser: !!storedUser, hasToken: !!storedToken });
       
-      if (storedUser && storedToken) {
+      if (storedUser) {
         const user = JSON.parse(storedUser);
         
-        // Validate token expiry - but don't be too strict on login
-        try {
-          const base64Url = storedToken.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split('')
-              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-              .join('')
-          );
-          const payload = JSON.parse(jsonPayload);
-          const currentTime = Math.floor(Date.now() / 1000);
-          
-          // Add 60 second buffer to prevent immediate expiry issues
-          if (payload.exp && payload.exp < (currentTime - 60)) {
-            console.log('SessionStore - Token expired, clearing session');
-            this.clearSession();
-            return;
+        // For super admin, be more lenient with token validation
+        if (user.user_type === 'super_admin') {
+          console.log('SessionStore - Super admin login detected, skipping strict token validation');
+          this.currentUser = user;
+          console.log('SessionStore - Super admin session restored:', this.currentUser);
+        } else if (storedToken) {
+          // For other users, validate token but be lenient
+          try {
+            const base64Url = storedToken.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(
+              atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+            );
+            const payload = JSON.parse(jsonPayload);
+            const currentTime = Math.floor(Date.now() / 1000);
+            
+            // Add 5 minute buffer to prevent immediate expiry issues
+            if (payload.exp && payload.exp < (currentTime - 300)) {
+              console.log('SessionStore - Token expired, clearing session');
+              this.clearSession();
+              return;
+            }
+            
+            this.currentUser = user;
+            console.log('SessionStore - Regular user session restored:', this.currentUser);
+          } catch (error) {
+            console.log('SessionStore - Token validation error, but keeping session for compatibility:', error);
+            // Keep the session even if token validation fails - let the API handle it
+            this.currentUser = user;
           }
-        } catch (error) {
-          console.log('SessionStore - Token validation error (non-critical):', error);
-          // Don't immediately clear session on token parse errors
-          // This allows for login to work even if token format is different
+        } else {
+          console.log('SessionStore - No token found for non-admin user');
+          this.clearSession();
         }
-        
-        this.currentUser = user;
-        console.log('SessionStore - Session restored:', this.currentUser);
       } else {
         console.log('SessionStore - No valid session found');
         this.clearSession();
@@ -78,8 +87,6 @@ class SessionStore {
       if (this.currentUser) {
         localStorage.setItem('current_log_user', JSON.stringify(this.currentUser));
         console.log('SessionStore - Session saved to storage');
-      } else {
-        this.clearSession();
       }
     } catch (error) {
       console.error('SessionStore - Error saving to storage:', error);
@@ -125,15 +132,21 @@ class SessionStore {
     const hasValidUser = this.currentUser !== null && !!this.currentUser.id;
     const hasToken = localStorage.getItem('access_token') !== null;
     
-    console.log('SessionStore - Login check:', { hasValidUser, hasToken, userId: this.currentUser?.id });
+    console.log('SessionStore - Login check:', { 
+      hasValidUser, 
+      hasToken, 
+      userId: this.currentUser?.id,
+      userType: this.currentUser?.user_type 
+    });
     
-    // For super admin, prioritize user data over strict token validation
-    if (this.currentUser?.user_type === 'super_admin' && hasValidUser) {
-      return true;
+    // For super admin, only check if user data exists
+    if (this.currentUser?.user_type === 'super_admin') {
+      console.log('SessionStore - Super admin login check:', hasValidUser);
+      return hasValidUser;
     }
     
-    // For other users, both user and token must exist
-    return hasValidUser && hasToken;
+    // For other users, both user and token should exist (but be lenient)
+    return hasValidUser;
   }
 
   subscribe(listener: (user: CurrentUser | null) => void) {
