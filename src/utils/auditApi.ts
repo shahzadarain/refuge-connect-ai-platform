@@ -98,7 +98,12 @@ export const fetchCompanyAuditLogs = async (companyId: string): Promise<AuditLog
   // Validate token before making request
   checkTokenValidity();
   
-  const url = buildApiUrl(`/api/admin/audit-logs/companies/${companyId}`);
+  // Use the general audit logs endpoint with company filtering
+  const queryParams = new URLSearchParams();
+  queryParams.append('record_id', companyId);
+  queryParams.append('table_name', 'companies');
+  
+  const url = buildApiUrl(`/api/admin/audit-logs?${queryParams.toString()}`);
   
   const response = await fetch(url, {
     method: 'GET',
